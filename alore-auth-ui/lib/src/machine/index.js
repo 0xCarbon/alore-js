@@ -781,7 +781,63 @@ if (stateDefinition) {
     // @ts-ignore
     resolvedState = authMachine.resolveState(previousState);
 }
-export const authService = (services) => interpret(authMachine.withConfig({ services }))
+export const authService = (services) => interpret(authMachine.withConfig({
+    services,
+    guards: {
+        // @ts-ignore
+        isNewUser: (_, event) => !!event.data.isNewUser,
+        forgeClaim: (_, event) => !!event.forgeId,
+        hasHardware2FA: (context, event) => {
+            var _a;
+            const { data } = event;
+            const HARDWARE = 1;
+            // @ts-ignore
+            if (data === null || data === void 0 ? void 0 : data.active2fa)
+                // @ts-ignore
+                return (_a = data === null || data === void 0 ? void 0 : data.active2fa) === null || _a === void 0 ? void 0 : _a.find((item) => (item === null || item === void 0 ? void 0 : item.twoFaTypeId) === HARDWARE);
+            return false;
+        },
+        // eslint-disable-next-line arrow-body-style
+        isNewDevice: () => {
+            // TODO removed until next-auth is out
+            return false;
+            // const { data } = event;
+            // // @ts-ignore
+            // if (data?.error?.includes('Invalid device')) {
+            //   return true;
+            // }
+            // return false;
+        },
+        hasSoftware2FA: (_, event) => {
+            var _a;
+            const { data } = event;
+            const SOFTWARE = 2;
+            // @ts-ignore
+            if (data === null || data === void 0 ? void 0 : data.active2fa)
+                // @ts-ignore
+                return (_a = data === null || data === void 0 ? void 0 : data.active2fa) === null || _a === void 0 ? void 0 : _a.find((item) => (item === null || item === void 0 ? void 0 : item.twoFaTypeId) === SOFTWARE);
+            return false;
+        },
+    },
+    actions: {
+        setSessionUser: assign({
+            sessionUser: (_, event) => event.data,
+        }),
+        setupRegisterUser: assign({
+            registerUser: (_, event) => (event === null || event === void 0 ? void 0 : event.registerUser) || undefined,
+        }),
+        clearContext: assign({
+            salt: () => undefined,
+            error: () => undefined,
+            active2fa: () => undefined,
+            registerUser: () => undefined,
+            googleOtpCode: () => undefined,
+            googleUser: () => undefined,
+            sessionUser: () => undefined,
+            forgeData: () => undefined,
+        }),
+    },
+}, authMachine.context))
     .onTransition((state) => {
     if (state.changed && typeof window !== 'undefined') {
         localStorage.setItem('authState', JSON.stringify(state));

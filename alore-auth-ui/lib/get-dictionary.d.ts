@@ -1,4 +1,3 @@
-import type { Awaited } from 'ts-essentials';
 export declare const i18n: {
     readonly defaultLocale: "en";
     readonly locales: readonly ["en", "pt"];
@@ -6,13 +5,22 @@ export declare const i18n: {
 export type Locale = (typeof i18n)['locales'][number];
 export declare const dictionaries: {
     en: () => Promise<{
+        accept: string;
         password: string;
+        next: string;
         formValidation: {
             required: string;
             invalidEmail: string;
             passwordMinimum: string;
             validName: string;
             agreeTerms: string;
+        };
+        passwordRules: {
+            specialCharacter: string;
+            uppercaseLetter: string;
+            minimumEightCharacters: string;
+            passwordMatch: string;
+            dontUseYourNameOrEmail: string;
         };
         auth: {
             poweredBy: string;
@@ -95,13 +103,22 @@ export declare const dictionaries: {
         };
     }>;
     pt: () => Promise<{
+        accept: string;
         password: string;
+        next: string;
         formValidation: {
             required: string;
             invalidEmail: string;
             passwordMinimum: string;
             validName: string;
             agreeTerms: string;
+        };
+        passwordRules: {
+            specialCharacter: string;
+            uppercaseLetter: string;
+            minimumEightCharacters: string;
+            passwordMatch: string;
+            dontUseYourNameOrEmail: string;
         };
         auth: {
             poweredBy: string;
@@ -185,13 +202,22 @@ export declare const dictionaries: {
     }>;
 };
 export declare const getDictionary: (locale: Locale) => Promise<{
+    accept: string;
     password: string;
+    next: string;
     formValidation: {
         required: string;
         invalidEmail: string;
         passwordMinimum: string;
         validName: string;
         agreeTerms: string;
+    };
+    passwordRules: {
+        specialCharacter: string;
+        uppercaseLetter: string;
+        minimumEightCharacters: string;
+        passwordMatch: string;
+        dontUseYourNameOrEmail: string;
     };
     auth: {
         poweredBy: string;

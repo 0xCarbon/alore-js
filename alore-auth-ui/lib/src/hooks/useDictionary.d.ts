@@ -1,12 +1,21 @@
 import { Locale } from '../../get-dictionary';
 declare const useDictionary: (locale: Locale) => {
+    accept: string;
     password: string;
+    next: string;
     formValidation: {
         required: string;
         invalidEmail: string;
         passwordMinimum: string;
         validName: string;
         agreeTerms: string;
+    };
+    passwordRules: {
+        specialCharacter: string;
+        uppercaseLetter: string;
+        minimumEightCharacters: string;
+        passwordMatch: string;
+        dontUseYourNameOrEmail: string;
     };
     auth: {
         poweredBy: string;

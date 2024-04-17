@@ -723,6 +723,10 @@ export class Alore {
     const init: RequestInit = {
       ...options,
       credentials: 'include',
+      headers: {
+        ...options?.headers,
+        'X-API-KEY': this.apiKey,
+      },
     };
 
     while (attempt < maxAttempts) {
@@ -752,7 +756,6 @@ export class Alore {
 
             if (!refreshResponse.ok) {
               console.error('Refresh token failed');
-              window.location.href = '/login';
               return response;
             }
 
@@ -761,7 +764,6 @@ export class Alore {
             typeof data === 'string' &&
             data.includes('No access token provided')
           ) {
-            window.location.href = '/login';
             return response;
           }
         }
@@ -799,7 +801,7 @@ export class Alore {
         throw new Error('Failed to fetch');
       }
     } catch {
-      window.location.href = '/server-down';
+      throw new Error('Server down');
     }
   }
 }

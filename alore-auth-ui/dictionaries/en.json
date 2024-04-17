@@ -1,11 +1,20 @@
 {
+  "accept": "Accept",
   "password": "Password",
+  "next": "Next",
   "formValidation": {
     "required": "This field is required",
     "invalidEmail": "Invalid e-mail address",
     "passwordMinimum": "Your password must contain at least 8 characters.",
     "validName": "Please enter valid name",
     "agreeTerms": "You must agree to the terms"
+  },
+  "passwordRules": {
+    "specialCharacter": "Use at leat one special character (@!#%&*)",
+    "uppercaseLetter": "Use at least one uppercase letter",
+    "minimumEightCharacters": "Your password must have at least 8 character's",
+    "passwordMatch": "Passwords must match",
+    "dontUseYourNameOrEmail": "Don’t use your name or e-mail"
   },
   "auth": {
     "poweredBy": "Powered by",

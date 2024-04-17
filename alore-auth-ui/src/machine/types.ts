@@ -1,4 +1,6 @@
-type SessionUser = {
+import { authService } from '.';
+
+export type SessionUser = {
   created_at: string;
   device: string;
   device_created_at: string;
@@ -188,3 +190,5 @@ export type AuthMachineServices = {
     data: {};
   };
 };
+
+export type AuthInstance = Awaited<ReturnType<typeof authService>>;

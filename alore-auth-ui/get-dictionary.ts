@@ -1,5 +1,3 @@
-import type { Awaited } from 'ts-essentials';
-
 export const i18n = {
   defaultLocale: 'en',
   locales: ['en', 'pt'],

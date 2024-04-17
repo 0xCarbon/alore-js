@@ -18,7 +18,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useActor } from '@xstate/react';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { InputOTP, InputForm, BackButton, Map } from '../components';
-import { authService } from '../machine';
 import { useGoogleLogin } from '@react-oauth/google';
 import { verifyEmptyValues } from '../helpers';
 import useDictionary from '../hooks/useDictionary';
@@ -26,15 +25,15 @@ import useDictionary from '../hooks/useDictionary';
 const envelopIcon = () => React.createElement(EnvelopeIcon, { className: 'h-4 w-4 text-gray-500' });
 const HARDWARE = 1;
 const SOFTWARE = 2;
-const Login = ({ locale = 'pt', machineServices, cloudflareKey, forgeId, cryptoUtils, }) => {
+export const Login = ({ locale = 'pt', authServiceInstance, cloudflareKey, forgeId, cryptoUtils, }) => {
     const { hashUserInfo, generateSecureHash } = cryptoUtils;
     const dictionary = useDictionary(locale);
     const loginDictionary = dictionary === null || dictionary === void 0 ? void 0 : dictionary.auth.login;
     // const keyshareWorker: Worker | null = useContext(KeyshareWorkerContext);
     const [secureCode2FA, setSecure2FACode] = useState('');
     const [secureCodeEmail, setSecureCodeEmail] = useState('');
-    const [authState, sendAuth] = useActor(authService(machineServices));
-    const { salt, error: authError, active2fa, registerUser, googleOtpCode, googleUser, } = authState.context;
+    const [authState, sendAuth] = useActor(authServiceInstance);
+    const { salt, error: authError, active2fa, registerUser, googleOtpCode, googleUser, sessionUser, } = authState.context;
     const [currentDevice, setCurrentDevice] = useState('');
     const [loading, setLoading] = useState(false);
     const [sendEmailCooldown, setSendEmailCooldown] = useState(0);
@@ -52,10 +51,10 @@ const Login = ({ locale = 'pt', machineServices, cloudflareKey, forgeId, cryptoU
     });
     const [captchaStatus, setCaptchaStatus] = useState('idle');
     const [captchaToken, setCaptchaToken] = useState('');
-    console.log({ authState });
-    console.log({ value: authState.value });
     const handleLogin = () => login();
+    console.log({ value: authState.value });
     useEffect(() => {
+        console.log({ authState });
         if (authState.matches('active.login.idle'))
             setCaptchaStatus('idle');
     }, [authState.value]);
@@ -72,19 +71,6 @@ const Login = ({ locale = 'pt', machineServices, cloudflareKey, forgeId, cryptoU
         authState.matches('active.login.resendingConfirmationEmail') ||
         authState.matches('active.web3Connector.verifyingClaimNftEmail2fa') ||
         authState.matches('active.web3Connector.verifyingEmailEligibility'), [authState.value]);
-    useEffect(() => {
-        if (googleUser)
-            sendAuth([
-                { type: 'INITIALIZE', forgeId },
-                'LOGIN',
-                'ADVANCE_TO_PASSWORD',
-            ]);
-        else
-            sendAuth([{ type: 'INITIALIZE', forgeId }, 'LOGIN']);
-        return () => {
-            sendAuth('RESET');
-        };
-    }, []);
     const emailFormSchema = yup
         .object({
         email: yup
@@ -375,7 +361,7 @@ const Login = ({ locale = 'pt', machineServices, cloudflareKey, forgeId, cryptoU
             React.createElement("span", { className: 'text-center text-sm font-medium' }, loginDictionary === null || loginDictionary === void 0 ? void 0 :
                 loginDictionary.dontHaveAccount,
                 React.createElement("div", { className: 'cursor-pointer text-alr-red', onClick: () => {
-                        sendAuth(['RESET', { type: 'INITIALIZE', forgeId }]);
+                        sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
                     } }, loginDictionary === null || loginDictionary === void 0 ? void 0 : loginDictionary.singUp))))), [
         getValuesEmail(),
         isLoginSubmitDisabled,
@@ -408,7 +394,7 @@ const Login = ({ locale = 'pt', machineServices, cloudflareKey, forgeId, cryptoU
             React.createElement("span", { className: 'text-sm font-medium' }, loginDictionary === null || loginDictionary === void 0 ? void 0 :
                 loginDictionary.dontHaveAccount,
                 React.createElement("div", { className: 'cursor-pointer text-alr-red', onClick: () => {
-                        sendAuth(['RESET', { type: 'INITIALIZE', forgeId }]);
+                        sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
                     } }, loginDictionary === null || loginDictionary === void 0 ? void 0 : loginDictionary.singUp))))), [
         getValuesPassword(),
         isLoginSubmitDisabled,
@@ -510,6 +496,8 @@ const Login = ({ locale = 'pt', machineServices, cloudflareKey, forgeId, cryptoU
             (authState.matches('active.login.newDevice') ||
                 authState.matches('active.login.verifyingCode') ||
                 authState.matches('active.login.resendingConfirmationEmail')) &&
-                NewDeviceStep)));
+                NewDeviceStep,
+            authState.matches('active.login.successfulLogin') && (React.createElement("div", { className: 'flex flex-row gap-2 justify-center items-center' },
+                React.createElement("span", null, "Login complete for"),
+                React.createElement("span", { className: 'font-semibold' }, sessionUser === null || sessionUser === void 0 ? void 0 : sessionUser.nickname))))));
 };
-export default Login;

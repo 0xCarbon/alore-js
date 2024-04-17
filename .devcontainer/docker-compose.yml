@@ -1,0 +1,7 @@
+version: "3.8"
+
+services:
+  app:
+    image: ghcr.io/0xcarbon/devcontainer@sha256:7173b547ce59f154e2947519a881cd5588f6c8ce5ebb863e00643a97641a353b
+    volumes:
+      - ../..:/workspaces:cached

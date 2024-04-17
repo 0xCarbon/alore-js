@@ -2,7 +2,7 @@
   "name": "alore-auth-sdk",
   "private": true,
   "version": "1.0.0",
-  "description": "",
+  "description": "SDK for Alore Auth",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

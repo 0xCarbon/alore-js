@@ -877,7 +877,71 @@ if (stateDefinition) {
 }
 
 export const authService = (services: {}) =>
-  interpret(authMachine.withConfig({ services }))
+  interpret(
+    authMachine.withConfig(
+      {
+        services,
+        guards: {
+          // @ts-ignore
+          isNewUser: (_, event) => !!event.data.isNewUser,
+          forgeClaim: (_, event) => !!event.forgeId,
+          hasHardware2FA: (context, event) => {
+            const { data } = event;
+            const HARDWARE = 1;
+            // @ts-ignore
+            if (data?.active2fa)
+              // @ts-ignore
+              return data?.active2fa?.find(
+                (item: any) => item?.twoFaTypeId === HARDWARE
+              );
+            return false;
+          },
+          // eslint-disable-next-line arrow-body-style
+          isNewDevice: () => {
+            // TODO removed until next-auth is out
+
+            return false;
+            // const { data } = event;
+            // // @ts-ignore
+            // if (data?.error?.includes('Invalid device')) {
+            //   return true;
+            // }
+            // return false;
+          },
+          hasSoftware2FA: (_, event) => {
+            const { data } = event;
+            const SOFTWARE = 2;
+            // @ts-ignore
+            if (data?.active2fa)
+              // @ts-ignore
+              return data?.active2fa?.find(
+                (item: any) => item?.twoFaTypeId === SOFTWARE
+              );
+            return false;
+          },
+        },
+        actions: {
+          setSessionUser: assign({
+            sessionUser: (_, event) => event.data,
+          }),
+          setupRegisterUser: assign({
+            registerUser: (_, event) => event?.registerUser || undefined,
+          }),
+          clearContext: assign({
+            salt: () => undefined,
+            error: () => undefined,
+            active2fa: () => undefined,
+            registerUser: () => undefined,
+            googleOtpCode: () => undefined,
+            googleUser: () => undefined,
+            sessionUser: () => undefined,
+            forgeData: () => undefined,
+          }),
+        },
+      },
+      authMachine.context
+    )
+  )
     .onTransition((state) => {
       if (state.changed && typeof window !== 'undefined') {
         localStorage.setItem('authState', JSON.stringify(state));

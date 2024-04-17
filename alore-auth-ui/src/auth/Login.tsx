@@ -11,11 +11,11 @@ import { useActor } from '@xstate/react';
 import { LatLngTuple } from 'leaflet';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { InputOTP, InputForm, BackButton, Map } from '../components';
-import { authService } from '../machine';
 import { useGoogleLogin } from '@react-oauth/google';
 import { CaptchaStatus, NewDeviceInfo, verifyEmptyValues } from '../helpers';
 import useDictionary from '../hooks/useDictionary';
 import { Locale } from '../../get-dictionary';
+import { AuthInstance } from '../machine/types';
 // import { KeyshareWorkerContext } from '../../keyshareWorker'; // TODO
 
 const envelopIcon = () => <EnvelopeIcon className='h-4 w-4 text-gray-500' />;
@@ -25,7 +25,7 @@ const SOFTWARE = 2;
 
 export interface LoginProps {
   locale?: Locale;
-  machineServices: {};
+  authServiceInstance: AuthInstance;
   cloudflareKey: string;
   forgeId?: string;
   cryptoUtils: {
@@ -38,9 +38,9 @@ export interface LoginProps {
   };
 }
 
-const Login = ({
+export const Login = ({
   locale = 'pt',
-  machineServices,
+  authServiceInstance,
   cloudflareKey,
   forgeId,
   cryptoUtils,
@@ -52,7 +52,7 @@ const Login = ({
   // const keyshareWorker: Worker | null = useContext(KeyshareWorkerContext);
   const [secureCode2FA, setSecure2FACode] = useState('');
   const [secureCodeEmail, setSecureCodeEmail] = useState('');
-  const [authState, sendAuth] = useActor(authService(machineServices));
+  const [authState, sendAuth] = useActor(authServiceInstance);
   const {
     salt,
     error: authError,
@@ -60,6 +60,7 @@ const Login = ({
     registerUser,
     googleOtpCode,
     googleUser,
+    sessionUser,
   } = authState.context;
   const [currentDevice, setCurrentDevice] = useState('');
   const [loading, setLoading] = useState(false);
@@ -80,12 +81,11 @@ const Login = ({
   const [captchaStatus, setCaptchaStatus] = useState<CaptchaStatus>('idle');
   const [captchaToken, setCaptchaToken] = useState('');
 
-  console.log({ authState });
-  console.log({ value: authState.value });
-
   const handleLogin = () => login();
 
+  console.log({ value: authState.value });
   useEffect(() => {
+    console.log({ authState });
     if (authState.matches('active.login.idle')) setCaptchaStatus('idle');
   }, [authState.value]);
 
@@ -106,20 +106,6 @@ const Login = ({
       authState.matches('active.web3Connector.verifyingEmailEligibility'),
     [authState.value]
   );
-
-  useEffect(() => {
-    if (googleUser)
-      sendAuth([
-        { type: 'INITIALIZE', forgeId },
-        'LOGIN',
-        'ADVANCE_TO_PASSWORD',
-      ]);
-    else sendAuth([{ type: 'INITIALIZE', forgeId }, 'LOGIN']);
-
-    return () => {
-      sendAuth('RESET');
-    };
-  }, []);
 
   const emailFormSchema = yup
     .object({
@@ -549,7 +535,7 @@ const Login = ({
             <div
               className='cursor-pointer text-alr-red'
               onClick={() => {
-                sendAuth(['RESET', { type: 'INITIALIZE', forgeId }]);
+                sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
               }}
             >
               {loginDictionary?.singUp}
@@ -639,7 +625,7 @@ const Login = ({
             <div
               className='cursor-pointer text-alr-red'
               onClick={() => {
-                sendAuth(['RESET', { type: 'INITIALIZE', forgeId }]);
+                sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
               }}
             >
               {loginDictionary?.singUp}
@@ -944,6 +930,12 @@ const Login = ({
           authState.matches('active.login.verifyingCode') ||
           authState.matches('active.login.resendingConfirmationEmail')) &&
           NewDeviceStep}
+        {authState.matches('active.login.successfulLogin') && (
+          <div className='flex flex-row gap-2 justify-center items-center'>
+            <span>Login complete for</span>
+            <span className='font-semibold'>{sessionUser?.nickname}</span>
+          </div>
+        )}
       </Card>
 
       {/* {authState.matches('active.login.idle') && (
@@ -958,5 +950,3 @@ const Login = ({
     </div>
   );
 };
-
-export default Login;

@@ -385,7 +385,7 @@ export class Alore {
             let attempt = 0;
             let delayValue = initialDelay;
             // eslint-disable-next-line no-undef
-            const init = Object.assign(Object.assign({}, options), { credentials: 'include' });
+            const init = Object.assign(Object.assign({}, options), { credentials: 'include', headers: Object.assign(Object.assign({}, options === null || options === void 0 ? void 0 : options.headers), { 'X-API-KEY': this.apiKey }) });
             while (attempt < maxAttempts) {
                 if (attempt > 0) {
                     // eslint-disable-next-line no-await-in-loop, no-promise-executor-return, no-loop-func
@@ -406,14 +406,12 @@ export class Alore {
                             });
                             if (!refreshResponse.ok) {
                                 console.error('Refresh token failed');
-                                window.location.href = '/login';
                                 return response;
                             }
                             throw new Error('ExpiredSignature');
                         }
                         else if (typeof data === 'string' &&
                             data.includes('No access token provided')) {
-                            window.location.href = '/login';
                             return response;
                         }
                     }
@@ -445,7 +443,7 @@ export class Alore {
                 }
             }
             catch (_a) {
-                window.location.href = '/server-down';
+                throw new Error('Server down');
             }
         });
     }

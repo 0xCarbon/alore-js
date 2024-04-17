@@ -1,8 +1,8 @@
 {
-  "name": "alore-auth-sdk",
+  "name": "alore-auth-ui",
   "private": true,
   "version": "1.0.0",
-  "description": "",
+  "description": "React Auth UI component for Alore",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
@@ -28,11 +28,11 @@
     "@types/leaflet": "1.9.3",
     "@types/react": "18.2.79",
     "@xstate/react": "3.2.2",
-    "alore-auth-sdk": "file:../alore-auth-sdk",
     "autoprefixer": "10.4.19",
     "classnames": "2.3.2",
     "flowbite": "2.3.0",
     "flowbite-react": "npm:@0xcarbon/meubite-react@0.6.4",
+    "jwt-decode": "3.1.2",
     "leaflet": "1.9.4",
     "postcss": "8.4.38",
     "react": "18.2.0",
