@@ -3,7 +3,7 @@ import classNames from 'classnames';
 import { FieldValues } from 'react-hook-form';
 import { passwordRules, ruleValidation } from './helpers';
 import useDictionary from '../../hooks/useDictionary';
-import { Locale } from '../../../get-dictionary';
+import { Locale } from '../../get-dictionary';
 import React from 'react';
 
 interface FormRulesProps {

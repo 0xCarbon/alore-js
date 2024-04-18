@@ -1,8 +1,7 @@
 /* eslint-disable no-restricted-globals */
 import { keccak256 } from 'ethers';
 import init, { derive_child_keyshare } from '@0xcarbon/dkls23-wasm';
-import crypto, { UUID } from 'crypto';
-import argon2 from 'argon2-browser';
+import { UUID } from 'crypto';
 
 type FetchWithProgressiveBackoffConfig = {
   maxAttempts?: number;
@@ -85,35 +84,6 @@ export interface Keyshare {
     chain_code: number[];
   };
   eth_address: string;
-}
-
-export function hashUserInfo(userInfo: string) {
-  const hash = crypto.createHash('sha256');
-  hash.update(userInfo);
-  return hash.digest('hex');
-}
-
-type KeyDerivationFunction = 'argon2d' | 'pbkdf2';
-
-export async function generateSecureHash(
-  password: string,
-  salt: string,
-  keyDerivationFunction: KeyDerivationFunction = 'argon2d'
-): Promise<string> {
-  if (keyDerivationFunction === 'argon2d') {
-    const result = await argon2.hash({
-      pass: password,
-      salt,
-      type: argon2.ArgonType.Argon2d,
-      hashLen: 32,
-      mem: 32768,
-      time: 3,
-      parallelism: 2,
-    });
-
-    return result.encoded;
-  }
-  throw new Error('Unsupported key derivation function');
 }
 
 export function arrayToHex(array: number[]) {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Dictionary, getDictionary, Locale } from '../../get-dictionary';
+import { Dictionary, getDictionary, Locale } from '../get-dictionary';
 
 const useDictionary = (locale: Locale) => {
   const [dictionary, setDictionary] = useState<Dictionary>();

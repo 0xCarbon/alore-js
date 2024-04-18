@@ -21,7 +21,6 @@ import {
   FormRules,
   InputOTP,
 } from '../components';
-import { Locale } from '../../get-dictionary';
 import { authService } from '../machine';
 import useDictionary from '../hooks/useDictionary';
 import { AuthInstance } from '../machine/types';
@@ -31,6 +30,7 @@ import {
   metamaskLogo,
   walletConnectLogo,
 } from '../utils';
+import { Locale } from 'get-dictionary';
 
 const envelopIcon = () => <EnvelopeIcon className='h-4 w-4 text-gray-500' />;
 

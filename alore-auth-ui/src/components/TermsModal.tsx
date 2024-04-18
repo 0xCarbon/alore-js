@@ -5,7 +5,7 @@
 import { Button, Modal } from 'flowbite-react';
 import React from 'react';
 import useDictionary from '../hooks/useDictionary';
-import { Locale } from '../../get-dictionary';
+import { Locale } from '../get-dictionary';
 
 interface Props {
   locale: Locale;

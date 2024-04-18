@@ -5,6 +5,15 @@ settings:
   excludeLinksFromLockfile: false
 
 devDependencies:
+  '@0xcarbon/alore-auth-sdk':
+    specifier: 0.0.1-alpha
+    version: 0.0.1-alpha
+  '@0xcarbon/alore-auth-ui':
+    specifier: 0.0.11-alpha
+    version: 0.0.11-alpha(@types/react@18.2.79)(react-dom@18.0.0)
+  '@0xcarbon/alore-crypto-sdk':
+    specifier: 0.0.1-alpha
+    version: 0.0.1-alpha
   '@0xcarbon/dkls23-wasm':
     specifier: 0.1.2
     version: npm.pkg.github.com/@0xCarbon/dkls23-wasm@0.1.2
@@ -35,15 +44,6 @@ devDependencies:
   '@xstate/react':
     specifier: 3.2.2
     version: 3.2.2(@types/react@18.2.79)(react@18.2.0)(xstate@4.38.2)
-  alore-auth-sdk:
-    specifier: file:../alore-auth-sdk/dist
-    version: file:../alore-auth-sdk/dist
-  alore-auth-ui:
-    specifier: file:../alore-auth-ui/lib
-    version: file:../alore-auth-ui/lib
-  alore-crypto-sdk:
-    specifier: file:../alore-crypto-sdk/dist
-    version: file:../alore-crypto-sdk/dist
   argon2-browser:
     specifier: 1.18.0
     version: 1.18.0
@@ -103,6 +103,53 @@ devDependencies:
     version: 1.1.1
 
 packages:
+
+  /@0xcarbon/alore-auth-sdk@0.0.1-alpha:
+    resolution: {integrity: sha512-/mxgjM9yQhNgqDAvrsqQ9u7EvgrGQR/KJmSvSVaPlr5QStOS3gHacLC/HzT10mLdC6kPW8wzzLWkXkDj14R7VQ==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-sdk/0.0.1-alpha/c5fb9b7e52526564eb915f42c3bb04f12397dbbb}
+    dependencies:
+      '@simplewebauthn/browser': 7.4.0
+      argon2-browser: 1.18.0
+      ethers: 6.7.1
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: true
+
+  /@0xcarbon/alore-auth-ui@0.0.11-alpha(@types/react@18.2.79)(react-dom@18.0.0):
+    resolution: {integrity: sha512-wJKCQUiAbge0JHGmRsUGdr1HKxKZa98Ckv58ECu7NhBVy4Gd77rrhD0oKQmafW6Q6jEsFA2bCc2YzlgWhClDrA==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-ui/0.0.11-alpha/819af596f5a828fbf8ef66851e6f9ee89e4352f5}
+    dependencies:
+      '@heroicons/react': 2.0.16(react@18.2.0)
+      '@hookform/resolvers': 3.1.0(react-hook-form@7.45.4)
+      '@marsidev/react-turnstile': 0.4.0(react-dom@18.0.0)(react@18.2.0)
+      '@react-oauth/google': 0.12.1(react-dom@18.0.0)(react@18.2.0)
+      '@xstate/react': 3.2.2(@types/react@18.2.79)(react@18.2.0)(xstate@4.38.2)
+      classnames: 2.3.2
+      flowbite: 2.3.0
+      flowbite-react: /@0xcarbon/meubite-react@0.6.4(react-dom@18.0.0)(react@18.2.0)(tailwindcss@3.4.3)
+      jwt-decode: 3.1.2
+      leaflet: 1.9.4
+      react: 18.2.0
+      react-hook-form: 7.45.4(react@18.2.0)
+      react-leaflet: 4.2.1(leaflet@1.9.4)(react-dom@18.0.0)(react@18.2.0)
+      tailwindcss: 3.4.3
+      xstate: 4.38.2
+      yup: 1.1.1
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@xstate/fsm'
+      - react-dom
+      - ts-node
+    dev: true
+
+  /@0xcarbon/alore-crypto-sdk@0.0.1-alpha:
+    resolution: {integrity: sha512-fRvtkNYnCO+KNE6V45i6EZ6G44TDhyEp8tGlBD20fXwP0sR49OAYnfrWK5MJb7WP+o9iL9u2Y9E3NQ67tjFofg==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-crypto-sdk/0.0.1-alpha/1c38581ddf43ef5ae97f274a1ab2835d2757d66f}
+    dependencies:
+      '@0xcarbon/dkls23-wasm': npm.pkg.github.com/@0xCarbon/dkls23-wasm@0.1.2
+      ethers: 6.7.1
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: true
 
   /@0xcarbon/meubite-react@0.6.4(react-dom@18.0.0)(react@18.2.0)(tailwindcss@3.4.3):
     resolution: {integrity: sha512-sCGbmoNNGDn1DHt1bQpdD6ZCklwOQwA5gx/uCm3V8y+ciVxQRO5TbE64MntZm0Bxx8rtX2DV9tg9adVghuA/OQ==, tarball: https://npm.pkg.github.com/download/@0xcarbon/meubite-react/0.6.4/d3d77bb43bcd2f88f828559eb5a8b67b312f8e13}
@@ -1490,21 +1537,6 @@ packages:
       tiny-case: 1.0.3
       toposort: 2.0.2
       type-fest: 2.19.0
-    dev: true
-
-  file:../alore-auth-sdk/dist:
-    resolution: {directory: ../alore-auth-sdk/dist, type: directory}
-    name: dist
-    dev: true
-
-  file:../alore-auth-ui/lib:
-    resolution: {directory: ../alore-auth-ui/lib, type: directory}
-    name: lib
-    dev: true
-
-  file:../alore-crypto-sdk/dist:
-    resolution: {directory: ../alore-crypto-sdk/dist, type: directory}
-    name: dist
     dev: true
 
   npm.pkg.github.com/@0xCarbon/dkls23-wasm@0.1.2:

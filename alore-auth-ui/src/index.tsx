@@ -1,3 +1,3 @@
-import './globals.css';
+import Auth from './Auth';
 
-export * from './auth';
+export { Auth };

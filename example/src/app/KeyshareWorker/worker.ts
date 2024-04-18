@@ -2,7 +2,7 @@ import {
   AloreCrypto,
   KeyshareWorkerMessage,
   SimpleCredential,
-} from 'alore-crypto-sdk';
+} from '@0xcarbon/alore-crypto-sdk';
 
 const aloreCrypto = new AloreCrypto('MY_API_KEY', {
   endpoint: 'http://localhost:8000/v1',

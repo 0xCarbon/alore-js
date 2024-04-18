@@ -3,9 +3,12 @@
 import KeyshareWorkerProvider, {
   KeyshareWorkerContext,
 } from './KeyshareWorker';
-import { AloreAuth } from 'alore-auth-sdk';
-import { Auth } from 'alore-auth-ui/src/auth';
-import { hashUserInfo, generateSecureHash } from 'alore-crypto-sdk';
+import {
+  AloreAuth,
+  hashUserInfo,
+  generateSecureHash,
+} from '@0xcarbon/alore-auth-sdk';
+import { Auth } from '@0xcarbon/alore-auth-ui';
 import { useContext } from 'react';
 
 export default function Home() {

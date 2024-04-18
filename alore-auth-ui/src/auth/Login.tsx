@@ -14,7 +14,6 @@ import { InputOTP, InputForm, BackButton, Map } from '../components';
 import { useGoogleLogin } from '@react-oauth/google';
 import { CaptchaStatus, NewDeviceInfo, verifyEmptyValues } from '../helpers';
 import useDictionary from '../hooks/useDictionary';
-import { Locale } from '../../get-dictionary';
 import { AuthInstance } from '../machine/types';
 import {
   aloreLogoBlack,
@@ -24,6 +23,7 @@ import {
   metamaskLogo,
   walletConnectLogo,
 } from '../utils';
+import { Locale } from 'get-dictionary';
 
 const envelopIcon = () => <EnvelopeIcon className='h-4 w-4 text-gray-500' />;
 

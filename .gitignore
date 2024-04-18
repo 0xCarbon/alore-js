@@ -5,3 +5,6 @@ node_modules
 *.typegen.*
 
 .env
+
+*.d.ts
+*.js

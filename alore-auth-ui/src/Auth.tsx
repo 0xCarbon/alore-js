@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { Locale } from '../../get-dictionary';
-import { Login } from './Login';
-import { authService } from '../machine';
+import { Login } from './auth/Login';
+import { authService } from './machine';
 import { useActor } from '@xstate/react';
-import { Register } from './Register';
-import { SessionUser } from '../machine/types';
+import { Register } from './auth/Register';
+import { SessionUser } from './machine/types';
+import { Locale } from 'get-dictionary';
 
 export interface AuthProps {
   locale?: Locale;
@@ -26,7 +26,7 @@ export interface AuthProps {
   onSuccess?: (sessionUser: SessionUser) => void;
 }
 
-export const Auth = ({
+const Auth = ({
   locale = 'pt',
   machineServices,
   cloudflareKey,
@@ -94,3 +94,5 @@ export const Auth = ({
     </GoogleOAuthProvider>
   );
 };
+
+export default Auth;

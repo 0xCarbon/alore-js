@@ -7,7 +7,7 @@ module.exports = {
     './src/**/*.{js,ts,jsx,tsx}',
     'node_modules/flowbite-react/**/*.{js,jsx,ts,tsx}',
     'node_modules/@0xcarbon/meubite-react/**/*.{js,jsx,ts,tsx}',
-    'node_modules/alore-auth-ui/**/*.{js,jsx,ts,tsx}',
+    'node_modules/@0xcarbon/alore-auth-ui/**/*.{js,jsx,ts,tsx}',
   ],
   theme: {
     screens: {
