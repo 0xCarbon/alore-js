@@ -23,8 +23,9 @@ import { Turnstile } from '@marsidev/react-turnstile';
 import { verifyEmptyValues } from '../helpers';
 import { BackButton, CheckboxForm, TermsModal, InputForm, FormRules, InputOTP, } from '../components';
 import useDictionary from '../hooks/useDictionary';
+import { aloreLogoBlack, google, metamaskLogo, walletConnectLogo, } from '../utils';
 const envelopIcon = () => React.createElement(EnvelopeIcon, { className: 'h-4 w-4 text-gray-500' });
-export const Register = ({ locale = 'pt', authServiceInstance, cloudflareKey, forgeId, inviteToken, cryptoUtils, }) => {
+export const Register = ({ locale = 'pt', authServiceInstance, cloudflareKey, forgeId, inviteToken, keyshareWorker, cryptoUtils, }) => {
     const { hashUserInfo, generateSecureHash } = cryptoUtils;
     const dictionary = useDictionary(locale);
     const registerDictionary = dictionary === null || dictionary === void 0 ? void 0 : dictionary.auth.register;
@@ -35,7 +36,6 @@ export const Register = ({ locale = 'pt', authServiceInstance, cloudflareKey, fo
     const intervalRef = useRef();
     const { salt, error: authError, registerUser, googleUser, sessionUser, } = authState.context;
     const [userSalt, setUserSalt] = useState('');
-    //   const keyshareWorker: null | Worker = useContext(KeyshareWorkerContext);
     const login = useGoogleLogin({
         onSuccess: (tokenResponse) => {
             resetUserInfo();
@@ -107,9 +107,6 @@ export const Register = ({ locale = 'pt', authServiceInstance, cloudflareKey, fo
             ]);
         else
             sendAuth([{ type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
-        return () => {
-            sendAuth('RESET');
-        };
     }, []);
     useEffect(() => {
         if (inviteToken) {
@@ -195,15 +192,14 @@ export const Register = ({ locale = 'pt', authServiceInstance, cloudflareKey, fo
             }
         });
     }
-    // TODO
     function derivePasswordAndGetKeyshares(password, email) {
         return __awaiter(this, void 0, void 0, function* () {
-            // if (keyshareWorker) {
-            //   keyshareWorker.postMessage({
-            //     method: 'derive-password',
-            //     payload: { password, email },
-            //   });
-            // }
+            if (keyshareWorker) {
+                keyshareWorker.postMessage({
+                    method: 'derive-password',
+                    payload: { password, email },
+                });
+            }
         });
     }
     function onSubmitRegister(data) {
@@ -276,7 +272,7 @@ export const Register = ({ locale = 'pt', authServiceInstance, cloudflareKey, fo
                 isLoading && (React.createElement(Spinner, { className: 'mr-3 !h-5 w-full !fill-gray-300' })), registerDictionary === null || registerDictionary === void 0 ? void 0 :
                 registerDictionary.buttonStart)),
         React.createElement("div", { className: 'flex w-full cursor-pointer flex-row items-center justify-center gap-1.5 text-sm text-gray-500', onClick: () => {
-                sendAuth(['RESET', { type: 'INITIALIZE', forgeId }]);
+                sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'LOGIN']);
             } },
             React.createElement("span", { className: 'font-inter font-semibold' }, registerDictionary === null || registerDictionary === void 0 ? void 0 : registerDictionary.alreadyHaveAccount),
             React.createElement(ArrowRightIcon, { className: 'h-4 w-4' })),
@@ -284,13 +280,13 @@ export const Register = ({ locale = 'pt', authServiceInstance, cloudflareKey, fo
             React.createElement("div", { className: 'h-[0.5px] w-full bg-gray-300' }),
             React.createElement(Button, { color: 'light', onClick: handleLogin, outline: true },
                 React.createElement("div", { className: 'flex flex-row items-center justify-center gap-2' },
-                    React.createElement("img", { src: '/assets/google.svg', alt: 'google logo', width: 16 }), dictionary === null || dictionary === void 0 ? void 0 :
+                    React.createElement("img", { src: google, alt: 'google logo', width: 16 }), dictionary === null || dictionary === void 0 ? void 0 :
                     dictionary.auth.continueGoogle)),
             React.createElement(Button, { color: 'light', onClick: () => sendAuth('LOGIN_WITH_WEB3CONNECTOR'), outline: true },
                 React.createElement("div", { className: 'flex flex-row items-center justify-center gap-2' },
                     React.createElement("div", { className: 'relative flex flex-row' },
-                        React.createElement("img", { src: '/assets/metamask-logo.svg', alt: 'metamask logo', width: 20, className: 'absolute right-3' }),
-                        React.createElement("img", { src: '/assets/wallet-connect-logo.svg', alt: 'walletconnect logo', width: 20 })),
+                        React.createElement("img", { src: metamaskLogo, alt: 'metamask logo', width: 20, className: 'absolute right-3' }),
+                        React.createElement("img", { src: walletConnectLogo, alt: 'walletconnect logo', width: 20 })),
                     "Metamask/WalletConnect")))))), [
         isUserInfoSubmitDisabled,
         userInfoControl,
@@ -342,7 +338,7 @@ export const Register = ({ locale = 'pt', authServiceInstance, cloudflareKey, fo
             React.createElement("span", { className: 'text-center font-poppins text-2xl font-black text-alr-grey' }, "Tardezinha com Thiaguinho"),
             React.createElement("div", { className: 'flex w-full flex-row items-center justify-center gap-2' },
                 React.createElement("span", { className: 'font-inter text-sm font-medium text-gray-900' }, dictionary === null || dictionary === void 0 ? void 0 : dictionary.auth.poweredBy),
-                React.createElement("img", { src: '/assets/alore-logo-black.svg', alt: 'alore logo', width: '60' })))) : (React.createElement("img", { src: '/assets/alore-logo-black.svg', alt: 'alore logo', className: 'mb-5', width: authState.matches('active.login.newDevice') ? 153 : 201 })),
+                React.createElement("img", { src: aloreLogoBlack, alt: 'alore logo', width: '60' })))) : (React.createElement("img", { src: aloreLogoBlack, alt: 'alore logo', className: 'mb-5', width: authState.matches('active.login.newDevice') ? 153 : 201 })),
         React.createElement(Card, { className: `flex min-w-[20rem] md:w-96 ${isLoading ? 'pointer-events-none opacity-50' : ''} mx-5 py-2 md:mx-7 md:child:!px-9` },
             forgeId && authState.matches('active.web3Connector') && 'TODO',
             (authState.matches('active.register.idle') ||
@@ -357,7 +353,9 @@ export const Register = ({ locale = 'pt', authServiceInstance, cloudflareKey, fo
             (authState.matches('active.register.createPassword') ||
                 authState.matches('active.register.completingRegistration')) &&
                 Password,
-            authState.matches('active.register.userCreated') && (React.createElement("div", { className: 'flex flex-row gap-2 justify-center items-center' },
-                React.createElement("span", null, "Registration complete for"),
-                React.createElement("span", { className: 'font-semibold' }, sessionUser === null || sessionUser === void 0 ? void 0 : sessionUser.nickname))))));
+            authState.matches('active.register.userCreated') && (React.createElement("div", { className: 'flex flex-col justify-center items-center gap-4' },
+                React.createElement("div", { className: 'flex flex-row gap-2 justify-center items-center' },
+                    React.createElement("span", null, "Registration complete for"),
+                    React.createElement("span", { className: 'font-semibold' }, sessionUser === null || sessionUser === void 0 ? void 0 : sessionUser.nickname)),
+                React.createElement(Button, { onClick: () => sendAuth(['RESET_CONTEXT', 'INITIALIZE']) }, "LOGOUT"))))));
 };

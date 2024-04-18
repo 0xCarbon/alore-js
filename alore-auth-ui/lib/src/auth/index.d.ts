@@ -8,10 +8,11 @@ export interface AuthProps {
     googleId: string;
     forgeId?: string;
     inviteToken?: string;
+    keyshareWorker: Worker | null;
     cryptoUtils: {
         hashUserInfo: (userInfo: string) => string;
         generateSecureHash: (data: string, salt: string, keyDerivationFunction: 'argon2d' | 'pbkdf2') => Promise<string>;
     };
     onSuccess?: (sessionUser: SessionUser) => void;
 }
-export declare const Auth: ({ locale, machineServices, cloudflareKey, googleId, forgeId, inviteToken, cryptoUtils, onSuccess, }: AuthProps) => React.JSX.Element;
+export declare const Auth: ({ locale, machineServices, cloudflareKey, googleId, forgeId, inviteToken, keyshareWorker, cryptoUtils, onSuccess, }: AuthProps) => React.JSX.Element;

@@ -4,7 +4,6 @@ import { Locale } from '../../get-dictionary';
 import { Login } from './Login';
 import { authService } from '../machine';
 import { useActor } from '@xstate/react';
-import { Button } from 'flowbite-react';
 import { Register } from './Register';
 import { SessionUser } from '../machine/types';
 
@@ -15,6 +14,7 @@ export interface AuthProps {
   googleId: string;
   forgeId?: string;
   inviteToken?: string;
+  keyshareWorker: Worker | null;
   cryptoUtils: {
     hashUserInfo: (userInfo: string) => string;
     generateSecureHash: (
@@ -23,7 +23,6 @@ export interface AuthProps {
       keyDerivationFunction: 'argon2d' | 'pbkdf2'
     ) => Promise<string>;
   };
-  // callback method to return the sessionUser
   onSuccess?: (sessionUser: SessionUser) => void;
 }
 
@@ -34,6 +33,7 @@ export const Auth = ({
   googleId,
   forgeId,
   inviteToken,
+  keyshareWorker,
   cryptoUtils,
   onSuccess,
 }: AuthProps) => {
@@ -70,21 +70,6 @@ export const Auth = ({
 
   return (
     <GoogleOAuthProvider clientId={googleId}>
-      <Button
-        onClick={() => {
-          sendAuth('INITIALIZE');
-        }}
-      >
-        INIT
-      </Button>
-      <Button
-        onClick={() => {
-          sendAuth('RESET');
-        }}
-      >
-        RESET
-      </Button>
-      {authState.matches('active.login.idle') ? 'true' : 'false'}
       {authState.matches('active.login') && (
         <Login
           locale={locale}
@@ -92,6 +77,7 @@ export const Auth = ({
           cloudflareKey={cloudflareKey}
           forgeId={forgeId}
           cryptoUtils={cryptoUtils}
+          keyshareWorker={keyshareWorker}
         />
       )}
       {authState.matches('active.register') && (
@@ -102,6 +88,7 @@ export const Auth = ({
           forgeId={forgeId}
           inviteToken={inviteToken}
           cryptoUtils={cryptoUtils}
+          keyshareWorker={keyshareWorker}
         />
       )}
     </GoogleOAuthProvider>

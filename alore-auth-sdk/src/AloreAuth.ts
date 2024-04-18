@@ -2,7 +2,7 @@ import { startAuthentication } from '@simplewebauthn/browser';
 
 const DEFAULT_URL = 'https://api-beta.bealore.com/v1';
 
-export interface AloreSDKConfiguration {
+export interface AloreAuthConfiguration {
   endpoint?: string;
 }
 
@@ -46,11 +46,14 @@ interface AuthMachineContext {
   RCRPublicKey?: any;
 }
 
-export class Alore {
+export class AloreAuth {
   protected readonly endpoint: string;
   protected readonly configuration: string;
 
-  constructor(public readonly apiKey: string, options?: AloreSDKConfiguration) {
+  constructor(
+    public readonly apiKey: string,
+    options?: AloreAuthConfiguration
+  ) {
     if (!apiKey) throw new Error('API_KEY is required');
 
     this.endpoint = options?.endpoint || DEFAULT_URL;

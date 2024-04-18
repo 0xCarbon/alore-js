@@ -1,1 +1,1 @@
-export * from './Alore';
+export * from './AloreAuth';

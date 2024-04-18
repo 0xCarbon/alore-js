@@ -6,9 +6,10 @@ export interface LoginProps {
     authServiceInstance: AuthInstance;
     cloudflareKey: string;
     forgeId?: string;
+    keyshareWorker: Worker | null;
     cryptoUtils: {
         hashUserInfo: (userInfo: string) => string;
         generateSecureHash: (data: string, salt: string, keyDerivationFunction: 'argon2d' | 'pbkdf2') => Promise<string>;
     };
 }
-export declare const Login: ({ locale, authServiceInstance, cloudflareKey, forgeId, cryptoUtils, }: LoginProps) => React.JSX.Element;
+export declare const Login: ({ locale, authServiceInstance, cloudflareKey, forgeId, keyshareWorker, cryptoUtils, }: LoginProps) => React.JSX.Element;

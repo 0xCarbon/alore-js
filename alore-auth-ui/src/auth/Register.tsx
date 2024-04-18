@@ -21,11 +21,16 @@ import {
   FormRules,
   InputOTP,
 } from '../components';
-// import { KeyshareWorkerContext } from '../../keyshareWorker'; // TODO
 import { Locale } from '../../get-dictionary';
 import { authService } from '../machine';
 import useDictionary from '../hooks/useDictionary';
 import { AuthInstance } from '../machine/types';
+import {
+  aloreLogoBlack,
+  google,
+  metamaskLogo,
+  walletConnectLogo,
+} from '../utils';
 
 const envelopIcon = () => <EnvelopeIcon className='h-4 w-4 text-gray-500' />;
 
@@ -35,6 +40,7 @@ export interface RegisterProps {
   cloudflareKey: string;
   forgeId?: string;
   inviteToken?: string;
+  keyshareWorker: Worker | null;
   cryptoUtils: {
     hashUserInfo: (userInfo: string) => string;
     generateSecureHash: (
@@ -51,6 +57,7 @@ export const Register = ({
   cloudflareKey,
   forgeId,
   inviteToken,
+  keyshareWorker,
   cryptoUtils,
 }: RegisterProps) => {
   const { hashUserInfo, generateSecureHash } = cryptoUtils;
@@ -69,7 +76,6 @@ export const Register = ({
     sessionUser,
   } = authState.context;
   const [userSalt, setUserSalt] = useState('');
-  //   const keyshareWorker: null | Worker = useContext(KeyshareWorkerContext);
   const login = useGoogleLogin({
     onSuccess: (tokenResponse) => {
       resetUserInfo();
@@ -164,10 +170,6 @@ export const Register = ({
         'ADVANCE_TO_PASSWORD',
       ]);
     else sendAuth([{ type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
-
-    return () => {
-      sendAuth('RESET');
-    };
   }, []);
 
   useEffect(() => {
@@ -267,17 +269,16 @@ export const Register = ({
     }
   }
 
-  // TODO
   async function derivePasswordAndGetKeyshares(
     password: string,
     email: string
   ) {
-    // if (keyshareWorker) {
-    //   keyshareWorker.postMessage({
-    //     method: 'derive-password',
-    //     payload: { password, email },
-    //   });
-    // }
+    if (keyshareWorker) {
+      keyshareWorker.postMessage({
+        method: 'derive-password',
+        payload: { password, email },
+      });
+    }
   }
 
   async function onSubmitRegister(data: typeof passwordDefaultValues) {
@@ -435,7 +436,7 @@ export const Register = ({
         <div
           className='flex w-full cursor-pointer flex-row items-center justify-center gap-1.5 text-sm text-gray-500'
           onClick={() => {
-            sendAuth(['RESET', { type: 'INITIALIZE', forgeId }]);
+            sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'LOGIN']);
           }}
         >
           <span className='font-inter font-semibold'>
@@ -448,7 +449,7 @@ export const Register = ({
             <div className='h-[0.5px] w-full bg-gray-300' />
             <Button color='light' onClick={handleLogin} outline>
               <div className='flex flex-row items-center justify-center gap-2'>
-                <img src='/assets/google.svg' alt='google logo' width={16} />
+                <img src={google} alt='google logo' width={16} />
                 {dictionary?.auth.continueGoogle}
               </div>
             </Button>
@@ -460,13 +461,13 @@ export const Register = ({
               <div className='flex flex-row items-center justify-center gap-2'>
                 <div className='relative flex flex-row'>
                   <img
-                    src='/assets/metamask-logo.svg'
+                    src={metamaskLogo}
                     alt='metamask logo'
                     width={20}
                     className='absolute right-3'
                   />
                   <img
-                    src='/assets/wallet-connect-logo.svg'
+                    src={walletConnectLogo}
                     alt='walletconnect logo'
                     width={20}
                   />
@@ -646,16 +647,12 @@ export const Register = ({
             <span className='font-inter text-sm font-medium text-gray-900'>
               {dictionary?.auth.poweredBy}
             </span>
-            <img
-              src='/assets/alore-logo-black.svg'
-              alt='alore logo'
-              width='60'
-            />
+            <img src={aloreLogoBlack} alt='alore logo' width='60' />
           </div>
         </div>
       ) : (
         <img
-          src='/assets/alore-logo-black.svg'
+          src={aloreLogoBlack}
           alt='alore logo'
           className='mb-5'
           width={authState.matches('active.login.newDevice') ? 153 : 201}
@@ -680,9 +677,14 @@ export const Register = ({
           authState.matches('active.register.completingRegistration')) &&
           Password}
         {authState.matches('active.register.userCreated') && (
-          <div className='flex flex-row gap-2 justify-center items-center'>
-            <span>Registration complete for</span>
-            <span className='font-semibold'>{sessionUser?.nickname}</span>
+          <div className='flex flex-col justify-center items-center gap-4'>
+            <div className='flex flex-row gap-2 justify-center items-center'>
+              <span>Registration complete for</span>
+              <span className='font-semibold'>{sessionUser?.nickname}</span>
+            </div>
+            <Button onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}>
+              LOGOUT
+            </Button>
           </div>
         )}
       </Card>

@@ -1,8 +1,8 @@
 {
-  "name": "alore-auth-sdk",
+  "name": "alore-crypto-sdk",
   "private": true,
   "version": "1.0.0",
-  "description": "SDK for Alore Auth",
+  "description": "SDK for Alore Crypto",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -21,9 +21,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@simplewebauthn/browser": "7.4.0"
+    "@0xcarbon/dkls23-wasm": "0.1.2",
+    "argon2-browser": "1.18.0",
+    "ethers": "6.7.1"
   },
   "devDependencies": {
+    "@types/argon2-browser": "1.18.1",
     "typescript": "5.4.5"
   }
 }

@@ -21,15 +21,14 @@ import { InputOTP, InputForm, BackButton, Map } from '../components';
 import { useGoogleLogin } from '@react-oauth/google';
 import { verifyEmptyValues } from '../helpers';
 import useDictionary from '../hooks/useDictionary';
-// import { KeyshareWorkerContext } from '../../keyshareWorker'; // TODO
+import { aloreLogoBlack, fingerprint, fingerprintError, google, metamaskLogo, walletConnectLogo, } from '../utils';
 const envelopIcon = () => React.createElement(EnvelopeIcon, { className: 'h-4 w-4 text-gray-500' });
 const HARDWARE = 1;
 const SOFTWARE = 2;
-export const Login = ({ locale = 'pt', authServiceInstance, cloudflareKey, forgeId, cryptoUtils, }) => {
+export const Login = ({ locale = 'pt', authServiceInstance, cloudflareKey, forgeId, keyshareWorker, cryptoUtils, }) => {
     const { hashUserInfo, generateSecureHash } = cryptoUtils;
     const dictionary = useDictionary(locale);
     const loginDictionary = dictionary === null || dictionary === void 0 ? void 0 : dictionary.auth.login;
-    // const keyshareWorker: Worker | null = useContext(KeyshareWorkerContext);
     const [secureCode2FA, setSecure2FACode] = useState('');
     const [secureCodeEmail, setSecureCodeEmail] = useState('');
     const [authState, sendAuth] = useActor(authServiceInstance);
@@ -52,9 +51,7 @@ export const Login = ({ locale = 'pt', authServiceInstance, cloudflareKey, forge
     const [captchaStatus, setCaptchaStatus] = useState('idle');
     const [captchaToken, setCaptchaToken] = useState('');
     const handleLogin = () => login();
-    console.log({ value: authState.value });
     useEffect(() => {
-        console.log({ authState });
         if (authState.matches('active.login.idle'))
             setCaptchaStatus('idle');
     }, [authState.value]);
@@ -175,16 +172,14 @@ export const Login = ({ locale = 'pt', authServiceInstance, cloudflareKey, forge
             setLoading(false);
         });
     }
-    // TODO
     function derivePasswordAndGetKeyshares(password, email) {
         return __awaiter(this, void 0, void 0, function* () {
-            // if (keyshareWorker) {
-            //   // eslint-disable-next-line react/destructuring-assignment
-            //   keyshareWorker.postMessage({
-            //     method: 'derive-password',
-            //     payload: { password, email },
-            //   });
-            // }
+            if (keyshareWorker) {
+                keyshareWorker.postMessage({
+                    method: 'derive-password',
+                    payload: { password, email },
+                });
+            }
         });
     }
     function onSubmitLogin(data) {
@@ -332,7 +327,7 @@ export const Login = ({ locale = 'pt', authServiceInstance, cloudflareKey, forge
     ]);
     const EmailInputStep = useMemo(() => (React.createElement(React.Fragment, null,
         authError ? (React.createElement("div", { className: 'flex flex-col items-center justify-center gap-5' },
-            React.createElement("img", { src: '/assets/auth-error.svg', alt: 'alore logo', width: 70 }),
+            React.createElement("img", { src: authError, alt: 'alore logo', width: 70 }),
             (authError === null || authError === void 0 ? void 0 : authError.includes('beta')) ? (React.createElement("span", { className: 'text-center font-poppins text-xl font-bold text-alr-red' }, authError)) : (React.createElement(React.Fragment, null,
                 React.createElement("span", { className: 'text-center font-poppins text-xl font-bold text-alr-red' }, (authError === null || authError === void 0 ? void 0 : authError.includes('Invalid credentials'))
                     ? loginDictionary === null || loginDictionary === void 0 ? void 0 : loginDictionary.invalidEmailPassword
@@ -350,13 +345,13 @@ export const Login = ({ locale = 'pt', authServiceInstance, cloudflareKey, forge
             React.createElement("div", { className: 'h-[0.5px] w-full bg-gray-300' }),
             React.createElement(Button, { color: 'light', onClick: handleLogin, outline: true },
                 React.createElement("div", { className: 'flex flex-row items-center justify-center gap-2' },
-                    React.createElement("img", { src: '/assets/google.svg', alt: 'google logo', width: 16 }), dictionary === null || dictionary === void 0 ? void 0 :
+                    React.createElement("img", { src: google, alt: 'google logo', width: 16 }), dictionary === null || dictionary === void 0 ? void 0 :
                     dictionary.auth.continueGoogle)),
             forgeId && (React.createElement(Button, { color: 'light', onClick: () => sendAuth('LOGIN_WITH_WEB3CONNECTOR'), outline: true },
                 React.createElement("div", { className: 'flex flex-row items-center justify-center gap-2' },
                     React.createElement("div", { className: 'relative flex flex-row' },
-                        React.createElement("img", { src: '/assets/metamask-logo.svg', alt: 'metamask logo', width: 20, className: 'absolute right-3' }),
-                        React.createElement("img", { src: '/assets/wallet-connect-logo.svg', alt: 'walletconnect logo', width: 20 })),
+                        React.createElement("img", { src: metamaskLogo, alt: 'metamask logo', width: 20, className: 'absolute right-3' }),
+                        React.createElement("img", { src: walletConnectLogo, alt: 'walletconnect logo', width: 20 })),
                     "Metamask/WalletConnect"))),
             React.createElement("span", { className: 'text-center text-sm font-medium' }, loginDictionary === null || loginDictionary === void 0 ? void 0 :
                 loginDictionary.dontHaveAccount,
@@ -372,7 +367,7 @@ export const Login = ({ locale = 'pt', authServiceInstance, cloudflareKey, forge
     const PasswordInputStep = useMemo(() => (React.createElement(React.Fragment, null,
         React.createElement(BackButton, { className: 'mb-2.5', onClick: () => sendAuth('BACK') }, getValuesEmail('email') || (googleUser === null || googleUser === void 0 ? void 0 : googleUser.email)),
         authError && (React.createElement("div", { className: 'flex flex-col items-center justify-center gap-5' },
-            React.createElement("img", { src: '/assets/auth-error.svg', alt: 'alore logo', width: 70 }),
+            React.createElement("img", { src: authError, alt: 'alore logo', width: 70 }),
             React.createElement("span", { className: 'text-center font-poppins text-xl font-bold text-alr-red' }, (authError === null || authError === void 0 ? void 0 : authError.includes('Invalid credentials'))
                 ? loginDictionary === null || loginDictionary === void 0 ? void 0 : loginDictionary.invalidEmailPassword
                 : loginDictionary === null || loginDictionary === void 0 ? void 0 : loginDictionary.somethingWrong),
@@ -420,7 +415,7 @@ export const Login = ({ locale = 'pt', authServiceInstance, cloudflareKey, forge
     const VerifyHw2FAStep = useMemo(() => (React.createElement("div", null,
         React.createElement(BackButton, { onClick: () => sendAuth('BACK') }),
         (authError === null || authError === void 0 ? void 0 : authError.includes('Failed authenticating with hardware key')) ? (React.createElement("div", { className: 'mt-6 flex w-full flex-col items-center gap-6' },
-            React.createElement("img", { alt: 'fingerprint error', src: '/assets/fingerprint-error.svg' }),
+            React.createElement("img", { alt: 'fingerprint error', src: fingerprintError }),
             React.createElement("span", { className: 'text-center font-poppins text-[1.3rem] font-bold text-alr-red' }, loginDictionary === null || loginDictionary === void 0 ? void 0 : loginDictionary.cantVerify2fa),
             React.createElement(Button, { className: 'w-full', onClick: () => startHwAuth(0) }, loginDictionary === null || loginDictionary === void 0 ? void 0 : loginDictionary.tryAgain),
             (activeHw2fa === null || activeHw2fa === void 0 ? void 0 : activeHw2fa.length) > 1 && (React.createElement(React.Fragment, null,
@@ -433,7 +428,7 @@ export const Login = ({ locale = 'pt', authServiceInstance, cloudflareKey, forge
                 React.createElement(ArrowRightIcon, { className: 'h-5 w-5' }))))) : (React.createElement("div", { className: 'flex w-full flex-col items-center' },
             React.createElement("span", { className: 'mb-10 mt-[3rem] text-center font-poppins text-[1.3rem] font-bold text-alr-grey' }, loginDictionary === null || loginDictionary === void 0 ? void 0 : loginDictionary.touchHardware),
             React.createElement("span", { className: 'mb-10 w-[15rem] text-sm font-normal text-alr-grey' }, loginDictionary === null || loginDictionary === void 0 ? void 0 : loginDictionary.touchHardwareDescription),
-            React.createElement("img", { alt: 'usb indicator', src: '/assets/fingerprint.png' }),
+            React.createElement("img", { alt: 'usb indicator', src: fingerprint }),
             activeSw2fa && (React.createElement("div", { className: 'mt-9 flex cursor-pointer items-center gap-x-1 text-base font-semibold text-alr-red', onClick: () => sendAuth('USE_SOFTWARE_2FA') }, loginDictionary === null || loginDictionary === void 0 ? void 0 :
                 loginDictionary.useSw2fa,
                 React.createElement(ArrowRightIcon, { className: 'h-5 w-5' }))))))), [isLoading, active2fa]);
@@ -472,7 +467,7 @@ export const Login = ({ locale = 'pt', authServiceInstance, cloudflareKey, forge
             React.createElement("span", { className: 'text-center font-poppins text-2xl font-black text-alr-grey' }, "Tardezinha com Thiaguinho"),
             React.createElement("div", { className: 'flex w-full flex-row items-center justify-center gap-2' },
                 React.createElement("span", { className: 'font-inter text-sm font-medium text-gray-900' }, dictionary === null || dictionary === void 0 ? void 0 : dictionary.auth.poweredBy),
-                React.createElement("img", { src: '/assets/alore-logo-black.svg', alt: 'alore logo', width: '60' })))) : (React.createElement("img", { src: '/assets/alore-logo-black.svg', alt: 'alore logo', width: authState.matches('active.login.newDevice') ? 153 : 201 })),
+                React.createElement("img", { src: aloreLogoBlack, alt: 'alore logo', width: '60' })))) : (React.createElement("img", { src: aloreLogoBlack, alt: 'alore logo', width: authState.matches('active.login.newDevice') ? 153 : 201 })),
         React.createElement(Card, { className: `flex min-w-[20rem] md:w-96 ${isLoading ? 'pointer-events-none opacity-50' : ''} mx-5 py-2 md:mx-7 md:child:!px-9` },
             forgeId && authState.matches('active.web3Connector') && 'TODO',
             (authState.matches('active.login.idle') ||
@@ -497,7 +492,9 @@ export const Login = ({ locale = 'pt', authServiceInstance, cloudflareKey, forge
                 authState.matches('active.login.verifyingCode') ||
                 authState.matches('active.login.resendingConfirmationEmail')) &&
                 NewDeviceStep,
-            authState.matches('active.login.successfulLogin') && (React.createElement("div", { className: 'flex flex-row gap-2 justify-center items-center' },
-                React.createElement("span", null, "Login complete for"),
-                React.createElement("span", { className: 'font-semibold' }, sessionUser === null || sessionUser === void 0 ? void 0 : sessionUser.nickname))))));
+            authState.matches('active.login.successfulLogin') && (React.createElement("div", { className: 'flex flex-col justify-center items-center gap-4' },
+                React.createElement("div", { className: 'flex flex-row gap-2 justify-center items-center' },
+                    React.createElement("span", null, "Login complete for"),
+                    React.createElement("span", { className: 'font-semibold' }, sessionUser === null || sessionUser === void 0 ? void 0 : sessionUser.nickname)),
+                React.createElement(Button, { onClick: () => sendAuth(['RESET_CONTEXT', 'INITIALIZE']) }, "LOGOUT"))))));
 };

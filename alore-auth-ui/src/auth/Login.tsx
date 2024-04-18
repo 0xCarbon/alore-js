@@ -16,7 +16,14 @@ import { CaptchaStatus, NewDeviceInfo, verifyEmptyValues } from '../helpers';
 import useDictionary from '../hooks/useDictionary';
 import { Locale } from '../../get-dictionary';
 import { AuthInstance } from '../machine/types';
-// import { KeyshareWorkerContext } from '../../keyshareWorker'; // TODO
+import {
+  aloreLogoBlack,
+  fingerprint,
+  fingerprintError,
+  google,
+  metamaskLogo,
+  walletConnectLogo,
+} from '../utils';
 
 const envelopIcon = () => <EnvelopeIcon className='h-4 w-4 text-gray-500' />;
 
@@ -28,6 +35,7 @@ export interface LoginProps {
   authServiceInstance: AuthInstance;
   cloudflareKey: string;
   forgeId?: string;
+  keyshareWorker: Worker | null;
   cryptoUtils: {
     hashUserInfo: (userInfo: string) => string;
     generateSecureHash: (
@@ -43,13 +51,13 @@ export const Login = ({
   authServiceInstance,
   cloudflareKey,
   forgeId,
+  keyshareWorker,
   cryptoUtils,
 }: LoginProps) => {
   const { hashUserInfo, generateSecureHash } = cryptoUtils;
   const dictionary = useDictionary(locale);
   const loginDictionary = dictionary?.auth.login;
 
-  // const keyshareWorker: Worker | null = useContext(KeyshareWorkerContext);
   const [secureCode2FA, setSecure2FACode] = useState('');
   const [secureCodeEmail, setSecureCodeEmail] = useState('');
   const [authState, sendAuth] = useActor(authServiceInstance);
@@ -83,9 +91,7 @@ export const Login = ({
 
   const handleLogin = () => login();
 
-  console.log({ value: authState.value });
   useEffect(() => {
-    console.log({ authState });
     if (authState.matches('active.login.idle')) setCaptchaStatus('idle');
   }, [authState.value]);
 
@@ -247,18 +253,16 @@ export const Login = ({
     setLoading(false);
   }
 
-  // TODO
   async function derivePasswordAndGetKeyshares(
     password: string,
     email: string
   ) {
-    // if (keyshareWorker) {
-    //   // eslint-disable-next-line react/destructuring-assignment
-    //   keyshareWorker.postMessage({
-    //     method: 'derive-password',
-    //     payload: { password, email },
-    //   });
-    // }
+    if (keyshareWorker) {
+      keyshareWorker.postMessage({
+        method: 'derive-password',
+        payload: { password, email },
+      });
+    }
   }
 
   async function onSubmitLogin(data: typeof passwordDefaultValues) {
@@ -442,7 +446,7 @@ export const Login = ({
       <>
         {authError ? (
           <div className='flex flex-col items-center justify-center gap-5'>
-            <img src='/assets/auth-error.svg' alt='alore logo' width={70} />
+            <img src={authError} alt='alore logo' width={70} />
             {authError?.includes('beta') ? (
               <span className='text-center font-poppins text-xl font-bold text-alr-red'>
                 {authError}
@@ -502,7 +506,7 @@ export const Login = ({
           <div className='h-[0.5px] w-full bg-gray-300' />
           <Button color='light' onClick={handleLogin} outline>
             <div className='flex flex-row items-center justify-center gap-2'>
-              <img src='/assets/google.svg' alt='google logo' width={16} />
+              <img src={google} alt='google logo' width={16} />
               {dictionary?.auth.continueGoogle}
             </div>
           </Button>
@@ -515,13 +519,13 @@ export const Login = ({
               <div className='flex flex-row items-center justify-center gap-2'>
                 <div className='relative flex flex-row'>
                   <img
-                    src='/assets/metamask-logo.svg'
+                    src={metamaskLogo}
                     alt='metamask logo'
                     width={20}
                     className='absolute right-3'
                   />
                   <img
-                    src='/assets/wallet-connect-logo.svg'
+                    src={walletConnectLogo}
                     alt='walletconnect logo'
                     width={20}
                   />
@@ -561,7 +565,7 @@ export const Login = ({
         </BackButton>
         {authError && (
           <div className='flex flex-col items-center justify-center gap-5'>
-            <img src='/assets/auth-error.svg' alt='alore logo' width={70} />
+            <img src={authError} alt='alore logo' width={70} />
             <span className='text-center font-poppins text-xl font-bold text-alr-red'>
               {authError?.includes('Invalid credentials')
                 ? loginDictionary?.invalidEmailPassword
@@ -708,7 +712,7 @@ export const Login = ({
         <BackButton onClick={() => sendAuth('BACK')} />
         {authError?.includes('Failed authenticating with hardware key') ? (
           <div className='mt-6 flex w-full flex-col items-center gap-6'>
-            <img alt='fingerprint error' src='/assets/fingerprint-error.svg' />
+            <img alt='fingerprint error' src={fingerprintError} />
             <span className='text-center font-poppins text-[1.3rem] font-bold text-alr-red'>
               {loginDictionary?.cantVerify2fa}
             </span>
@@ -745,7 +749,7 @@ export const Login = ({
             <span className='mb-10 w-[15rem] text-sm font-normal text-alr-grey'>
               {loginDictionary?.touchHardwareDescription}
             </span>
-            <img alt='usb indicator' src='/assets/fingerprint.png' />
+            <img alt='usb indicator' src={fingerprint} />
             {activeSw2fa && (
               <div
                 className='mt-9 flex cursor-pointer items-center gap-x-1 text-base font-semibold text-alr-red'
@@ -888,16 +892,12 @@ export const Login = ({
             <span className='font-inter text-sm font-medium text-gray-900'>
               {dictionary?.auth.poweredBy}
             </span>
-            <img
-              src='/assets/alore-logo-black.svg'
-              alt='alore logo'
-              width='60'
-            />
+            <img src={aloreLogoBlack} alt='alore logo' width='60' />
           </div>
         </div>
       ) : (
         <img
-          src='/assets/alore-logo-black.svg'
+          src={aloreLogoBlack}
           alt='alore logo'
           width={authState.matches('active.login.newDevice') ? 153 : 201}
         />
@@ -931,9 +931,14 @@ export const Login = ({
           authState.matches('active.login.resendingConfirmationEmail')) &&
           NewDeviceStep}
         {authState.matches('active.login.successfulLogin') && (
-          <div className='flex flex-row gap-2 justify-center items-center'>
-            <span>Login complete for</span>
-            <span className='font-semibold'>{sessionUser?.nickname}</span>
+          <div className='flex flex-col justify-center items-center gap-4'>
+            <div className='flex flex-row gap-2 justify-center items-center'>
+              <span>Login complete for</span>
+              <span className='font-semibold'>{sessionUser?.nickname}</span>
+            </div>
+            <Button onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}>
+              LOGOUT
+            </Button>
           </div>
         )}
       </Card>
