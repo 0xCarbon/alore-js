@@ -13,6 +13,7 @@ export interface AuthProps {
   cloudflareKey: string;
   googleId: string;
   forgeId?: string;
+  logoImage?: React.ReactNode;
   inviteToken?: string;
   keyshareWorker: Worker | null;
   cryptoUtils: {
@@ -32,6 +33,7 @@ const Auth = ({
   cloudflareKey,
   googleId,
   forgeId,
+  logoImage,
   inviteToken,
   keyshareWorker,
   cryptoUtils,
@@ -78,6 +80,7 @@ const Auth = ({
           forgeId={forgeId}
           cryptoUtils={cryptoUtils}
           keyshareWorker={keyshareWorker}
+          logoImage={logoImage}
         />
       )}
       {authState.matches('active.register') && (
@@ -89,6 +92,7 @@ const Auth = ({
           inviteToken={inviteToken}
           cryptoUtils={cryptoUtils}
           keyshareWorker={keyshareWorker}
+          logoImage={logoImage}
         />
       )}
     </GoogleOAuthProvider>

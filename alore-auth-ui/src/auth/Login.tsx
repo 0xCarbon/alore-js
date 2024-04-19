@@ -35,6 +35,7 @@ export interface LoginProps {
   authServiceInstance: AuthInstance;
   cloudflareKey: string;
   forgeId?: string;
+  logoImage?: React.ReactNode;
   keyshareWorker: Worker | null;
   cryptoUtils: {
     hashUserInfo: (userInfo: string) => string;
@@ -51,6 +52,7 @@ export const Login = ({
   authServiceInstance,
   cloudflareKey,
   forgeId,
+  logoImage,
   keyshareWorker,
   cryptoUtils,
 }: LoginProps) => {
@@ -896,11 +898,13 @@ export const Login = ({
           </div>
         </div>
       ) : (
-        <img
-          src={aloreLogoBlack}
-          alt='alore logo'
-          width={authState.matches('active.login.newDevice') ? 153 : 201}
-        />
+        logoImage || (
+          <img
+            src={aloreLogoBlack}
+            alt='alore logo'
+            width={authState.matches('active.login.newDevice') ? 153 : 201}
+          />
+        )
       )}
       <Card
         className={`flex min-w-[20rem] md:w-96 ${
