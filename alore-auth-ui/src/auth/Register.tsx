@@ -39,6 +39,7 @@ export interface RegisterProps {
   authServiceInstance: AuthInstance;
   cloudflareKey: string;
   forgeId?: string;
+  logoImage?: React.ReactNode;
   inviteToken?: string;
   keyshareWorker: Worker | null;
   cryptoUtils: {
@@ -56,6 +57,7 @@ export const Register = ({
   authServiceInstance,
   cloudflareKey,
   forgeId,
+  logoImage,
   inviteToken,
   keyshareWorker,
   cryptoUtils,
@@ -651,12 +653,11 @@ export const Register = ({
           </div>
         </div>
       ) : (
-        <img
+        {logoImage ? logoImage : <img
           src={aloreLogoBlack}
           alt='alore logo'
-          className='mb-5'
           width={authState.matches('active.login.newDevice') ? 153 : 201}
-        />
+        />}
       )}
       <Card
         className={`flex min-w-[20rem] md:w-96 ${
