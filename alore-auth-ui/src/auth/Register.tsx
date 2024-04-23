@@ -21,7 +21,6 @@ import {
   FormRules,
   InputOTP,
 } from '../components';
-import { authService } from '../machine';
 import useDictionary from '../hooks/useDictionary';
 import { AuthInstance } from '../machine/types';
 import {
@@ -31,6 +30,7 @@ import {
   walletConnectLogo,
 } from '../utils';
 import { Locale } from 'get-dictionary';
+import { twMerge } from 'tailwind-merge';
 
 const envelopIcon = () => <EnvelopeIcon className='h-4 w-4 text-gray-500' />;
 
@@ -371,6 +371,7 @@ export const Register = ({
             control={userInfoControl}
             errors={userInfoErrors}
             name='email'
+            type='email'
             placeholder={
               inviteToken
                 ? `${registerDictionary?.emailInvitePlaceholder}`
@@ -385,6 +386,7 @@ export const Register = ({
             control={userInfoControl}
             errors={userInfoErrors}
             name='nickname'
+            type={'text'}
             placeholder={registerDictionary?.nicknameLabel}
             data-test='register-first-name'
             disabled={isLoading}
@@ -428,6 +430,7 @@ export const Register = ({
               isLoading ||
               captchaStatus !== 'success'
             }
+            className='group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700'
           >
             {isLoading && (
               <Spinner className='mr-3 !h-5 w-full !fill-gray-300' />
@@ -524,7 +527,7 @@ export const Register = ({
           <Button
             data-test='secure-code-submit'
             onClick={() => onClickSecureCodeSubmit()}
-            className='mb-6 w-full'
+            className='group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700 mb-6 w-full'
             disabled={secureCode.length !== 6 || isLoading}
           >
             {isLoading && (
@@ -534,11 +537,12 @@ export const Register = ({
           </Button>
           <span
             onClick={() => resendSecureCode()}
-            className={`${
+            className={twMerge(
+              `text-base font-medium duration-300`,
               sendEmailCooldown > 0
                 ? 'pointer-events-none opacity-50'
                 : 'cursor-pointer opacity-100 hover:text-alr-red'
-            } text-base font-medium duration-300`}
+            )}
           >
             {`${registerDictionary?.resendCode}${
               sendEmailCooldown ? ` (${sendEmailCooldown}s)` : ''
@@ -604,6 +608,7 @@ export const Register = ({
             <Button
               data-test='password-submit'
               type='submit'
+              className='group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700'
               disabled={isPasswordSubmitDisabled || isLoading}
             >
               {isLoading && (
@@ -662,9 +667,10 @@ export const Register = ({
         )
       )}
       <Card
-        className={`flex min-w-[20rem] md:w-96 ${
+        className={twMerge(
+          `flex min-w-[20rem] md:w-96 mx-5 py-2 md:mx-7 md:child:!px-9`,
           isLoading ? 'pointer-events-none opacity-50' : ''
-        } mx-5 py-2 md:mx-7 md:child:!px-9`}
+        )}
       >
         {forgeId && authState.matches('active.web3Connector') && 'TODO'}
         {(authState.matches('active.register.idle') ||
@@ -685,7 +691,10 @@ export const Register = ({
               <span>Registration complete for</span>
               <span className='font-semibold'>{sessionUser?.nickname}</span>
             </div>
-            <Button onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}>
+            <Button
+              className='group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700'
+              onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
+            >
               LOGOUT
             </Button>
           </div>

@@ -1,4 +1,6 @@
-import React, { useEffect, useMemo } from 'react';
+'use client';
+
+import React, { useEffect, useMemo, useState } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Login } from './auth/Login';
 import { authService } from './machine';

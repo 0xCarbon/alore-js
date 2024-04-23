@@ -20,15 +20,12 @@ dependencies:
   '@xstate/react':
     specifier: 3.2.2
     version: 3.2.2(@types/react@18.2.79)(react@18.2.0)(xstate@4.38.2)
-  classnames:
-    specifier: 2.3.2
-    version: 2.3.2
   flowbite:
-    specifier: 2.3.0
-    version: 2.3.0
+    specifier: 1.6.6
+    version: 1.6.6
   flowbite-react:
-    specifier: npm:@0xcarbon/meubite-react@0.6.4
-    version: /@0xcarbon/meubite-react@0.6.4(react-dom@18.2.0)(react@18.2.0)(tailwindcss@3.4.3)
+    specifier: 0.6.4
+    version: 0.6.4(react-dom@18.2.0)(react@18.2.0)(tailwindcss@3.4.3)
   jwt-decode:
     specifier: 3.1.2
     version: 3.1.2
@@ -44,6 +41,9 @@ dependencies:
   react-leaflet:
     specifier: 4.2.1
     version: 4.2.1(leaflet@1.9.4)(react-dom@18.2.0)(react@18.2.0)
+  tailwind-merge:
+    specifier: 2.3.0
+    version: 2.3.0
   tailwindcss:
     specifier: 3.4.3
     version: 3.4.3
@@ -73,26 +73,16 @@ devDependencies:
 
 packages:
 
-  /@0xcarbon/meubite-react@0.6.4(react-dom@18.2.0)(react@18.2.0)(tailwindcss@3.4.3):
-    resolution: {integrity: sha512-sCGbmoNNGDn1DHt1bQpdD6ZCklwOQwA5gx/uCm3V8y+ciVxQRO5TbE64MntZm0Bxx8rtX2DV9tg9adVghuA/OQ==, tarball: https://npm.pkg.github.com/download/@0xcarbon/meubite-react/0.6.4/d3d77bb43bcd2f88f828559eb5a8b67b312f8e13}
-    peerDependencies:
-      react: ^18
-      react-dom: ^18
-      tailwindcss: ^3
-    dependencies:
-      '@floating-ui/react': 0.24.8(react-dom@18.2.0)(react@18.2.0)
-      flowbite: 1.8.1
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-      react-icons: 4.12.0(react@18.2.0)
-      react-indiana-drag-scroll: 2.2.0(react-dom@18.2.0)(react@18.2.0)
-      tailwind-merge: 1.14.0
-      tailwindcss: 3.4.3
-    dev: false
-
   /@alloc/quick-lru@5.2.0:
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
     engines: {node: '>=10'}
+    dev: false
+
+  /@babel/runtime@7.24.4:
+    resolution: {integrity: sha512-dkxf7+hn8mFBwKjs9bvBlArzLVxVbS8usaPUDd5p2a9JCL9tB8OaOVN1isD4+Xyk4ns89/xeOmbQvgdK7IIVdA==}
+    engines: {node: '>=6.9.0'}
+    dependencies:
+      regenerator-runtime: 0.14.1
     dev: false
 
   /@floating-ui/core@1.6.0:
@@ -415,8 +405,8 @@ packages:
       fsevents: 2.3.3
     dev: false
 
-  /classnames@2.3.2:
-    resolution: {integrity: sha512-CSbhY4cFEJRe6/GQzIk5qXZ4Jeg5pcsP7b5peFSDpffpe1cqjASH/n9UTjBwOp6XpMSTwQ8Za2K5V02ueA7Tmw==}
+  /classnames@2.5.1:
+    resolution: {integrity: sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==}
     dev: false
 
   /color-convert@2.0.1:
@@ -514,15 +504,25 @@ packages:
       to-regex-range: 5.0.1
     dev: false
 
-  /flowbite@1.8.1:
-    resolution: {integrity: sha512-lXTcO8a6dRTPFpINyOLcATCN/pK1Of/jY4PryklPllAiqH64tSDUsOdQpar3TO59ZXWwugm2e92oaqwH6X90Xg==}
+  /flowbite-react@0.6.4(react-dom@18.2.0)(react@18.2.0)(tailwindcss@3.4.3):
+    resolution: {integrity: sha512-36mhawQRalOyq40ZLXesCTvcidYBO0vRFb672YSfflQHl5mENzB3o1SW6oGPpedmS/rWTlK+VBK7ia+1UYr+6w==}
+    peerDependencies:
+      react: ^18
+      react-dom: ^18
+      tailwindcss: ^3
     dependencies:
-      '@popperjs/core': 2.11.8
-      mini-svg-data-uri: 1.4.4
+      '@floating-ui/react': 0.24.8(react-dom@18.2.0)(react@18.2.0)
+      flowbite: 1.6.6
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+      react-icons: 4.12.0(react@18.2.0)
+      react-indiana-drag-scroll: 2.2.0(react-dom@18.2.0)(react@18.2.0)
+      tailwind-merge: 1.14.0
+      tailwindcss: 3.4.3
     dev: false
 
-  /flowbite@2.3.0:
-    resolution: {integrity: sha512-pm3JRo8OIJHGfFYWgaGpPv8E+UdWy0Z3gEAGufw+G/1dusaU/P1zoBLiQpf2/+bYAi+GBQtPVG86KYlV0W+AFQ==}
+  /flowbite@1.6.6:
+    resolution: {integrity: sha512-T+IaFikHELo1PBKfT/axDqhAmKQLfm/dxVch2r07TZ+IcKwkorZjzwkVuw3OslTETniRIUf2qQvEhxk3bQCaew==}
     dependencies:
       '@popperjs/core': 2.11.8
       mini-svg-data-uri: 1.4.4
@@ -888,7 +888,7 @@ packages:
       react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
       react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
     dependencies:
-      classnames: 2.3.2
+      classnames: 2.5.1
       debounce: 1.2.1
       easy-bem: 1.1.1
       react: 18.2.0
@@ -926,6 +926,10 @@ packages:
     engines: {node: '>=8.10.0'}
     dependencies:
       picomatch: 2.3.1
+    dev: false
+
+  /regenerator-runtime@0.14.1:
+    resolution: {integrity: sha512-dYnhHh0nJoMfnkZs6GmmhFknAGRrLznOu5nc9ML+EJxGvrx6H7teuevqVqCuPcPK//3eDrrjQhehXVx9cnkGdw==}
     dev: false
 
   /resolve@1.22.8:
@@ -1032,6 +1036,12 @@ packages:
 
   /tailwind-merge@1.14.0:
     resolution: {integrity: sha512-3mFKyCo/MBcgyOTlrY8T7odzZFx+w+qKSMAmdFzRvqBfLlSigU6TZnlFHK0lkMwj9Bj8OYU+9yW9lmGuS0QEnQ==}
+    dev: false
+
+  /tailwind-merge@2.3.0:
+    resolution: {integrity: sha512-vkYrLpIP+lgR0tQCG6AP7zZXCTLc1Lnv/CCRT3BqJ9CZ3ui2++GPaGb1x/ILsINIMSYqqvrpqjUFsMNLlW99EA==}
+    dependencies:
+      '@babel/runtime': 7.24.4
     dev: false
 
   /tailwindcss@3.4.3:

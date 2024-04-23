@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Button, Card, Spinner } from 'flowbite-react';
 import { FieldValues, useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -10,7 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useActor } from '@xstate/react';
 import { LatLngTuple } from 'leaflet';
 import { Turnstile } from '@marsidev/react-turnstile';
-import { InputOTP, InputForm, BackButton, Map } from '../components';
+import { InputOTP, InputForm, BackButton } from '../components';
 import { useGoogleLogin } from '@react-oauth/google';
 import { CaptchaStatus, NewDeviceInfo, verifyEmptyValues } from '../helpers';
 import useDictionary from '../hooks/useDictionary';
@@ -24,6 +24,9 @@ import {
   walletConnectLogo,
 } from '../utils';
 import { Locale } from 'get-dictionary';
+import { twMerge } from 'tailwind-merge';
+
+const Map = React.lazy(() => import('../components/Map'));
 
 const envelopIcon = () => <EnvelopeIcon className='h-4 w-4 text-gray-500' />;
 
@@ -499,6 +502,7 @@ export const Login = ({
             type='submit'
             data-test='login-button'
             disabled={verifyEmptyValues(getValuesEmail('email'))}
+            className='group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700'
           >
             {isLoading && (
               <Spinner className='mr-3 !h-5 w-full !fill-gray-300' />
@@ -620,6 +624,7 @@ export const Login = ({
               verifyEmptyValues(getValuesPassword('password')) ||
               captchaStatus !== 'success'
             }
+            className='group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700'
           >
             {isLoading && (
               <Spinner className='mr-3 !h-5 w-full !fill-gray-300' />
@@ -682,7 +687,7 @@ export const Login = ({
           <Button
             data-test='secure-code-submit'
             onClick={() => onClickSecureCodeSubmit()}
-            className='mb-6 w-full'
+            className='group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700 mb-6 w-full'
             disabled={secureCode2FA.length !== 6 || isLoading}
           >
             {isLoading && (
@@ -692,11 +697,12 @@ export const Login = ({
           </Button>
           <span
             onClick={() => resendSecureCode()}
-            className={`${
+            className={twMerge(
+              `text-base font-medium duration-300`,
               sendEmailCooldown > 0
                 ? 'pointer-events-none opacity-50'
                 : 'cursor-pointer opacity-100 hover:text-alr-red'
-            } text-base font-medium duration-300`}
+            )}
           >
             {`${loginDictionary?.resendCode}${
               sendEmailCooldown ? ` (${sendEmailCooldown}s)` : ''
@@ -718,7 +724,10 @@ export const Login = ({
             <span className='text-center font-poppins text-[1.3rem] font-bold text-alr-red'>
               {loginDictionary?.cantVerify2fa}
             </span>
-            <Button className='w-full' onClick={() => startHwAuth(0)}>
+            <Button
+              className='group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700 w-full'
+              onClick={() => startHwAuth(0)}
+            >
               {loginDictionary?.tryAgain}
             </Button>
             {activeHw2fa?.length > 1 && (
@@ -794,7 +803,7 @@ export const Login = ({
           <Button
             data-test='secure-code-2FA-submit'
             onClick={() => onSubmitSecureCode2FA()}
-            className='mb-6 w-full'
+            className='group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700 mb-6 w-full'
             disabled={secureCode2FA.length !== 6}
           >
             {isLoading && (
@@ -830,11 +839,13 @@ export const Login = ({
           <span className='mb-5 font-bold'>{getValuesEmail('email')}</span>
           <div className='mb-5 h-44 w-full'>
             {newDeviceInfo?.coordinates && (
-              <Map
-                coordinates={
-                  newDeviceInfo?.coordinates as unknown as LatLngTuple
-                }
-              />
+              <Suspense fallback={null}>
+                <Map
+                  coordinates={
+                    newDeviceInfo?.coordinates as unknown as LatLngTuple
+                  }
+                />
+              </Suspense>
             )}
           </div>
           <div className='mb-6 flex'>
@@ -854,7 +865,7 @@ export const Login = ({
           <Button
             data-test='secure-code-email-submit'
             onClick={() => onSubmitSecureCodeEmail()}
-            className='mb-6 w-full'
+            className='group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700 mb-6 w-full'
             disabled={secureCodeEmail.length !== 6}
           >
             {isLoading && (
@@ -864,11 +875,12 @@ export const Login = ({
           </Button>
           <span
             onClick={() => resendSecureCode()}
-            className={`${
+            className={twMerge(
+              `text-base font-medium duration-300`,
               sendEmailCooldown > 0
                 ? 'pointer-events-none opacity-50'
                 : 'cursor-pointer opacity-100 hover:text-alr-red'
-            } text-base font-medium duration-300`}
+            )}
           >
             {`${loginDictionary?.resendCode}${
               sendEmailCooldown ? ` (${sendEmailCooldown}s)` : ''
@@ -907,9 +919,10 @@ export const Login = ({
         )
       )}
       <Card
-        className={`flex min-w-[20rem] md:w-96 ${
+        className={twMerge(
+          `flex min-w-[20rem] md:w-96 mx-5 py-2 md:mx-7 md:child:!px-9`,
           isLoading ? 'pointer-events-none opacity-50' : ''
-        } mx-5 py-2 md:mx-7 md:child:!px-9`}
+        )}
       >
         {forgeId && authState.matches('active.web3Connector') && 'TODO'}
         {(authState.matches('active.login.idle') ||
@@ -940,7 +953,10 @@ export const Login = ({
               <span>Login complete for</span>
               <span className='font-semibold'>{sessionUser?.nickname}</span>
             </div>
-            <Button onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}>
+            <Button
+              className='group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700'
+              onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
+            >
               LOGOUT
             </Button>
           </div>
