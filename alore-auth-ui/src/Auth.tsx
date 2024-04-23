@@ -15,7 +15,6 @@ export interface AuthProps {
   forgeId?: string;
   logoImage?: React.ReactNode;
   inviteToken?: string;
-  keyshareWorker: Worker | null;
   cryptoUtils: {
     hashUserInfo: (userInfo: string) => string;
     generateSecureHash: (
@@ -25,6 +24,13 @@ export interface AuthProps {
     ) => Promise<string>;
   };
   onSuccess?: (sessionUser: SessionUser) => void;
+  derivePassword?: ({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }) => void;
 }
 
 const Auth = ({
@@ -35,9 +41,9 @@ const Auth = ({
   forgeId,
   logoImage,
   inviteToken,
-  keyshareWorker,
   cryptoUtils,
   onSuccess,
+  derivePassword,
 }: AuthProps) => {
   const authServiceInstance = useMemo(
     () => authService(machineServices),
@@ -70,6 +76,16 @@ const Auth = ({
     }
   }, [sessionUser]);
 
+  const derivePasswordAndHandleKeyshares = async ({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }) => {
+    derivePassword?.({ email, password });
+  };
+
   return (
     <GoogleOAuthProvider clientId={googleId}>
       {authState.matches('active.login') && (
@@ -79,7 +95,7 @@ const Auth = ({
           cloudflareKey={cloudflareKey}
           forgeId={forgeId}
           cryptoUtils={cryptoUtils}
-          keyshareWorker={keyshareWorker}
+          derivePassword={derivePasswordAndHandleKeyshares}
           logoImage={logoImage}
         />
       )}
@@ -91,7 +107,7 @@ const Auth = ({
           forgeId={forgeId}
           inviteToken={inviteToken}
           cryptoUtils={cryptoUtils}
-          keyshareWorker={keyshareWorker}
+          derivePassword={derivePasswordAndHandleKeyshares}
           logoImage={logoImage}
         />
       )}

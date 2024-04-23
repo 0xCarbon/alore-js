@@ -1,6 +1,6 @@
 {
   "name": "@0xcarbon/alore-auth-ui",
-  "version": "0.0.12-alpha",
+  "version": "0.0.14-alpha",
   "repository": "https://github.com/0xCarbon/alore-js",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
@@ -8,7 +8,7 @@
   "description": "React Auth UI component for Alore",
   "main": "dist/cjs/index.js",
   "module": "dist/mjs/index.js",
-  "types": "dist/esm/index.d.ts",
+  "types": "dist/mjs/index.d.ts",
   "files": [
     "dist"
   ],

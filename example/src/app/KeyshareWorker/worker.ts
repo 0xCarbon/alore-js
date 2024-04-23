@@ -1,5 +1,5 @@
-import {
-  AloreCrypto,
+import { AloreCrypto } from '@0xcarbon/alore-crypto-sdk';
+import type {
   KeyshareWorkerMessage,
   SimpleCredential,
 } from '@0xcarbon/alore-crypto-sdk';
@@ -14,6 +14,8 @@ const onmessage = async (event: MessageEvent<KeyshareWorkerMessage>) => {
     aloreCrypto.derivePassword(event.data.payload as SimpleCredential);
   event.data.method === 'encrypt-keyshare' &&
     aloreCrypto.encryptAndPostKeyshare(event.data);
+  event.data.method === 'encrypt-and-post-server-keyshare' &&
+    aloreCrypto.encryptAndPostServerKeyshare(event.data);
   event.data.method === 'link-keyshare' && aloreCrypto.linkKeyshare(event.data);
   event.data.method === 'all-shares-on-login' && aloreCrypto.allSharesOnLogin();
   event.data.method === 'retrieve-keyshare' &&

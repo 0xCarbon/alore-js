@@ -18,16 +18,31 @@ export default function Home() {
 
   const keyshareWorker: null | Worker = useContext(KeyshareWorkerContext);
 
+  const derivePasswordAndGetKeyshares = ({
+    password,
+    email,
+  }: {
+    password: string;
+    email: string;
+  }) => {
+    if (keyshareWorker) {
+      keyshareWorker.postMessage({
+        method: 'derive-password',
+        payload: { password, email },
+      });
+    }
+  };
+
   return (
     <main>
       <KeyshareWorkerProvider>
         <Auth
+          locale='pt'
           googleId={process.env.NEXT_PUBLIC_GOOGLE_ID || ''}
           cloudflareKey={process.env.NEXT_PUBLIC_CLOUDFLARE_SITE_KEY || ''}
           cryptoUtils={{ hashUserInfo, generateSecureHash }}
-          locale='pt'
           machineServices={aloreAuth.services}
-          keyshareWorker={keyshareWorker}
+          derivePassword={derivePasswordAndGetKeyshares}
           onSuccess={(user) => {
             console.log('User logged in:', user);
           }}

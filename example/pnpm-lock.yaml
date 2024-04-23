@@ -9,11 +9,11 @@ devDependencies:
     specifier: 0.0.1-alpha
     version: 0.0.1-alpha
   '@0xcarbon/alore-auth-ui':
-    specifier: 0.0.11-alpha
-    version: 0.0.11-alpha(@types/react@18.2.79)(react-dom@18.0.0)
+    specifier: 0.0.14-alpha
+    version: 0.0.14-alpha(@types/react@18.2.79)(react-dom@18.0.0)
   '@0xcarbon/alore-crypto-sdk':
-    specifier: 0.0.1-alpha
-    version: 0.0.1-alpha
+    specifier: 0.0.2-alpha
+    version: 0.0.2-alpha
   '@0xcarbon/dkls23-wasm':
     specifier: 0.1.2
     version: npm.pkg.github.com/@0xCarbon/dkls23-wasm@0.1.2
@@ -64,8 +64,8 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@0xcarbon/alore-auth-ui@0.0.11-alpha(@types/react@18.2.79)(react-dom@18.0.0):
-    resolution: {integrity: sha512-wJKCQUiAbge0JHGmRsUGdr1HKxKZa98Ckv58ECu7NhBVy4Gd77rrhD0oKQmafW6Q6jEsFA2bCc2YzlgWhClDrA==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-ui/0.0.11-alpha/819af596f5a828fbf8ef66851e6f9ee89e4352f5}
+  /@0xcarbon/alore-auth-ui@0.0.14-alpha(@types/react@18.2.79)(react-dom@18.0.0):
+    resolution: {integrity: sha512-uhCBVNpuaeIRDdeqjPgT+5ttOEIY21ERaIz8nL4Xkj+QVh7zxlmMze5eVDVAo3EbWw5dwtQkudJxpvelnNL97A==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-ui/0.0.14-alpha/5eea81f150d35f4e98644d84c6fb1c750f992803}
     dependencies:
       '@heroicons/react': 2.0.16(react@18.2.0)
       '@hookform/resolvers': 3.1.0(react-hook-form@7.45.4)
@@ -90,11 +90,13 @@ packages:
       - ts-node
     dev: true
 
-  /@0xcarbon/alore-crypto-sdk@0.0.1-alpha:
-    resolution: {integrity: sha512-fRvtkNYnCO+KNE6V45i6EZ6G44TDhyEp8tGlBD20fXwP0sR49OAYnfrWK5MJb7WP+o9iL9u2Y9E3NQ67tjFofg==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-crypto-sdk/0.0.1-alpha/1c38581ddf43ef5ae97f274a1ab2835d2757d66f}
+  /@0xcarbon/alore-crypto-sdk@0.0.2-alpha:
+    resolution: {integrity: sha512-9bXr8zBJQlMhgs4xaxDNWjeNPicaJyWYFJ++THLmpkJw5ETKT2d7Z/qf3QVhk8bqkNRiNiL8Gj2LFrfvtXxaKg==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-crypto-sdk/0.0.2-alpha/37dda7c30ec617b938f4ad510bdaced73545aa87}
     dependencies:
-      '@0xcarbon/dkls23-wasm': npm.pkg.github.com/@0xCarbon/dkls23-wasm@0.1.2
+      '@0xcarbon/dkls23-wasm': npm.pkg.github.com/@0xCarbon/dkls23-wasm@0.1.4
+      argon2-browser: 1.18.0
       ethers: 6.7.1
+      hpke-js: 1.2.7
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -320,8 +322,23 @@ packages:
     dev: true
     optional: true
 
+  /@noble/ciphers@0.4.1:
+    resolution: {integrity: sha512-QCOA9cgf3Rc33owG0AYBB9wszz+Ul2kramWN8tXG44Gyciud/tbkEqvxRF/IpqQaBpRBNi9f4jdNxqB2CQCIXg==}
+    dev: true
+
+  /@noble/curves@1.3.0:
+    resolution: {integrity: sha512-t01iSXPuN+Eqzb4eBX0S5oubSqXbK/xXa1Ne18Hj8f9pStxztHCE2gfboSp/dZRLSqfuLpRK2nDXDK+W9puocA==}
+    dependencies:
+      '@noble/hashes': 1.3.3
+    dev: true
+
   /@noble/hashes@1.1.2:
     resolution: {integrity: sha512-KYRCASVTv6aeUi1tsF8/vpyR7zpfs3FUzy2Jqm+MU+LmUKhQ0y2FpfwqkCcxSg2ua4GALJd8k2R76WxwZGbQpA==}
+    dev: true
+
+  /@noble/hashes@1.3.3:
+    resolution: {integrity: sha512-V7/fPHgl+jsVPXqqeOzT8egNj2iBIVt+ECeMMG8TdcnTikP3oaBtUVqpT/gYCR68aEBJSF+XbYUxStjbFMqIIA==}
+    engines: {node: '>= 16'}
     dev: true
 
   /@noble/secp256k1@1.7.1:
@@ -769,6 +786,15 @@ packages:
     engines: {node: '>= 0.4'}
     dependencies:
       function-bind: 1.1.2
+    dev: true
+
+  /hpke-js@1.2.7:
+    resolution: {integrity: sha512-g6gW2QZki8PktguvoXzAN4jKDWUPkApkBFHAVlhnr/tZUHlvuvMLZb7ZpdDMU8UvCh4iUDFMOJJrjN18OqEpIQ==}
+    engines: {node: '>=16.0.0'}
+    dependencies:
+      '@noble/ciphers': 0.4.1
+      '@noble/curves': 1.3.0
+      '@noble/hashes': 1.3.3
     dev: true
 
   /is-binary-path@2.1.0:
@@ -1478,4 +1504,10 @@ packages:
     resolution: {integrity: sha512-CcrPM7caWoLVSwsBRhjp4rBS7Fslssb4m+NiTZaZgO/ff5r7o37HSCmrFJCnQ/YIYvac/gcnt5kVuh8D/AVp1Q==, registry: https://registry.npmjs.org/, tarball: https://npm.pkg.github.com/download/@0xCarbon/dkls23-wasm/0.1.2/42c5c9717df851a8ff5bbc13ff685658814ee53d}
     name: '@0xCarbon/dkls23-wasm'
     version: 0.1.2
+    dev: true
+
+  npm.pkg.github.com/@0xCarbon/dkls23-wasm@0.1.4:
+    resolution: {integrity: sha512-zx6579tihK21MM9y/9Hqqh3owyhbT7NNKklc1qaAH24L8VVxxphpTc9oWozdFIesvdSxK6dttMOZP3yYcvc7tg==, registry: https://npm.pkg.github.com/, tarball: https://npm.pkg.github.com/download/@0xCarbon/dkls23-wasm/0.1.4/9a335341d2d38dce45dd6a95669b5bed4a9bb2e2}
+    name: '@0xCarbon/dkls23-wasm'
+    version: 0.1.4
     dev: true

@@ -36,7 +36,6 @@ export interface LoginProps {
   cloudflareKey: string;
   forgeId?: string;
   logoImage?: React.ReactNode;
-  keyshareWorker: Worker | null;
   cryptoUtils: {
     hashUserInfo: (userInfo: string) => string;
     generateSecureHash: (
@@ -45,6 +44,13 @@ export interface LoginProps {
       keyDerivationFunction: 'argon2d' | 'pbkdf2'
     ) => Promise<string>;
   };
+  derivePassword?: ({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }) => void;
 }
 
 export const Login = ({
@@ -53,8 +59,8 @@ export const Login = ({
   cloudflareKey,
   forgeId,
   logoImage,
-  keyshareWorker,
   cryptoUtils,
+  derivePassword,
 }: LoginProps) => {
   const { hashUserInfo, generateSecureHash } = cryptoUtils;
   const dictionary = useDictionary(locale);
@@ -255,25 +261,13 @@ export const Login = ({
     setLoading(false);
   }
 
-  async function derivePasswordAndGetKeyshares(
-    password: string,
-    email: string
-  ) {
-    if (keyshareWorker) {
-      keyshareWorker.postMessage({
-        method: 'derive-password',
-        payload: { password, email },
-      });
-    }
-  }
-
   async function onSubmitLogin(data: typeof passwordDefaultValues) {
     setLoading(true);
     const { password } = data;
     const email = getValuesEmail('email') || googleUser?.email;
 
     if (salt && email) {
-      derivePasswordAndGetKeyshares(password, email);
+      derivePassword?.({ password, email });
       const secureHashArgon2d = await generateSecureHash(
         password,
         salt,
@@ -318,7 +312,7 @@ export const Login = ({
     const { email } = getValuesEmail();
     const { password } = getValuesPassword();
     if (salt) {
-      derivePasswordAndGetKeyshares(password, email);
+      derivePassword?.({ password, email });
       const secureHashArgon2d = await generateSecureHash(
         password,
         salt,
@@ -346,7 +340,7 @@ export const Login = ({
     const { email } = getValuesEmail();
 
     if (salt) {
-      derivePasswordAndGetKeyshares(password, email);
+      derivePassword?.({ password, email });
       const secureHashArgon2d = await generateSecureHash(
         password,
         salt,
@@ -379,7 +373,7 @@ export const Login = ({
     const { email } = getValuesEmail();
     const { password } = getValuesPassword();
     if (salt) {
-      derivePasswordAndGetKeyshares(password, email);
+      derivePassword?.({ password, email });
       const secureHashArgon2d = await generateSecureHash(
         password,
         salt,
@@ -414,7 +408,7 @@ export const Login = ({
     const { email } = getValuesEmail();
     const { password } = getValuesPassword();
     if (salt) {
-      derivePasswordAndGetKeyshares(password, email);
+      derivePassword?.({ password, email });
       const secureHashArgon2d = await generateSecureHash(
         password,
         salt,
