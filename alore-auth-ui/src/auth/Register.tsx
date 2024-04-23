@@ -41,6 +41,7 @@ export interface RegisterProps {
   forgeId?: string;
   logoImage?: React.ReactNode;
   inviteToken?: string;
+  keyshareWorker?: Worker | null;
   cryptoUtils: {
     hashUserInfo: (userInfo: string) => string;
     generateSecureHash: (
@@ -49,13 +50,6 @@ export interface RegisterProps {
       keyDerivationFunction: 'argon2d' | 'pbkdf2'
     ) => Promise<string>;
   };
-  derivePassword?: ({
-    email,
-    password,
-  }: {
-    email: string;
-    password: string;
-  }) => void;
 }
 
 export const Register = ({
@@ -65,8 +59,8 @@ export const Register = ({
   forgeId,
   logoImage,
   inviteToken,
+  keyshareWorker,
   cryptoUtils,
-  derivePassword,
 }: RegisterProps) => {
   const { hashUserInfo, generateSecureHash } = cryptoUtils;
   const dictionary = useDictionary(locale);
@@ -277,6 +271,18 @@ export const Register = ({
     }
   }
 
+  async function derivePasswordAndGetKeyshares(
+    password: string,
+    email: string
+  ) {
+    if (keyshareWorker) {
+      keyshareWorker.postMessage({
+        method: 'derive-password',
+        payload: { password, email },
+      });
+    }
+  }
+
   async function onSubmitRegister(data: typeof passwordDefaultValues) {
     const { password } = data;
     const email = registerUser
@@ -290,7 +296,7 @@ export const Register = ({
     const saltWallet = registerUser ? registerUser.salt : salt || userSalt;
 
     if (saltWallet) {
-      derivePassword?.({ password, email });
+      derivePasswordAndGetKeyshares(password, email);
 
       const secureHashArgon2d = await generateSecureHash(
         password,

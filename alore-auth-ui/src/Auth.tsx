@@ -7,14 +7,16 @@ import { Register } from './auth/Register';
 import { SessionUser } from './machine/types';
 import { Locale } from 'get-dictionary';
 
+const TURNSTILE_PUBLIC_SITE_KEY = '0x4AAAAAAANlE5h6quNYoHFV';
+
 export interface AuthProps {
   locale?: Locale;
   machineServices: {};
-  cloudflareKey: string;
   googleId: string;
   forgeId?: string;
   logoImage?: React.ReactNode;
   inviteToken?: string;
+  keyshareWorker?: Worker | null;
   cryptoUtils: {
     hashUserInfo: (userInfo: string) => string;
     generateSecureHash: (
@@ -24,26 +26,18 @@ export interface AuthProps {
     ) => Promise<string>;
   };
   onSuccess?: (sessionUser: SessionUser) => void;
-  derivePassword?: ({
-    email,
-    password,
-  }: {
-    email: string;
-    password: string;
-  }) => void;
 }
 
 const Auth = ({
   locale = 'pt',
   machineServices,
-  cloudflareKey,
   googleId,
   forgeId,
   logoImage,
   inviteToken,
+  keyshareWorker,
   cryptoUtils,
   onSuccess,
-  derivePassword,
 }: AuthProps) => {
   const authServiceInstance = useMemo(
     () => authService(machineServices),
@@ -76,26 +70,16 @@ const Auth = ({
     }
   }, [sessionUser]);
 
-  const derivePasswordAndHandleKeyshares = async ({
-    email,
-    password,
-  }: {
-    email: string;
-    password: string;
-  }) => {
-    derivePassword?.({ email, password });
-  };
-
   return (
     <GoogleOAuthProvider clientId={googleId}>
       {authState.matches('active.login') && (
         <Login
           locale={locale}
           authServiceInstance={authServiceInstance}
-          cloudflareKey={cloudflareKey}
+          cloudflareKey={TURNSTILE_PUBLIC_SITE_KEY}
           forgeId={forgeId}
           cryptoUtils={cryptoUtils}
-          derivePassword={derivePasswordAndHandleKeyshares}
+          keyshareWorker={keyshareWorker}
           logoImage={logoImage}
         />
       )}
@@ -103,11 +87,11 @@ const Auth = ({
         <Register
           locale={locale}
           authServiceInstance={authServiceInstance}
-          cloudflareKey={cloudflareKey}
+          cloudflareKey={TURNSTILE_PUBLIC_SITE_KEY}
           forgeId={forgeId}
           inviteToken={inviteToken}
           cryptoUtils={cryptoUtils}
-          derivePassword={derivePasswordAndHandleKeyshares}
+          keyshareWorker={keyshareWorker}
           logoImage={logoImage}
         />
       )}
