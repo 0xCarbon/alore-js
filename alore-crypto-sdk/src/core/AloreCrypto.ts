@@ -1,51 +1,23 @@
 /* eslint-disable no-restricted-globals */
-import { keccak256 } from 'ethers';
-import init, { derive_child_keyshare } from '@0xcarbon/dkls23-wasm';
-import { UUID } from 'crypto';
+import { AeadId, CipherSuite, KdfId, KemId } from 'hpke-js';
+import {
+  Keyshare,
+  KeyshareWorkerMessage,
+  SimpleCredential,
+  byteArraytoArrayBuffer,
+  deriveAccountKeyshareFromWalletKeyshare,
+} from '../utils';
+import { SignerModule } from '../modules/signer';
+import { KeygenModule } from '../modules/keygen';
+
+interface AloreCryptoConfiguration {
+  endpoint?: string;
+}
 
 type FetchWithProgressiveBackoffConfig = {
   maxAttempts?: number;
   initialDelay?: number;
 };
-
-interface JavascriptEncryptedFile {
-  algorithm: string;
-  iv: string;
-  ciphertext: string;
-}
-
-export type SimpleCredential = {
-  email: string;
-  password: string;
-};
-
-export type KeyshareWorkerMessage = {
-  method:
-    | 'derive-password'
-    | 'derive-password-done'
-    | 'encrypt-keyshare'
-    | 'all-shares-on-login'
-    | 'retrieve-keyshare'
-    | 'download-keyshare'
-    | 'link-keyshare';
-  payload?:
-    | string
-    | CryptoKey
-    | Keyshare
-    | JavascriptEncryptedFile
-    | SimpleCredential;
-  walletId?: UUID;
-  apiKeyId?: UUID;
-  dkgId?: UUID;
-  storeName?: 'apiKeyKeyshares' | 'walletKeyshares';
-  derivationIndex: number;
-};
-
-export interface EncryptedKeyshare {
-  encrypted_key_share: Uint8Array;
-  encryption_iv: Uint8Array;
-  wallet_id?: UUID;
-}
 
 const ID_ZERO = '0';
 
@@ -53,66 +25,25 @@ const { indexedDB } = self;
 
 const DEFAULT_URL = 'https://api-beta.bealore.com/v1';
 
-export interface AloreCryptoConfiguration {
-  endpoint?: string;
-}
-
-export interface Keyshare {
-  parameters: {
-    threshold: number;
-    share_count: number;
-  };
-  party_index: number;
-  session_id: number[];
-  poly_point: string;
-  pk: string;
-  zero_share: {
-    seeds: {
-      lowest_index: boolean;
-      index_counterparty: number;
-      seed: number[];
-    }[];
-  };
-  mul_senders: Map<number, {}>;
-  mul_receivers: Map<number, {}>;
-  derivation_data: {
-    depth: number;
-    child_number: number;
-    parent_fingerprint: number[];
-    poly_point: string;
-    pk: string;
-    chain_code: number[];
-  };
-  eth_address: string;
-}
-
-export function arrayToHex(array: number[]) {
-  const hex = array.map((byte) => byte.toString(16).padStart(2, '0'));
-  return `0x${hex.join('')}`;
-}
-
-export async function generateEthereumAddressFromPublicKey(
-  publicKey: Uint8Array
-) {
-  const publicKeyHash = keccak256(publicKey.slice(1));
-  const address = `0x${publicKeyHash.slice(-40)}`;
-
-  return address;
-}
-
-function byteArraytoArrayBuffer(buffer: Uint8Array) {
-  const arrayBuffer = new ArrayBuffer(buffer.length);
-  const view = new Uint8Array(arrayBuffer);
-  // eslint-disable-next-line no-plusplus
-  for (let i = 0; i < buffer.length; ++i) {
-    view[i] = buffer[i];
-  }
-  return arrayBuffer;
-}
-
+/**
+ * The `AloreCrypto` class provides a set of cryptographic utilities and functionality for the Alore platform.
+ *
+ * It handles tasks such as:
+ * - Fetching data from the Alore API with progressive backoff
+ * - Saving, retrieving, and deleting keyshares (encrypted user data) in IndexedDB
+ * - Encrypting and decrypting keyshares using AES-GCM
+ * - Deriving a key from a user's password using PBKDF2
+ * - Encrypting and posting keyshares to the Alore server
+ * - Linking keyshares to user accounts on the Alore server
+ * - Retrieving and decrypting keyshares on user login
+ *
+ * The class is initialized with an API key and optional configuration options, and provides a set of public methods to interact with the Alore platform's cryptographic functionality.
+ */
 export class AloreCrypto {
   protected readonly endpoint: string;
-  protected readonly configuration: string;
+
+  public readonly signer: SignerModule;
+  public readonly keygen: KeygenModule;
 
   constructor(
     public readonly apiKey: string,
@@ -122,13 +53,8 @@ export class AloreCrypto {
 
     this.endpoint = options?.endpoint || DEFAULT_URL;
 
-    this.configuration = 'TODO';
-
-    // this.configuration = Base64.encode(
-    //   JSON.stringify({
-    //     API_KEY: this.apiKey,
-    //   })
-    // );
+    this.signer = new SignerModule(this);
+    this.keygen = new KeygenModule(this);
   }
 
   public async fetchWithProgressiveBackoff(
@@ -234,27 +160,11 @@ export class AloreCrypto {
     }
   }
 
-  // @@@@@@@@@@@@@
-
-  public async deriveAccountKeyshareFromWalletKeyshare(
-    walletKeyshare: Keyshare,
-    account_index: number
-  ) {
-    return init().then(async () => {
-      const accountKeyshare = await derive_child_keyshare(
-        walletKeyshare,
-        account_index
-      );
-
-      return accountKeyshare[Object.keys(accountKeyshare)[0]];
-    });
-  }
-
   public saveKeyshare(
     keyshare: Keyshare,
-    linker: { walletId?: string; apiKeyId?: string }
+    linker: { walletId?: string; apiKeyId?: string; accountId?: string }
   ) {
-    const { walletId, apiKeyId } = linker;
+    const { walletId, apiKeyId, accountId } = linker;
 
     return new Promise((resolve) => {
       const open = indexedDB.open('browserDB');
@@ -262,20 +172,34 @@ export class AloreCrypto {
       open.onupgradeneeded = () => {
         const db = open.result;
         db.createObjectStore('walletKeyshares', { keyPath: 'walletId' });
+        db.createObjectStore('accountKeyshares', { keyPath: 'accountId' });
         db.createObjectStore('apiKeyKeyshares', { keyPath: 'apiKeyId' });
         db.createObjectStore('derivedKey', { keyPath: 'id' });
       };
 
       open.onsuccess = () => {
         const db = open.result;
-        const path = apiKeyId ? 'apiKeyKeyshares' : 'walletKeyshares';
+        let path;
+        if (apiKeyId) {
+          path = 'apiKeyKeyshares';
+        } else if (walletId) {
+          path = 'walletKeyshares';
+        } else {
+          path = 'accountKeyshares';
+        }
 
         const tx = db.transaction(path, 'readwrite');
         const store = tx.objectStore(path);
 
-        const storeObject = walletId
-          ? { walletId, keyshare }
-          : { apiKeyId, keyshare };
+        let storeObject;
+        if (walletId) {
+          storeObject = { walletId, keyshare };
+        } else if (apiKeyId) {
+          storeObject = { apiKeyId, keyshare };
+        } else {
+          storeObject = { accountId, keyshare };
+        }
+
         store.put(storeObject);
 
         tx.oncomplete = () => {
@@ -289,8 +213,9 @@ export class AloreCrypto {
   public getKeyshare(linker: {
     walletId?: string;
     apiKeyId?: string;
+    accountId?: string;
   }): Promise<Keyshare | null> {
-    const { walletId, apiKeyId } = linker;
+    const { walletId, apiKeyId, accountId } = linker;
 
     return new Promise((resolve) => {
       const open = indexedDB.open('browserDB');
@@ -299,17 +224,25 @@ export class AloreCrypto {
         const db = open.result;
         db.createObjectStore('walletKeyshares', { keyPath: 'walletId' });
         db.createObjectStore('apiKeyKeyshares', { keyPath: 'apiKeyId' });
+        db.createObjectStore('accountKeyshares', { keyPath: 'accountId' });
         db.createObjectStore('derivedKey', { keyPath: 'id' });
       };
 
       open.onsuccess = () => {
         const db = open.result;
-        const path = apiKeyId ? 'apiKeyKeyshares' : 'walletKeyshares';
+        let path = '';
+        if (apiKeyId) {
+          path = 'apiKeyKeyshares';
+        } else if (walletId) {
+          path = 'walletKeyshares';
+        } else if (accountId) {
+          path = 'accountKeyshares';
+        }
 
         const tx = db.transaction(path, 'readwrite');
         const store = tx.objectStore(path);
 
-        const share = store.get(walletId || apiKeyId!);
+        const share = store.get(walletId || apiKeyId || accountId!);
 
         share.onerror = () => {
           resolve(null);
@@ -332,6 +265,7 @@ export class AloreCrypto {
   public deleteKeyshareWithoutWallet(linker: {
     walletId?: string;
     apiKeyId?: string;
+    accountId?: string;
   }) {
     return new Promise((resolve) => {
       const open = indexedDB.open('browserDB');
@@ -340,12 +274,20 @@ export class AloreCrypto {
         const db = open.result;
         db.createObjectStore('walletKeyshares', { keyPath: 'walletId' });
         db.createObjectStore('apiKeyKeyshares', { keyPath: 'apiKeyId' });
+        db.createObjectStore('accountKeyshares', { keyPath: 'accountId' });
         db.createObjectStore('derivedKey', { keyPath: 'id' });
       };
 
       open.onsuccess = () => {
         const db = open.result;
-        const path = linker.apiKeyId ? 'apiKeyKeyshares' : 'walletKeyshares';
+        let path = '';
+        if (linker.apiKeyId) {
+          path = 'apiKeyKeyshares';
+        } else if (linker.walletId) {
+          path = 'walletKeyshares';
+        } else if (linker.accountId) {
+          path = 'accountKeyshares';
+        }
 
         const tx = db.transaction(path, 'readwrite');
         const store = tx.objectStore(path);
@@ -362,26 +304,29 @@ export class AloreCrypto {
 
   public saveDerivedKey(derivedKey: CryptoKey) {
     return new Promise((resolve) => {
-      const open = indexedDB.open('browserDB');
+      indexedDB.deleteDatabase('browserDB').onsuccess = () => {
+        const open = indexedDB.open('browserDB');
 
-      open.onupgradeneeded = () => {
-        const db = open.result;
-        db.createObjectStore('walletKeyshares', { keyPath: 'walletId' });
-        db.createObjectStore('apiKeyKeyshares', { keyPath: 'apiKeyId' });
-        db.createObjectStore('derivedKey', { keyPath: 'id' });
-      };
+        open.onupgradeneeded = () => {
+          const db = open.result;
+          db.createObjectStore('walletKeyshares', { keyPath: 'walletId' });
+          db.createObjectStore('apiKeyKeyshares', { keyPath: 'apiKeyId' });
+          db.createObjectStore('accountKeyshares', { keyPath: 'accountId' });
+          db.createObjectStore('derivedKey', { keyPath: 'id' });
+        };
 
-      open.onsuccess = () => {
-        const db = open.result;
+        open.onsuccess = () => {
+          const db = open.result;
 
-        const tx = db.transaction('derivedKey', 'readwrite');
-        const store = tx.objectStore('derivedKey');
+          const tx = db.transaction('derivedKey', 'readwrite');
+          const store = tx.objectStore('derivedKey');
 
-        store.put({ id: 1, derivedKey });
+          store.put({ id: 1, derivedKey });
 
-        tx.oncomplete = () => {
-          resolve('saved');
-          db.close();
+          tx.oncomplete = () => {
+            resolve('saved');
+            db.close();
+          };
         };
       };
     });
@@ -395,6 +340,7 @@ export class AloreCrypto {
         const db = open.result;
         db.createObjectStore('walletKeyshares', { keyPath: 'walletId' });
         db.createObjectStore('apiKeyKeyshares', { keyPath: 'apiKeyId' });
+        db.createObjectStore('accountKeyshares', { keyPath: 'accountId' });
         db.createObjectStore('derivedKey', { keyPath: 'id' });
       };
 
@@ -442,6 +388,45 @@ export class AloreCrypto {
       true,
       ['encrypt', 'decrypt']
     );
+  }
+
+  public async encryptServerKeyshare(keyshare: string) {
+    const keyshareStringBuffer = new TextEncoder().encode(keyshare);
+
+    const suite = new CipherSuite({
+      kem: KemId.DhkemP256HkdfSha256,
+      kdf: KdfId.HkdfSha256,
+      aead: AeadId.Aes256Gcm,
+    });
+
+    const publicKeyBytes = new Uint8Array([
+      4, 174, 169, 247, 167, 65, 46, 136, 230, 226, 53, 38, 220, 95, 200, 27,
+      53, 240, 59, 72, 13, 34, 0, 42, 78, 160, 34, 67, 20, 103, 53, 53, 220,
+      213, 109, 225, 131, 218, 49, 75, 232, 114, 88, 181, 223, 45, 84, 233, 2,
+      10, 16, 100, 104, 134, 247, 10, 124, 163, 113, 49, 229, 91, 149, 184, 148,
+    ]);
+    const serverPublicKeyBuffer = publicKeyBytes.buffer;
+
+    const clientHpkeSenderContext = await suite.createSenderContext({
+      recipientPublicKey: await crypto.subtle.importKey(
+        'raw',
+        serverPublicKeyBuffer,
+        {
+          name: 'ECDH',
+          namedCurve: 'P-256',
+        },
+        true,
+        []
+      ),
+      info: new Uint8Array([0]),
+    });
+
+    const ciphertext = await clientHpkeSenderContext.seal(
+      keyshareStringBuffer,
+      new Uint8Array([0])
+    );
+
+    return { enc: clientHpkeSenderContext.enc, ciphertext };
   }
 
   public async encryptKeyshare(keyshare: Keyshare) {
@@ -506,16 +491,19 @@ export class AloreCrypto {
 
   public async encryptAndPostKeyshare(data: KeyshareWorkerMessage) {
     const { payload, storeName, dkgId } = data;
-    const walletKeyshare = payload as Keyshare;
+    const keyshare = payload as Keyshare;
+    let keyshareOwnerObjectId;
+    if (storeName === 'apiKeyKeyshares') {
+      keyshareOwnerObjectId = { apiKeyId: ID_ZERO };
+    } else if (storeName === 'walletKeyshares') {
+      keyshareOwnerObjectId = { walletId: ID_ZERO };
+    } else {
+      keyshareOwnerObjectId = { accountId: ID_ZERO };
+    }
 
-    this.saveKeyshare(
-      walletKeyshare,
-      storeName === 'apiKeyKeyshares'
-        ? { apiKeyId: ID_ZERO }
-        : { walletId: ID_ZERO }
-    );
+    this.saveKeyshare(keyshare, keyshareOwnerObjectId);
 
-    const { ciphertext, iv } = await this.encryptKeyshare(walletKeyshare);
+    const { ciphertext, iv } = await this.encryptKeyshare(keyshare);
     const ciphertextByteArray = new Uint8Array(ciphertext);
     const encryptedKeyshare = Array.from(ciphertextByteArray);
     const encryptionIv = Array.from(iv);
@@ -537,14 +525,62 @@ export class AloreCrypto {
         });
       });
     } catch (error) {
-      throw new Error("Couldn't post keyshare to server");
+      throw new Error("Couldn't post client keyshare to server");
+    }
+  }
+
+  public async encryptAndPostServerKeyshare(data: KeyshareWorkerMessage) {
+    const { payload, dkgId } = data;
+    const keyshare = payload as string;
+
+    const { enc, ciphertext } = await this.encryptServerKeyshare(keyshare);
+    const ciphertextByteArray = new Uint8Array(ciphertext);
+    const encryptedKeyshare = Array.from(ciphertextByteArray);
+    try {
+      await this.fetchWithProgressiveBackoff(
+        `/import-account-server-keyshare`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            encrypted_keyshare: encryptedKeyshare,
+            encryption_iv: Array.from(new Uint8Array(enc)),
+            dkg_id: dkgId,
+            server_auth_tag: [1],
+          }),
+        }
+      ).then(() => {
+        postMessage({
+          method: 'encrypt-and-post-server-keyshare-done',
+        });
+      });
+    } catch (error) {
+      throw new Error("Couldn't post server keyshare to server");
     }
   }
 
   public async linkKeyshare(eventData: KeyshareWorkerMessage) {
-    const { walletId, apiKeyId, dkgId } = eventData;
+    const { walletId, apiKeyId, accountId, dkgId } = eventData;
+    let localUnlinkedId: {
+      walletId?: string;
+      apiKeyId?: string;
+      accountId?: string;
+    };
+    let body;
 
-    const body = walletId ? { walletId, dkgId } : { apiKeyId, dkgId };
+    if (walletId) {
+      localUnlinkedId = { walletId: ID_ZERO };
+      body = { walletId, dkgId };
+    } else if (apiKeyId) {
+      localUnlinkedId = { apiKeyId: ID_ZERO };
+      body = { apiKeyId, dkgId };
+    } else {
+      localUnlinkedId = { accountId: ID_ZERO };
+      body = { accountId, dkgId };
+    }
+
     try {
       await this.fetchWithProgressiveBackoff(`/keyshares`, {
         method: 'PATCH',
@@ -557,15 +593,13 @@ export class AloreCrypto {
       throw new Error("Couldn't link keyshare to server");
     }
 
-    this.getKeyshare(
-      walletId ? { walletId: ID_ZERO } : { apiKeyId: ID_ZERO }
-    ).then(async (keyshare) => {
-      await this.deleteKeyshareWithoutWallet(
-        walletId ? { walletId: ID_ZERO } : { apiKeyId: ID_ZERO }
-      );
+    this.getKeyshare(localUnlinkedId).then(async (keyshare) => {
+      await this.deleteKeyshareWithoutWallet(localUnlinkedId);
       if (keyshare && walletId) await this.saveKeyshare(keyshare, { walletId });
       else if (keyshare && apiKeyId)
         await this.saveKeyshare(keyshare, { apiKeyId });
+      else if (keyshare && accountId)
+        await this.saveKeyshare(keyshare, { accountId });
 
       postMessage({
         method: 'link-keyshare',
@@ -593,12 +627,14 @@ export class AloreCrypto {
             encryption_iv: Uint8Array;
             wallet_id?: string;
             api_key_id?: string;
+            account_id?: string;
           }) => {
             const {
               encrypted_key_share,
               encryption_iv,
               wallet_id,
               api_key_id,
+              account_id,
             } = encrypted_share;
 
             const ciphertextBuffer = Buffer.from(encrypted_key_share);
@@ -608,10 +644,13 @@ export class AloreCrypto {
               ciphertextBuffer,
               ivBuffer
             );
-            this.saveKeyshare(
-              plaintext,
-              wallet_id ? { walletId: wallet_id } : { apiKeyId: api_key_id }
-            );
+
+            let localStorageNameObj;
+            if (wallet_id) localStorageNameObj = { walletId: wallet_id };
+            else if (api_key_id) localStorageNameObj = { apiKeyId: api_key_id };
+            else localStorageNameObj = { accountId: account_id };
+
+            this.saveKeyshare(plaintext, localStorageNameObj);
           }
         );
       }
@@ -628,7 +667,18 @@ export class AloreCrypto {
   public async retrieveDecryptedKeyshare(
     eventData: KeyshareWorkerMessage
   ): Promise<void | Error> {
-    const { derivationIndex, walletId, apiKeyId } = eventData;
+    const { derivationIndex, walletId, apiKeyId, accountId } = eventData;
+
+    if (accountId) {
+      const accountKeyshare = await this.getKeyshare({ accountId });
+      if (accountKeyshare) {
+        postMessage({
+          method: 'retrieve-keyshare',
+          payload: accountKeyshare,
+        });
+        return;
+      }
+    }
 
     if (walletId) {
       const walletKeyshare = await this.getKeyshare({ walletId });
@@ -637,7 +687,7 @@ export class AloreCrypto {
         await this.allSharesOnLogin();
       } else {
         const accountKeyshare: Keyshare =
-          await this.deriveAccountKeyshareFromWalletKeyshare(
+          await deriveAccountKeyshareFromWalletKeyshare(
             walletKeyshare,
             derivationIndex
           );
@@ -654,7 +704,7 @@ export class AloreCrypto {
         await this.allSharesOnLogin();
       } else {
         const accountKeyshare: Keyshare =
-          await this.deriveAccountKeyshareFromWalletKeyshare(
+          await deriveAccountKeyshareFromWalletKeyshare(
             apiKeyshare,
             derivationIndex
           );

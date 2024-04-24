@@ -10,15 +10,16 @@ import { SessionUser } from './machine/types';
 import { Locale } from 'get-dictionary';
 import { Spinner } from 'flowbite-react';
 
+const TURNSTILE_PUBLIC_SITE_KEY = '0x4AAAAAAANlE5h6quNYoHFV';
+
 export interface AuthProps {
   locale?: Locale;
   machineServices: {};
-  cloudflareKey: string;
   googleId: string;
   forgeId?: string;
   logoImage?: React.ReactNode;
   inviteToken?: string;
-  keyshareWorker: Worker | null;
+  keyshareWorker?: Worker | null;
   cryptoUtils: {
     hashUserInfo: (userInfo: string) => string;
     generateSecureHash: (
@@ -33,7 +34,6 @@ export interface AuthProps {
 const Auth = ({
   locale = 'pt',
   machineServices,
-  cloudflareKey,
   googleId,
   forgeId,
   logoImage,
@@ -92,7 +92,7 @@ const Auth = ({
             <Login
               locale={locale}
               authServiceInstance={authServiceInstance}
-              cloudflareKey={cloudflareKey}
+              cloudflareKey={TURNSTILE_PUBLIC_SITE_KEY}
               forgeId={forgeId}
               cryptoUtils={cryptoUtils}
               keyshareWorker={keyshareWorker}
@@ -103,7 +103,7 @@ const Auth = ({
             <Register
               locale={locale}
               authServiceInstance={authServiceInstance}
-              cloudflareKey={cloudflareKey}
+              cloudflareKey={TURNSTILE_PUBLIC_SITE_KEY}
               forgeId={forgeId}
               inviteToken={inviteToken}
               cryptoUtils={cryptoUtils}

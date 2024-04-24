@@ -40,7 +40,7 @@ export interface RegisterProps {
   forgeId?: string;
   logoImage?: React.ReactNode;
   inviteToken?: string;
-  keyshareWorker: Worker | null;
+  keyshareWorker?: Worker | null;
   cryptoUtils: {
     hashUserInfo: (userInfo: string) => string;
     generateSecureHash: (
