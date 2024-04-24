@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Login } from './auth/Login';
 import { authService } from './machine';
@@ -8,6 +8,7 @@ import { useActor } from '@xstate/react';
 import { Register } from './auth/Register';
 import { SessionUser } from './machine/types';
 import { Locale } from 'get-dictionary';
+import { Spinner } from 'flowbite-react';
 
 export interface AuthProps {
   locale?: Locale;
@@ -47,6 +48,11 @@ const Auth = ({
   );
   const [authState, sendAuth] = useActor(authServiceInstance);
   const { googleUser, sessionUser } = authState.context;
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     if (googleUser) {
@@ -73,31 +79,41 @@ const Auth = ({
   }, [sessionUser]);
 
   return (
-    <GoogleOAuthProvider clientId={googleId}>
-      {authState.matches('active.login') && (
-        <Login
-          locale={locale}
-          authServiceInstance={authServiceInstance}
-          cloudflareKey={cloudflareKey}
-          forgeId={forgeId}
-          cryptoUtils={cryptoUtils}
-          keyshareWorker={keyshareWorker}
-          logoImage={logoImage}
-        />
-      )}
-      {authState.matches('active.register') && (
-        <Register
-          locale={locale}
-          authServiceInstance={authServiceInstance}
-          cloudflareKey={cloudflareKey}
-          forgeId={forgeId}
-          inviteToken={inviteToken}
-          cryptoUtils={cryptoUtils}
-          keyshareWorker={keyshareWorker}
-          logoImage={logoImage}
-        />
-      )}
-    </GoogleOAuthProvider>
+    isClient && (
+      <GoogleOAuthProvider clientId={googleId}>
+        <Suspense
+          fallback={
+            <div className='flex h-full min-h-screen w-full flex-col items-center justify-center'>
+              <Spinner className='m-auto !h-12 w-full !fill-gray-300' />
+            </div>
+          }
+        >
+          {authState.matches('active.login') && (
+            <Login
+              locale={locale}
+              authServiceInstance={authServiceInstance}
+              cloudflareKey={cloudflareKey}
+              forgeId={forgeId}
+              cryptoUtils={cryptoUtils}
+              keyshareWorker={keyshareWorker}
+              logoImage={logoImage}
+            />
+          )}
+          {authState.matches('active.register') && (
+            <Register
+              locale={locale}
+              authServiceInstance={authServiceInstance}
+              cloudflareKey={cloudflareKey}
+              forgeId={forgeId}
+              inviteToken={inviteToken}
+              cryptoUtils={cryptoUtils}
+              keyshareWorker={keyshareWorker}
+              logoImage={logoImage}
+            />
+          )}
+        </Suspense>
+      </GoogleOAuthProvider>
+    )
   );
 };
 

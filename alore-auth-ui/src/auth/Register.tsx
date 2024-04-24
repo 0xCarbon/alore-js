@@ -13,14 +13,6 @@ import { passwordRules, ruleValidation } from '../components/FormRules/helpers';
 import { useGoogleLogin } from '@react-oauth/google';
 import { Turnstile } from '@marsidev/react-turnstile';
 import { CaptchaStatus, verifyEmptyValues } from '../helpers';
-import {
-  BackButton,
-  CheckboxForm,
-  TermsModal,
-  InputForm,
-  FormRules,
-  InputOTP,
-} from '../components';
 import useDictionary from '../hooks/useDictionary';
 import { AuthInstance } from '../machine/types';
 import {
@@ -31,6 +23,13 @@ import {
 } from '../utils';
 import { Locale } from 'get-dictionary';
 import { twMerge } from 'tailwind-merge';
+
+const InputForm = React.lazy(() => import('../components/InputForm'));
+const InputOTP = React.lazy(() => import('../components/InputOTP'));
+const BackButton = React.lazy(() => import('../components/BackButton'));
+const CheckboxForm = React.lazy(() => import('../components/CheckboxForm'));
+const TermsModal = React.lazy(() => import('../components/TermsModal'));
+const FormRules = React.lazy(() => import('../components/FormRules'));
 
 const envelopIcon = () => <EnvelopeIcon className='h-4 w-4 text-gray-500' />;
 
@@ -382,6 +381,7 @@ export const Register = ({
             autoFocus
             disabled={isLoading || !!inviteToken}
           />
+
           <InputForm
             control={userInfoControl}
             errors={userInfoErrors}
@@ -391,6 +391,7 @@ export const Register = ({
             data-test='register-first-name'
             disabled={isLoading}
           />
+
           <Turnstile
             siteKey={cloudflareKey}
             options={{ theme: 'light', language: locale, retry: 'never' }}
@@ -403,6 +404,7 @@ export const Register = ({
             }}
             onExpire={() => setCaptchaStatus('expired')}
           />
+
           <CheckboxForm
             className='flex items-center justify-center'
             control={userInfoControl}
@@ -498,6 +500,7 @@ export const Register = ({
     () => (
       <>
         <BackButton disabled={isLoading} onClick={() => sendAuth('BACK')} />
+
         <div
           className='flex w-full flex-col items-center'
           data-test='register-verify-email-step'
@@ -565,6 +568,7 @@ export const Register = ({
         >
           {userInfoGetValues('email')}
         </BackButton>
+
         <div
           className='flex w-full flex-col'
           data-test='register-password-step'
@@ -587,6 +591,7 @@ export const Register = ({
               data-test='register-password'
               disabled={isLoading}
             />
+
             <InputForm
               control={passwordControl}
               errors={passwordErrors}
@@ -645,6 +650,7 @@ export const Register = ({
           sendAuth('CLOSE_TERMS_MODAL');
         }}
       />
+
       {forgeId ? (
         <div className='flex flex-col'>
           <span className='text-center font-poppins text-2xl font-black text-alr-grey'>

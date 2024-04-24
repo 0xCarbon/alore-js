@@ -8,14 +8,7 @@ import {
   hashUserInfo,
   generateSecureHash,
 } from '@0xcarbon/alore-auth-sdk';
-import dynamic from 'next/dynamic';
-
-const Auth = dynamic(
-  () => import('@0xcarbon/alore-auth-ui').then((mod) => mod),
-  {
-    ssr: false,
-  }
-);
+import Auth from '@0xcarbon/alore-auth-ui';
 
 import { useContext } from 'react';
 

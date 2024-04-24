@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React from 'react';
 import { Button, Card, Spinner } from 'flowbite-react';
 import { FieldValues, useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -10,7 +10,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useActor } from '@xstate/react';
 import { LatLngTuple } from 'leaflet';
 import { Turnstile } from '@marsidev/react-turnstile';
-import { InputOTP, InputForm, BackButton } from '../components';
 import { useGoogleLogin } from '@react-oauth/google';
 import { CaptchaStatus, NewDeviceInfo, verifyEmptyValues } from '../helpers';
 import useDictionary from '../hooks/useDictionary';
@@ -27,6 +26,9 @@ import { Locale } from 'get-dictionary';
 import { twMerge } from 'tailwind-merge';
 
 const Map = React.lazy(() => import('../components/Map'));
+const InputForm = React.lazy(() => import('../components/InputForm'));
+const InputOTP = React.lazy(() => import('../components/InputOTP'));
+const BackButton = React.lazy(() => import('../components/BackButton'));
 
 const envelopIcon = () => <EnvelopeIcon className='h-4 w-4 text-gray-500' />;
 
@@ -221,7 +223,7 @@ export const Login = ({
     }
   }, [authState.value]);
 
-  async function startHwAuth(index: number) {
+  const startHwAuth = async (index: number) => {
     setLoading(true);
     const { email } = getValuesEmail();
     const { password } = getValuesPassword();
@@ -246,9 +248,9 @@ export const Login = ({
       });
     }
     setLoading(false);
-  }
+  };
 
-  async function onSubmitEmail(data: typeof emailDefaultValues) {
+  const onSubmitEmail = async (data: typeof emailDefaultValues) => {
     setLoading(true);
 
     const { email } = data;
@@ -256,21 +258,21 @@ export const Login = ({
     // await signOut({ redirect: false });
     sendAuth({ type: 'NEXT', payload: { email } });
     setLoading(false);
-  }
+  };
 
-  async function derivePasswordAndGetKeyshares(
+  const derivePasswordAndGetKeyshares = async (
     password: string,
     email: string
-  ) {
+  ) => {
     if (keyshareWorker) {
       keyshareWorker.postMessage({
         method: 'derive-password',
         payload: { password, email },
       });
     }
-  }
+  };
 
-  async function onSubmitLogin(data: typeof passwordDefaultValues) {
+  const onSubmitLogin = async (data: typeof passwordDefaultValues) => {
     setLoading(true);
     const { password } = data;
     const email = getValuesEmail('email') || googleUser?.email;
@@ -283,40 +285,42 @@ export const Login = ({
         'argon2d'
       );
 
-      let device = window.localStorage.getItem('currentDeviceSecret');
-      if (!device) {
-        const { userAgent } = window.navigator;
-        device = hashUserInfo(userAgent);
-      }
-      setCurrentDevice(device);
+      if (typeof window !== 'undefined') {
+        let device = window.localStorage.getItem('currentDeviceSecret');
+        if (!device) {
+          const { userAgent } = window.navigator;
+          device = hashUserInfo(userAgent);
+        }
+        setCurrentDevice(device);
 
-      if (googleOtpCode) {
-        sendAuth({
-          type: 'COMPLETE_GOOGLE_SIGN_IN',
-          payload: {
-            email,
-            passwordHash: secureHashArgon2d,
-            otp: googleOtpCode,
-          },
-        });
-      } else {
-        sendAuth({
-          type: 'VERIFY_LOGIN',
-          payload: {
-            email,
-            device,
-            passwordHash: secureHashArgon2d,
-            captchaToken,
-            isForgeClaim: !!forgeId,
-            locale,
-          },
-        });
+        if (googleOtpCode) {
+          sendAuth({
+            type: 'COMPLETE_GOOGLE_SIGN_IN',
+            payload: {
+              email,
+              passwordHash: secureHashArgon2d,
+              otp: googleOtpCode,
+            },
+          });
+        } else {
+          sendAuth({
+            type: 'VERIFY_LOGIN',
+            payload: {
+              email,
+              device,
+              passwordHash: secureHashArgon2d,
+              captchaToken,
+              isForgeClaim: !!forgeId,
+              locale,
+            },
+          });
+        }
       }
     }
     setLoading(false);
-  }
+  };
 
-  async function onSubmitSecureCode2FA() {
+  const onSubmitSecureCode2FA = async () => {
     setLoading(true);
     const { email } = getValuesEmail();
     const { password } = getValuesPassword();
@@ -341,9 +345,9 @@ export const Login = ({
       setSecure2FACode('');
     }
     setLoading(false);
-  }
+  };
 
-  async function onClickSecureCodeSubmit() {
+  const onClickSecureCodeSubmit = async () => {
     setLoading(true);
     const { password } = getValuesPassword();
     const { email } = getValuesEmail();
@@ -356,28 +360,30 @@ export const Login = ({
         'argon2d'
       );
 
-      let device = window.localStorage.getItem('currentDeviceSecret');
-      if (!device) {
-        const { userAgent } = window.navigator;
-        device = hashUserInfo(userAgent);
-      }
-      setCurrentDevice(device);
+      if (typeof window !== 'undefined') {
+        let device = window.localStorage.getItem('currentDeviceSecret');
+        if (!device) {
+          const { userAgent } = window.navigator;
+          device = hashUserInfo(userAgent);
+        }
+        setCurrentDevice(device);
 
-      sendAuth({
-        type: 'VERIFY_EMAIL_2FA',
-        payload: {
-          email: getValuesEmail('email'),
-          secureCode: secureCode2FA,
-          passwordHash: secureHashArgon2d,
-        },
-      });
+        sendAuth({
+          type: 'VERIFY_EMAIL_2FA',
+          payload: {
+            email: getValuesEmail('email'),
+            secureCode: secureCode2FA,
+            passwordHash: secureHashArgon2d,
+          },
+        });
+      }
     }
 
     setLoading(false);
     setSecure2FACode('');
-  }
+  };
 
-  async function resendSecureCode() {
+  const resendSecureCode = async () => {
     setLoading(true);
     const { email } = getValuesEmail();
     const { password } = getValuesPassword();
@@ -410,9 +416,9 @@ export const Login = ({
       1000
     );
     setCooldownMultiplier((state) => state + 1);
-  }
+  };
 
-  async function onSubmitSecureCodeEmail() {
+  const onSubmitSecureCodeEmail = async () => {
     setLoading(true);
     const { email } = getValuesEmail();
     const { password } = getValuesPassword();
@@ -436,7 +442,7 @@ export const Login = ({
       setSecureCodeEmail('');
     }
     setLoading(false);
-  }
+  };
 
   const isLoginSubmitDisabled = useMemo(
     () => verifyEmptyValues({ ...getValuesEmail(), ...getValuesPassword() }),
@@ -491,6 +497,7 @@ export const Login = ({
             data-test='login-email'
             icon={envelopIcon}
           />
+
           {/* <Link // TODO removed from beta
             href="/forgot-password"
             className="cursor-pointer self-end text-xs font-medium text-alr-red"
@@ -569,6 +576,7 @@ export const Login = ({
         <BackButton className='mb-2.5' onClick={() => sendAuth('BACK')}>
           {getValuesEmail('email') || googleUser?.email}
         </BackButton>
+
         {authError && (
           <div className='flex flex-col items-center justify-center gap-5'>
             <img src={authError} alt='alore logo' width={70} />
@@ -598,6 +606,7 @@ export const Login = ({
             label={dictionary?.password}
             data-test='login-password'
           />
+
           {/* <Link // TODO removed from beta
             href="/forgot-password"
             className="cursor-pointer self-end text-xs font-medium text-alr-red"
@@ -658,6 +667,7 @@ export const Login = ({
     () => (
       <div className='pb-10 pt-4'>
         <BackButton disabled={isLoading} onClick={() => sendAuth('BACK')} />
+
         <div
           className='flex w-full flex-col items-center'
           data-test='login-verify-email-step'
@@ -718,6 +728,7 @@ export const Login = ({
     () => (
       <div>
         <BackButton onClick={() => sendAuth('BACK')} />
+
         {authError?.includes('Failed authenticating with hardware key') ? (
           <div className='mt-6 flex w-full flex-col items-center gap-6'>
             <img alt='fingerprint error' src={fingerprintError} />
@@ -781,6 +792,7 @@ export const Login = ({
     () => (
       <div>
         <BackButton onClick={() => sendAuth('BACK')} />
+
         <div className='flex w-full flex-col items-center'>
           <span className='mb-10 mt-[3rem] text-center font-poppins text-[1.3rem] font-bold text-alr-grey'>
             {loginDictionary?.inform2FACode}
@@ -839,13 +851,11 @@ export const Login = ({
           <span className='mb-5 font-bold'>{getValuesEmail('email')}</span>
           <div className='mb-5 h-44 w-full'>
             {newDeviceInfo?.coordinates && (
-              <Suspense fallback={null}>
-                <Map
-                  coordinates={
-                    newDeviceInfo?.coordinates as unknown as LatLngTuple
-                  }
-                />
-              </Suspense>
+              <Map
+                coordinates={
+                  newDeviceInfo?.coordinates as unknown as LatLngTuple
+                }
+              />
             )}
           </div>
           <div className='mb-6 flex'>
