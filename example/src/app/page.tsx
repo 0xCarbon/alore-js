@@ -22,10 +22,9 @@ export default function Home() {
     <main>
       <KeyshareWorkerProvider>
         <Auth
-          googleId={process.env.NEXT_PUBLIC_GOOGLE_ID || ''}
-          cloudflareKey={process.env.NEXT_PUBLIC_CLOUDFLARE_SITE_KEY || ''}
-          cryptoUtils={{ hashUserInfo, generateSecureHash }}
           locale='pt'
+          googleId={process.env.NEXT_PUBLIC_GOOGLE_ID || ''}
+          cryptoUtils={{ hashUserInfo, generateSecureHash }}
           machineServices={aloreAuth.services}
           keyshareWorker={keyshareWorker}
           onSuccess={(user) => {

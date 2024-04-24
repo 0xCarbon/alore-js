@@ -36,7 +36,7 @@ export interface LoginProps {
   cloudflareKey: string;
   forgeId?: string;
   logoImage?: React.ReactNode;
-  keyshareWorker: Worker | null;
+  keyshareWorker?: Worker | null;
   cryptoUtils: {
     hashUserInfo: (userInfo: string) => string;
     generateSecureHash: (
