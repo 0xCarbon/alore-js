@@ -1,6 +1,8 @@
+'use client';
+
 import { ArrowLeftIcon } from '@heroicons/react/20/solid';
-import classNames from 'classnames';
 import React from 'react';
+import { twMerge } from 'tailwind-merge';
 
 interface Props {
   onClick: () => void;
@@ -19,11 +21,10 @@ const BackButton = ({
   <span
     {...props}
     onClick={!disabled ? onClick : undefined}
-    className={classNames(
-      className,
-      `flex w-fit cursor-pointer items-center gap-x-1 text-base text-alr-red ${
-        disabled ? 'cursor-not-allowed' : ''
-      }`
+    className={twMerge(
+      `flex w-fit cursor-pointer items-center gap-x-1 text-base text-alr-red`,
+      disabled ? 'cursor-not-allowed' : '',
+      className
     )}
   >
     <ArrowLeftIcon className='h-4 w-4' />

@@ -1,10 +1,12 @@
+'use client';
+
 import { CheckIcon, XMarkIcon } from '@heroicons/react/20/solid';
-import classNames from 'classnames';
 import { FieldValues } from 'react-hook-form';
 import { passwordRules, ruleValidation } from './helpers';
 import useDictionary from '../../hooks/useDictionary';
 import { Locale } from '../../get-dictionary';
 import React from 'react';
+import { twMerge } from 'tailwind-merge';
 
 interface FormRulesProps {
   locale: Locale;
@@ -22,7 +24,7 @@ const FormRules = ({
   const dictionary = useDictionary(locale);
 
   return (
-    <div className={classNames(className, 'my-1 flex flex-col gap-y-2')}>
+    <div className={twMerge('my-1 flex flex-col gap-y-2', className)}>
       {passwordRules.map((rule) => (
         <div key={rule.name} className='flex items-center gap-x-2'>
           {ruleValidation(rule, passwordValues, userValues) ? (

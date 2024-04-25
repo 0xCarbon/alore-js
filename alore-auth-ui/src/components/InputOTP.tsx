@@ -1,5 +1,7 @@
-import classNames from 'classnames';
+'use client';
+
 import React, { useMemo } from 'react';
+import { twMerge } from 'tailwind-merge';
 
 export type Props = {
   inputLength: number;
@@ -136,7 +138,7 @@ const OTPInput = ({
   return (
     <div
       data-test={dataTest}
-      className={classNames('flex flex-col items-center gap-y-6', className)}
+      className={twMerge('flex flex-col items-center gap-y-6', className)}
     >
       <div className='flex w-full gap-x-5'>
         {inputs.map((digit, idx) => (
@@ -150,9 +152,10 @@ const OTPInput = ({
             autoComplete='one-time-code'
             pattern='\d{1}'
             maxLength={inputLength}
-            className={`h-[2.56rem] w-[2.56rem] rounded-md border ${
+            className={twMerge(
+              `h-[2.56rem] w-[2.56rem] rounded-md border text-center font-semibold duration-500`,
               errorMessage ? 'border-alr-red' : 'border-gray-300'
-            } text-center font-semibold duration-500`}
+            )}
             value={digit}
             onChange={(e) => inputOnChange(e, idx)}
             onKeyDown={inputOnKeyDown}

@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "devDependencies": {
-    "@0xcarbon/alore-auth-ui": "0.0.16-alpha",
+    "@0xcarbon/alore-auth-ui": "0.0.17-alpha",
     "@0xcarbon/alore-auth-sdk": "0.0.1-alpha",
     "@0xcarbon/alore-crypto-sdk": "0.0.2-alpha",
     "@0xcarbon/dkls23-wasm": "0.1.2",
@@ -17,7 +17,7 @@
     "autoprefixer": "10.4.19",
     "base64-loader": "1.0.0",
     "flowbite": "2.3.0",
-    "flowbite-react": "npm:@0xcarbon/meubite-react@0.6.4",
+    "flowbite-react": "0.7.2",
     "postcss": "8.4.38",
     "typescript": "5.4.5",
     "react": "18",

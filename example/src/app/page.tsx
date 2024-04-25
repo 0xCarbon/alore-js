@@ -8,7 +8,8 @@ import {
   hashUserInfo,
   generateSecureHash,
 } from '@0xcarbon/alore-auth-sdk';
-import { Auth } from '@0xcarbon/alore-auth-ui';
+import Auth from '@0xcarbon/alore-auth-ui';
+
 import { useContext } from 'react';
 
 export default function Home() {

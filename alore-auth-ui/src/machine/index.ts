@@ -861,11 +861,13 @@ export const authMachine = createMachine(
 );
 
 let stateDefinition;
-let authState = localStorage.getItem('authState');
 
 // @ts-ignore
-if (typeof window !== 'undefined' && authState) {
-  stateDefinition = JSON.parse(authState);
+if (typeof window !== 'undefined') {
+  let authState = localStorage.getItem('authState');
+  if (authState) {
+    stateDefinition = JSON.parse(authState);
+  }
 }
 
 let resolvedState: any;
