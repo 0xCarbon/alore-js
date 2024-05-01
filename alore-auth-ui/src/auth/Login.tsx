@@ -16,6 +16,7 @@ import useDictionary from '../hooks/useDictionary';
 import { AuthInstance } from '../machine/types';
 import {
   aloreLogoBlack,
+  authErrorImage,
   fingerprint,
   fingerprintError,
   google,
@@ -457,6 +458,7 @@ export const Login = ({
       <>
         {authError ? (
           <div className='flex flex-col items-center justify-center gap-5'>
+            <img src={authErrorImage} alt='alore logo' width={70} />
             {authError?.includes('beta') ? (
               <span className='text-center font-poppins text-xl font-bold text-alr-red'>
                 {authError}
@@ -578,6 +580,7 @@ export const Login = ({
 
         {authError && (
           <div className='flex flex-col items-center justify-center gap-5'>
+            <img src={authErrorImage} alt='alore logo' width={70} />
             <span className='text-center font-poppins text-xl font-bold text-alr-red'>
               {authError?.includes('Invalid credentials')
                 ? loginDictionary?.invalidEmailPassword

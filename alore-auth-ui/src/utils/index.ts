@@ -16,7 +16,7 @@ const walletConnectLogoBase64 =
 const imagePrefix = 'data:image/svg+xml;base64,';
 
 export const aloreLogoBlack = `${imagePrefix}${aloreLogoBlackBase64}`;
-export const authError = `${imagePrefix}${authErrorBase64}`;
+export const authErrorImage = `${imagePrefix}${authErrorBase64}`;
 export const fingerprint = `${imagePrefix}${fingerprintBase64}`;
 export const fingerprintError = `${imagePrefix}${fingerprintErrorBase64}`;
 export const google = `${imagePrefix}${googleBase64}`;

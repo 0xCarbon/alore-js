@@ -1,6 +1,6 @@
 {
   "name": "@0xcarbon/alore-auth-ui",
-  "version": "0.0.21-alpha",
+  "version": "0.0.22-alpha",
   "repository": "https://github.com/0xCarbon/alore-js",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
