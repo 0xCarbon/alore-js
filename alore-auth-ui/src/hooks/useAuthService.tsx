@@ -9,7 +9,7 @@ const useAuthService = () => {
   }
   const [authState, sendAuth] = useActor(authServiceInstance);
 
-  return [authState, sendAuth];
+  return [authState, sendAuth] as const;
 };
 
 export default useAuthService;

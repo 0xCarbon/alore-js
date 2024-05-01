@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "devDependencies": {
-    "@0xcarbon/alore-auth-ui": "0.0.19-alpha",
+    "@0xcarbon/alore-auth-ui": "0.0.21-alpha",
     "@0xcarbon/alore-auth-sdk": "0.0.1-alpha",
     "@0xcarbon/alore-crypto-sdk": "0.0.2-alpha",
     "@0xcarbon/dkls23-wasm": "0.1.2",
