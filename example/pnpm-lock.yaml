@@ -9,8 +9,8 @@ devDependencies:
     specifier: 0.0.1-alpha
     version: 0.0.1-alpha
   '@0xcarbon/alore-auth-ui':
-    specifier: 0.0.17-alpha
-    version: 0.0.17-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0)
+    specifier: 0.0.19-alpha
+    version: 0.0.19-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0)
   '@0xcarbon/alore-crypto-sdk':
     specifier: 0.0.2-alpha
     version: 0.0.2-alpha
@@ -64,8 +64,8 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@0xcarbon/alore-auth-ui@0.0.17-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0):
-    resolution: {integrity: sha512-eNPwCAT6y6f7KL6UF5eN7dLHqzrZVx24HA7alXSqds/u7HEKnzX230Le3rqCr7TlpnuN02aR8HnQOAmu0WWM7A==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-ui/0.0.17-alpha/a9b53817cda071dd7e1e64e76c40a56639459362}
+  /@0xcarbon/alore-auth-ui@0.0.19-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0):
+    resolution: {integrity: sha512-NJi+HdcsM64/IBGHfAr2aUEdhH5lsy3ztTyAjWtfepwjaqDd/VeMZ1vv/CGaC/4AsVcon+rVPYSDhKHH1zmYog==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-ui/0.0.19-alpha/f49f24ebf874f7d916825e3c2712ae4e26380274}
     peerDependencies:
       flowbite-react: 0.6.4
     dependencies:

@@ -1,20 +1,19 @@
 'use client';
 
-import React, { Suspense, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { Login } from './auth/Login';
-import { authService } from './machine';
 import { useActor } from '@xstate/react';
 import { Register } from './auth/Register';
 import { SessionUser } from './machine/types';
 import { Locale } from 'get-dictionary';
 import { Spinner } from 'flowbite-react';
+import useAuthServiceInstance from './hooks/useAuthServiceInstance';
 
 const TURNSTILE_PUBLIC_SITE_KEY = '0x4AAAAAAANlE5h6quNYoHFV';
 
 export interface AuthProps {
   locale?: Locale;
-  machineServices: {};
   googleId: string;
   forgeId?: string;
   logoImage?: React.ReactNode;
@@ -33,7 +32,6 @@ export interface AuthProps {
 
 const Auth = ({
   locale = 'pt',
-  machineServices,
   googleId,
   forgeId,
   logoImage,
@@ -42,10 +40,7 @@ const Auth = ({
   cryptoUtils,
   onSuccess,
 }: AuthProps) => {
-  const authServiceInstance = useMemo(
-    () => authService(machineServices),
-    [machineServices]
-  );
+  const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
   const { googleUser, sessionUser } = authState.context;
   const [isClient, setIsClient] = useState(false);
