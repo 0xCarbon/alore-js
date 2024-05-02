@@ -1,0 +1,58 @@
+name: Auth UI License Checker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "alore-auth-ui/**/pnpm-lock.yaml"
+
+  pull_request:
+    paths:
+      - "alore-auth-ui/**/pnpm-lock.yaml"
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: alore-auth-ui
+
+jobs:
+  license-checker:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+          cache-dependency-path: ${{ github.workspace }}/alore-auth-ui/pnpm-lock.yaml
+
+        # Step required to install dependency from private github package (i.e. dkls23-wasm)
+      - name: Setup NPM_TOKEN
+        run: echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - uses: daynin/nodejs-license-checker@v0.2.0
+        with:
+          exclude-private-packages: true
+          allow-only: |
+            MIT
+            LGPL-2.0-only
+            LGPL-2.1-only
+            LGPL-3.0-only
+            Apache-1.0
+            Apache-1.1
+            Apache-2.0
