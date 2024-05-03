@@ -16,7 +16,7 @@
     "build": "rm -rf dist/* && tsc -p tsconfig-esm.json && tsc -p tsconfig-cjs.json"
   },
   "author": "",
-  "license": "ISC",
+  "license": "LGPL-2.1-only",
   "dependencies": {
     "@heroicons/react": "2.0.16",
     "@hookform/resolvers": "3.1.0",

@@ -22,7 +22,7 @@
     "build": "rm -rf dist/* && tsc"
   },
   "author": "",
-  "license": "ISC",
+  "license": "LGPL-2.1-only",
   "dependencies": {
     "@0xcarbon/dkls23-wasm": "0.1.4",
     "argon2-browser": "1.18.0",

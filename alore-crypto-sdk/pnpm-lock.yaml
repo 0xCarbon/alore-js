@@ -120,7 +120,7 @@ packages:
     dev: false
 
   npm.pkg.github.com/@0xCarbon/dkls23-wasm@0.1.4:
-    resolution: {integrity: sha512-zx6579tihK21MM9y/9Hqqh3owyhbT7NNKklc1qaAH24L8VVxxphpTc9oWozdFIesvdSxK6dttMOZP3yYcvc7tg==, registry: https://npm.pkg.github.com/, tarball: https://npm.pkg.github.com/download/@0xCarbon/dkls23-wasm/0.1.4/9a335341d2d38dce45dd6a95669b5bed4a9bb2e2}
+    resolution: {integrity: sha512-zx6579tihK21MM9y/9Hqqh3owyhbT7NNKklc1qaAH24L8VVxxphpTc9oWozdFIesvdSxK6dttMOZP3yYcvc7tg==, tarball: https://npm.pkg.github.com/download/@0xCarbon/dkls23-wasm/0.1.4/9a335341d2d38dce45dd6a95669b5bed4a9bb2e2}
     name: '@0xCarbon/dkls23-wasm'
     version: 0.1.4
     dev: false
