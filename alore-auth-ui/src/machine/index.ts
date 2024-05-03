@@ -752,12 +752,12 @@ export const authMachine = createMachine(
             Cookies.remove('access_token', {
               secure: true,
               sameSite: 'strict',
-              path: '',
+              path: '/',
             });
             Cookies.remove('refresh_token', {
               secure: true,
               sameSite: 'strict',
-              path: '',
+              path: '/',
             });
           },
         ],

@@ -17,14 +17,14 @@ const addAuthorizationCookies = (data: any) => {
     Cookies.set('access_token', data.access_token, {
       secure: true,
       sameSite: 'strict',
-      path: '',
+      path: '/',
     });
   }
   if (data?.refresh_token) {
     Cookies.set('refresh_token', data.refresh_token, {
       secure: true,
       sameSite: 'strict',
-      path: '',
+      path: '/',
     });
   }
 };

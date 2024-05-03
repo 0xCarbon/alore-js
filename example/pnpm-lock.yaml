@@ -6,11 +6,11 @@ settings:
 
 devDependencies:
   '@0xcarbon/alore-auth-sdk':
-    specifier: 0.0.3-alpha
-    version: 0.0.3-alpha
+    specifier: 0.0.4-alpha
+    version: 0.0.4-alpha
   '@0xcarbon/alore-auth-ui':
-    specifier: 0.0.24-alpha
-    version: 0.0.24-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0)
+    specifier: 0.0.25-alpha
+    version: 0.0.25-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0)
   '@0xcarbon/alore-crypto-sdk':
     specifier: 0.0.2-alpha
     version: 0.0.2-alpha
@@ -53,8 +53,8 @@ devDependencies:
 
 packages:
 
-  /@0xcarbon/alore-auth-sdk@0.0.3-alpha:
-    resolution: {integrity: sha512-Wxdai3qraBxyE7eD94isFx7e5kgkZrgroh+JK9/rjUvtdeblH8JL1+4uxzddm3cf4z1EEgTjn08pygJ3IzELNQ==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-sdk/0.0.3-alpha/ebeea623ad5345d520ac9aa6a29f27b1f5f43f58}
+  /@0xcarbon/alore-auth-sdk@0.0.4-alpha:
+    resolution: {integrity: sha512-V4DQ2w8cN67eoA2AjN+/H8SCZrYVg3HvMRO9gz3XbAxrWTnDqWxsE8Rv8gJ6etC7xzaY1+c2RKbElQafJKaNSA==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-sdk/0.0.4-alpha/380c70df355743be27c8c48ed4493db0b6c3d729}
     dependencies:
       '@simplewebauthn/browser': 7.4.0
       argon2-browser: 1.18.0
@@ -65,8 +65,8 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@0xcarbon/alore-auth-ui@0.0.24-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0):
-    resolution: {integrity: sha512-be3Vvak89qK2poSk5CuQO0RZRul8isfVCfQly96RXG7ODt/qgCIG0l1H7cjggGnYiUmC6WzwKGD1zk9n/ZDA5A==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-ui/0.0.24-alpha/4e2d67b0bfe57118c381bd6fb988c6eb36e1d021}
+  /@0xcarbon/alore-auth-ui@0.0.25-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0):
+    resolution: {integrity: sha512-KLaXj7K7tfFgZE1eIv4JYipuv7RkQ8tCTBsjUvLhJmfY9KJGEE5lWOgI0L/0ftyXXKofsaJk92KriQg4fZRScg==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-ui/0.0.25-alpha/f34e245d66122d77f4a185095127a5f21a059e04}
     peerDependencies:
       flowbite-react: 0.6.4
     dependencies:
