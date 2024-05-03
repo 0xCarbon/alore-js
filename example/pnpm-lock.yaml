@@ -6,11 +6,11 @@ settings:
 
 devDependencies:
   '@0xcarbon/alore-auth-sdk':
-    specifier: 0.0.2-alpha
-    version: 0.0.2-alpha
+    specifier: 0.0.3-alpha
+    version: 0.0.3-alpha
   '@0xcarbon/alore-auth-ui':
-    specifier: 0.0.22-alpha
-    version: 0.0.22-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0)
+    specifier: 0.0.24-alpha
+    version: 0.0.24-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0)
   '@0xcarbon/alore-crypto-sdk':
     specifier: 0.0.2-alpha
     version: 0.0.2-alpha
@@ -53,8 +53,8 @@ devDependencies:
 
 packages:
 
-  /@0xcarbon/alore-auth-sdk@0.0.2-alpha:
-    resolution: {integrity: sha512-PjHO1vWrFbyNG9PVzaBH6nCmoUMZRnZlvZ67ulTQT2lxXGsM9sFL/SBoEfI0VGvJaTMGobmWxPnHk2G680Neew==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-sdk/0.0.2-alpha/a2ec763f209e3ee9438d4751be7fa3ec64575ec3}
+  /@0xcarbon/alore-auth-sdk@0.0.3-alpha:
+    resolution: {integrity: sha512-Wxdai3qraBxyE7eD94isFx7e5kgkZrgroh+JK9/rjUvtdeblH8JL1+4uxzddm3cf4z1EEgTjn08pygJ3IzELNQ==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-sdk/0.0.3-alpha/ebeea623ad5345d520ac9aa6a29f27b1f5f43f58}
     dependencies:
       '@simplewebauthn/browser': 7.4.0
       argon2-browser: 1.18.0
@@ -65,8 +65,8 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@0xcarbon/alore-auth-ui@0.0.22-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0):
-    resolution: {integrity: sha512-m1q37kmp3x2AFY5kUJ7LZ8J0c9dWPbUEO+ADwwzIRt2wF/C6PihIloR+umTB4w3ma8FYssHAvKGakqAeZtmerw==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-ui/0.0.22-alpha/8642d1671c30d41014ebdeca04d753b2cc39f68c}
+  /@0xcarbon/alore-auth-ui@0.0.24-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0):
+    resolution: {integrity: sha512-be3Vvak89qK2poSk5CuQO0RZRul8isfVCfQly96RXG7ODt/qgCIG0l1H7cjggGnYiUmC6WzwKGD1zk9n/ZDA5A==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-ui/0.0.24-alpha/4e2d67b0bfe57118c381bd6fb988c6eb36e1d021}
     peerDependencies:
       flowbite-react: 0.6.4
     dependencies:
@@ -77,6 +77,7 @@ packages:
       '@xstate/react': 3.2.2(@types/react@18.2.79)(react@18.2.0)(xstate@4.38.2)
       flowbite: 1.6.6
       flowbite-react: 0.7.2(@types/react@18.2.79)(esbuild@0.20.2)(next@14.2.1)(react-dom@18.0.0)(react@18.2.0)(tailwindcss@3.4.3)
+      js-cookie: 3.0.5
       jwt-decode: 3.1.2
       leaflet: 1.9.4
       react: 18.2.0

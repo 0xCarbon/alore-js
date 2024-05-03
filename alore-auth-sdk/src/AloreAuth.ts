@@ -14,10 +14,18 @@ type KeyDerivationFunction = 'argon2d' | 'pbkdf2';
 
 const addAuthorizationCookies = (data: any) => {
   if (data?.access_token) {
-    Cookies.set('access_token', data.access_token);
+    Cookies.set('access_token', data.access_token, {
+      secure: true,
+      sameSite: 'strict',
+      path: '',
+    });
   }
   if (data?.refresh_token) {
-    Cookies.set('refresh_token', data.refresh_token);
+    Cookies.set('refresh_token', data.refresh_token, {
+      secure: true,
+      sameSite: 'strict',
+      path: '',
+    });
   }
 };
 

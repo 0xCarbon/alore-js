@@ -15,7 +15,7 @@ dependencies:
     specifier: 6.7.1
     version: 6.7.1
   js-cookie:
-    specifier: ^3.0.5
+    specifier: 3.0.5
     version: 3.0.5
 
 devDependencies:
@@ -23,7 +23,7 @@ devDependencies:
     specifier: 1.18.1
     version: 1.18.1
   '@types/js-cookie':
-    specifier: ^3.0.6
+    specifier: 3.0.6
     version: 3.0.6
   typescript:
     specifier: 5.4.5
