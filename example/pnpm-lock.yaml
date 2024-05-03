@@ -6,11 +6,11 @@ settings:
 
 devDependencies:
   '@0xcarbon/alore-auth-sdk':
-    specifier: 0.0.1-alpha
-    version: 0.0.1-alpha
+    specifier: 0.0.2-alpha
+    version: 0.0.2-alpha
   '@0xcarbon/alore-auth-ui':
-    specifier: file:../alore-auth-ui
-    version: file:../alore-auth-ui(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0)
+    specifier: 0.0.22-alpha
+    version: 0.0.22-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0)
   '@0xcarbon/alore-crypto-sdk':
     specifier: 0.0.2-alpha
     version: 0.0.2-alpha
@@ -53,15 +53,44 @@ devDependencies:
 
 packages:
 
-  /@0xcarbon/alore-auth-sdk@0.0.1-alpha:
-    resolution: {integrity: sha512-/mxgjM9yQhNgqDAvrsqQ9u7EvgrGQR/KJmSvSVaPlr5QStOS3gHacLC/HzT10mLdC6kPW8wzzLWkXkDj14R7VQ==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-sdk/0.0.1-alpha/c5fb9b7e52526564eb915f42c3bb04f12397dbbb}
+  /@0xcarbon/alore-auth-sdk@0.0.2-alpha:
+    resolution: {integrity: sha512-PjHO1vWrFbyNG9PVzaBH6nCmoUMZRnZlvZ67ulTQT2lxXGsM9sFL/SBoEfI0VGvJaTMGobmWxPnHk2G680Neew==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-sdk/0.0.2-alpha/a2ec763f209e3ee9438d4751be7fa3ec64575ec3}
     dependencies:
       '@simplewebauthn/browser': 7.4.0
       argon2-browser: 1.18.0
       ethers: 6.7.1
+      js-cookie: 3.0.5
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+    dev: true
+
+  /@0xcarbon/alore-auth-ui@0.0.22-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0):
+    resolution: {integrity: sha512-m1q37kmp3x2AFY5kUJ7LZ8J0c9dWPbUEO+ADwwzIRt2wF/C6PihIloR+umTB4w3ma8FYssHAvKGakqAeZtmerw==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-ui/0.0.22-alpha/8642d1671c30d41014ebdeca04d753b2cc39f68c}
+    peerDependencies:
+      flowbite-react: 0.6.4
+    dependencies:
+      '@heroicons/react': 2.0.16(react@18.2.0)
+      '@hookform/resolvers': 3.1.0(react-hook-form@7.45.4)
+      '@marsidev/react-turnstile': 0.4.0(react-dom@18.0.0)(react@18.2.0)
+      '@react-oauth/google': 0.12.1(react-dom@18.0.0)(react@18.2.0)
+      '@xstate/react': 3.2.2(@types/react@18.2.79)(react@18.2.0)(xstate@4.38.2)
+      flowbite: 1.6.6
+      flowbite-react: 0.7.2(@types/react@18.2.79)(esbuild@0.20.2)(next@14.2.1)(react-dom@18.0.0)(react@18.2.0)(tailwindcss@3.4.3)
+      jwt-decode: 3.1.2
+      leaflet: 1.9.4
+      react: 18.2.0
+      react-hook-form: 7.45.4(react@18.2.0)
+      react-leaflet: 4.2.1(leaflet@1.9.4)(react-dom@18.0.0)(react@18.2.0)
+      tailwind-merge: 2.3.0
+      tailwindcss: 3.4.3
+      xstate: 4.38.2
+      yup: 1.1.1
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@xstate/fsm'
+      - react-dom
+      - ts-node
     dev: true
 
   /@0xcarbon/alore-crypto-sdk@0.0.2-alpha:
@@ -2417,6 +2446,11 @@ packages:
     hasBin: true
     dev: true
 
+  /js-cookie@3.0.5:
+    resolution: {integrity: sha512-cEiJEAEoIbWfCZYKWhVwFuvPX1gETRYPw6LlaTKoxD3s2AkXzkCjnp6h0V77ozyqj0jakteJ4YqDJT830+lVGw==}
+    engines: {node: '>=14'}
+    dev: true
+
   /js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
     dev: true
@@ -4731,36 +4765,6 @@ packages:
 
   /zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
-    dev: true
-
-  file:../alore-auth-ui(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0):
-    resolution: {directory: ../alore-auth-ui, type: directory}
-    id: file:../alore-auth-ui
-    name: '@0xcarbon/alore-auth-ui'
-    peerDependencies:
-      flowbite-react: 0.6.4
-    dependencies:
-      '@heroicons/react': 2.0.16(react@18.2.0)
-      '@hookform/resolvers': 3.1.0(react-hook-form@7.45.4)
-      '@marsidev/react-turnstile': 0.4.0(react-dom@18.0.0)(react@18.2.0)
-      '@react-oauth/google': 0.12.1(react-dom@18.0.0)(react@18.2.0)
-      '@xstate/react': 3.2.2(@types/react@18.2.79)(react@18.2.0)(xstate@4.38.2)
-      flowbite: 1.6.6
-      flowbite-react: 0.7.2(@types/react@18.2.79)(esbuild@0.20.2)(next@14.2.1)(react-dom@18.0.0)(react@18.2.0)(tailwindcss@3.4.3)
-      jwt-decode: 3.1.2
-      leaflet: 1.9.4
-      react: 18.2.0
-      react-hook-form: 7.45.4(react@18.2.0)
-      react-leaflet: 4.2.1(leaflet@1.9.4)(react-dom@18.0.0)(react@18.2.0)
-      tailwind-merge: 2.3.0
-      tailwindcss: 3.4.3
-      xstate: 4.38.2
-      yup: 1.1.1
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@xstate/fsm'
-      - react-dom
-      - ts-node
     dev: true
 
   npm.pkg.github.com/@0xCarbon/dkls23-wasm@0.1.2:

@@ -1,8 +1,13 @@
-import { aloreCrypto } from '@/config/authInstance';
+import { apiKey, endpoint } from '@/config/authInstance';
 import {
+  AloreCrypto,
   KeyshareWorkerMessage,
   SimpleCredential,
 } from '@0xcarbon/alore-crypto-sdk';
+
+export const aloreCrypto = new AloreCrypto(apiKey, {
+  endpoint,
+});
 
 const onmessage = async (event: MessageEvent<KeyshareWorkerMessage>) => {
   /* eslint-disable no-unused-expressions */
