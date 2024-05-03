@@ -4,6 +4,7 @@ import {
   AuthMachineEvents,
   AuthMachineServices,
 } from './types';
+import Cookies from 'js-cookie';
 
 const initialContext: AuthMachineContext = {
   salt: undefined,
@@ -745,7 +746,21 @@ export const authMachine = createMachine(
     on: {
       RESET_CONTEXT: {
         target: '.inactive',
-        actions: 'clearContext',
+        actions: [
+          'clearContext',
+          () => {
+            Cookies.remove('access_token', {
+              secure: true,
+              sameSite: 'strict',
+              path: '',
+            });
+            Cookies.remove('refresh_token', {
+              secure: true,
+              sameSite: 'strict',
+              path: '',
+            });
+          },
+        ],
       },
     },
   },
