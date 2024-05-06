@@ -1,6 +1,6 @@
 {
   "name": "@0xcarbon/alore-auth-ui",
-  "version": "1.0.0-alpha",
+  "version": "0.0.22-alpha",
   "repository": "https://github.com/0xCarbon/alore-js",
   "description": "React Auth UI component for Alore",
   "main": "dist/cjs/index.js",
@@ -15,12 +15,11 @@
   "author": "0xCarbon",
   "license": "LGPL-2.1-only",
   "engines": {
-    "node": ">=18.0.0 <20.12.2"
+    "node": ">=20.0.0"
   },
   "dependencies": {
     "@heroicons/react": "2.0.16",
     "@hookform/resolvers": "3.1.0",
-    "@marsidev/react-turnstile": "0.4.0",
     "@react-oauth/google": "0.12.1",
     "@xstate/react": "3.2.2",
     "flowbite": "1.6.6",

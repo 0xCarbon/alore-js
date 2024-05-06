@@ -35,6 +35,4 @@ already been fixed.
 
 It's _incredibly_ helpful to be able to reproduce the problem. Please
 include a list of steps, a bit of code, and/or a zipped repository (if
-possible). Note that some of the libgit2 developers are employees of
-GitHub, so if your repository is private, find us on IRC and we'll figure
-out a way to help you.
+possible).

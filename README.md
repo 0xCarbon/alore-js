@@ -7,7 +7,7 @@
   <p align="center">
     A React Login as a Service for Alore + all crypto functions you'll need
     <br />
-    <a href="https://github.com/0xCarbon/alore-js/tree/main/example"><strong>Docs(comming soon!)</strong></a>
+    <a href="https://github.com/0xCarbon/alore-js/tree/main/example"><strong>Docs(coming soon!)</strong></a>
     <br />
     <br />
     <a href="https://github.com/0xCarbon/alore-js/tree/main/example">See an example</a>

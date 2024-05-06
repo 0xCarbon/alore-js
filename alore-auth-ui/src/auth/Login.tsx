@@ -8,7 +8,6 @@ import * as yup from "yup";
 import { ArrowRightIcon, EnvelopeIcon } from "@heroicons/react/20/solid";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useActor } from "@xstate/react";
-import { Turnstile } from "@marsidev/react-turnstile";
 import { useGoogleLogin } from "@react-oauth/google";
 import { CaptchaStatus, NewDeviceInfo, verifyEmptyValues } from "../helpers";
 import useDictionary from "../hooks/useDictionary";
@@ -37,7 +36,6 @@ const SOFTWARE = 2;
 export interface LoginProps {
   locale?: Locale;
   authServiceInstance: AuthInstance;
-  cloudflareKey: string;
   forgeId?: string;
   logoImage?: React.ReactNode;
   keyshareWorker?: Worker | null;
@@ -54,7 +52,6 @@ export interface LoginProps {
 export const Login = ({
   locale = "pt",
   authServiceInstance,
-  cloudflareKey,
   forgeId,
   logoImage,
   keyshareWorker,
@@ -613,18 +610,6 @@ export const Login = ({
           >
             Forgot your password?
           </Link> */}
-          <Turnstile
-            siteKey={cloudflareKey}
-            options={{ theme: "light", language: locale, retry: "never" }}
-            onSuccess={(token: string) => {
-              setCaptchaToken(token);
-              setCaptchaStatus("success");
-            }}
-            onError={() => {
-              setCaptchaStatus("error");
-            }}
-            onExpire={() => setCaptchaStatus("expired")}
-          />
           <Button
             type="submit"
             data-test="login-submit"

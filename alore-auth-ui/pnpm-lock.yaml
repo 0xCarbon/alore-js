@@ -11,9 +11,6 @@ dependencies:
   '@hookform/resolvers':
     specifier: 3.1.0
     version: 3.1.0(react-hook-form@7.45.4)
-  '@marsidev/react-turnstile':
-    specifier: 0.4.0
-    version: 0.4.0(react-dom@18.3.1)(react@18.2.0)
   '@react-oauth/google':
     specifier: 0.12.1
     version: 0.12.1(react-dom@18.3.1)(react@18.2.0)
@@ -179,16 +176,6 @@ packages:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.4.15
-    dev: false
-
-  /@marsidev/react-turnstile@0.4.0(react-dom@18.3.1)(react@18.2.0):
-    resolution: {integrity: sha512-U0lwTWQhP04AnIdWEbLpF/phpqtblNbrnE4yJMdvGyeOZOTmuHW3wB+V8X+BO55pTXZitp2GgJsrGkbUjwJIeQ==}
-    peerDependencies:
-      react: '>=16.8.0'
-      react-dom: '>=16.8.0'
-    dependencies:
-      react: 18.2.0
-      react-dom: 18.3.1(react@18.2.0)
     dev: false
 
   /@nodelib/fs.scandir@2.1.5:

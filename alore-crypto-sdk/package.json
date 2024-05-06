@@ -1,6 +1,6 @@
 {
   "name": "@0xcarbon/alore-crypto-sdk",
-  "version": "1.0.0-alpha",
+  "version": "0.0.2-alpha",
   "repository": "https://github.com/0xCarbon/alore-js",
   "description": "SDK for Alore Crypto",
   "main": "dist/index.js",
@@ -21,7 +21,7 @@
   "author": "0xCarbon",
   "license": "LGPL-2.1-only",
   "engines": {
-    "node": ">=18.0.0 <20.12.2"
+    "node": ">=20.0.0"
   },
   "dependencies": {
     "@0xcarbon/dkls23-wasm": "0.1.4",
