@@ -6,8 +6,8 @@ settings:
 
 devDependencies:
   '@0xcarbon/alore-auth-sdk':
-    specifier: 0.0.4-alpha
-    version: 0.0.4-alpha
+    specifier: 0.0.5-alpha
+    version: 0.0.5-alpha
   '@0xcarbon/alore-auth-ui':
     specifier: 0.0.25-alpha
     version: 0.0.25-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0)
@@ -53,13 +53,14 @@ devDependencies:
 
 packages:
 
-  /@0xcarbon/alore-auth-sdk@0.0.4-alpha:
-    resolution: {integrity: sha512-V4DQ2w8cN67eoA2AjN+/H8SCZrYVg3HvMRO9gz3XbAxrWTnDqWxsE8Rv8gJ6etC7xzaY1+c2RKbElQafJKaNSA==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-sdk/0.0.4-alpha/380c70df355743be27c8c48ed4493db0b6c3d729}
+  /@0xcarbon/alore-auth-sdk@0.0.5-alpha:
+    resolution: {integrity: sha512-eFVW+DkjIEALRFEfx9NxqnUMKn2F18/kwN60OiBnCmfhWy8ls54QVeeB3RA98/nwPxbtBM+4xFRWdgKIwdBKSQ==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-sdk/0.0.5-alpha/c8c29d0b489790d2f9b3f23013005139af9ab152}
     dependencies:
       '@simplewebauthn/browser': 7.4.0
       argon2-browser: 1.18.0
       ethers: 6.7.1
       js-cookie: 3.0.5
+      jwt-decode: 4.0.0
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -2477,6 +2478,11 @@ packages:
 
   /jwt-decode@3.1.2:
     resolution: {integrity: sha512-UfpWE/VZn0iP50d8cz9NrZLM9lSWhcJ+0Gt/nm4by88UL+J1SiKN8/5dkjMmbEzwL2CAe+67GsegCbIKtbp75A==}
+    dev: true
+
+  /jwt-decode@4.0.0:
+    resolution: {integrity: sha512-+KJGIyHgkGuIq3IEBNftfhW/LfWhXUIY6OmyVWjliu5KH1y0fw7VQ8YndE2O4qZdMSd9SqbnC8GOcZEy0Om7sA==}
+    engines: {node: '>=18'}
     dev: true
 
   /kind-of@3.2.2:
