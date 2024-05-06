@@ -9,7 +9,7 @@ import { ArrowRightIcon, EnvelopeIcon } from "@heroicons/react/20/solid";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useActor } from "@xstate/react";
 import { useGoogleLogin } from "@react-oauth/google";
-import { CaptchaStatus, NewDeviceInfo, verifyEmptyValues } from "../helpers";
+import { NewDeviceInfo, verifyEmptyValues } from "../helpers";
 import useDictionary from "../hooks/useDictionary";
 import { AuthInstance } from "../machine/types";
 import {
@@ -89,14 +89,7 @@ export const Login = ({
     },
   });
 
-  const [captchaStatus, setCaptchaStatus] = useState<CaptchaStatus>("idle");
-  const [captchaToken, setCaptchaToken] = useState("");
-
   const handleLogin = () => login();
-
-  useEffect(() => {
-    if (authState.matches("active.login.idle")) setCaptchaStatus("idle");
-  }, [authState.value]);
 
   const isLoading = useMemo(
     () =>
@@ -305,7 +298,6 @@ export const Login = ({
               email,
               device,
               passwordHash: secureHashArgon2d,
-              captchaToken,
               isForgeClaim: !!forgeId,
               locale,
             },
@@ -613,10 +605,7 @@ export const Login = ({
           <Button
             type="submit"
             data-test="login-submit"
-            disabled={
-              verifyEmptyValues(getValuesPassword("password")) ||
-              captchaStatus !== "success"
-            }
+            disabled={verifyEmptyValues(getValuesPassword("password"))}
             className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700"
           >
             {isLoading && (

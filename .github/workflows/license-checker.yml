@@ -40,10 +40,6 @@ jobs:
           cache: "pnpm"
           cache-dependency-path: ${{ github.workspace }}/alore-auth-ui/pnpm-lock.yaml
 
-        # Step required to install dependency from private github package (i.e. dkls23-wasm)
-      - name: Setup NPM_TOKEN
-        run: echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -131,10 +127,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
           cache-dependency-path: ${{ github.workspace }}/alore-auth-sdk/pnpm-lock.yaml
-
-        # Step required to install dependency from private github package (i.e. dkls23-wasm)
-      - name: Setup NPM_TOKEN
-        run: echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

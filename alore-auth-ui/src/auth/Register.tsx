@@ -11,7 +11,7 @@ import { ArrowRightIcon, EnvelopeIcon } from "@heroicons/react/20/solid";
 import jwt_decode from "jwt-decode";
 import { passwordRules, ruleValidation } from "../components/FormRules/helpers";
 import { useGoogleLogin } from "@react-oauth/google";
-import { CaptchaStatus, verifyEmptyValues } from "../helpers";
+import { verifyEmptyValues } from "../helpers";
 import useDictionary from "../hooks/useDictionary";
 import { AuthInstance } from "../machine/types";
 import {
@@ -83,9 +83,6 @@ export const Register = ({
       });
     },
   });
-
-  const [captchaStatus, setCaptchaStatus] = useState<CaptchaStatus>("idle");
-  const [captchaToken, setCaptchaToken] = useState("");
 
   const handleLogin = () => login();
 
@@ -259,7 +256,6 @@ export const Register = ({
         payload: {
           email,
           nickname,
-          captchaToken,
           isForgeClaim: !!forgeId,
           locale,
         },
@@ -410,11 +406,7 @@ export const Register = ({
           <Button
             data-test="register-button"
             type="submit"
-            disabled={
-              isUserInfoSubmitDisabled ||
-              isLoading ||
-              captchaStatus !== "success"
-            }
+            disabled={isUserInfoSubmitDisabled || isLoading}
             className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700"
           >
             {isLoading && (

@@ -1,4 +1,4 @@
-import { authService } from '.';
+import { authService } from ".";
 
 export type SessionUser = {
   created_at: string;
@@ -28,51 +28,49 @@ export interface AuthMachineContext {
 }
 
 export type AuthMachineEvents =
-  | { type: 'INITIALIZE'; forgeId?: null | string }
-  | { type: 'RESET' }
-  | { type: 'RESET_CONTEXT' }
-  | { type: 'ADVANCE_TO_PASSWORD' }
-  | { type: 'BACK' }
-  | { type: 'BACK_TO_IDLE' }
-  | { type: 'SELECT_CONNECTOR' }
-  | { type: 'NEXT'; payload: { email: string } }
+  | { type: "INITIALIZE"; forgeId?: null | string }
+  | { type: "RESET" }
+  | { type: "RESET_CONTEXT" }
+  | { type: "ADVANCE_TO_PASSWORD" }
+  | { type: "BACK" }
+  | { type: "BACK_TO_IDLE" }
+  | { type: "SELECT_CONNECTOR" }
+  | { type: "NEXT"; payload: { email: string } }
   | {
-      type: 'GOOGLE_LOGIN';
+      type: "GOOGLE_LOGIN";
       googleToken: string;
     }
   | {
-      type: 'COMPLETE_GOOGLE_SIGN_IN';
+      type: "COMPLETE_GOOGLE_SIGN_IN";
       payload: { email: string; passwordHash: string; otp: string };
     }
   | {
-      type: 'VERIFY_LOGIN';
+      type: "VERIFY_LOGIN";
       payload: {
         email: string;
         device: string;
         passwordHash: string;
         isForgeClaim?: boolean;
-        captchaToken?: string;
         locale?: string;
       };
     }
   | {
-      type: 'VERIFY_EMAIL_2FA';
+      type: "VERIFY_EMAIL_2FA";
       payload: { email: string; secureCode: string; passwordHash: string };
     }
   | {
-      type: 'RESEND_CODE';
+      type: "RESEND_CODE";
       payload: {
         email: string;
         nickname?: string;
         device?: string;
         passwordHash?: string;
-        captchaToken?: string;
         isForgeClaim?: boolean;
         locale?: string;
       };
     }
   | {
-      type: 'CONFIRM_SW_CODE';
+      type: "CONFIRM_SW_CODE";
       payload: {
         email: string;
         device: string;
@@ -81,7 +79,7 @@ export type AuthMachineEvents =
       };
     }
   | {
-      type: 'CONFIRM_DEVICE_CODE';
+      type: "CONFIRM_DEVICE_CODE";
       payload: {
         email: string;
         passwordHash: string;
@@ -89,10 +87,10 @@ export type AuthMachineEvents =
         secureCode: string;
       };
     }
-  | { type: 'USE_HARDWARE_2FA' }
-  | { type: 'USE_SOFTWARE_2FA' }
+  | { type: "USE_HARDWARE_2FA" }
+  | { type: "USE_SOFTWARE_2FA" }
   | {
-      type: 'VERIFY_HW_AUTH';
+      type: "VERIFY_HW_AUTH";
       payload: {
         email: string;
         device: string;
@@ -100,21 +98,20 @@ export type AuthMachineEvents =
         authId: string;
       };
     }
-  | { type: 'SHOW_TERMS_MODAL' }
+  | { type: "SHOW_TERMS_MODAL" }
   | {
-      type: 'SEND_REGISTRATION_EMAIL';
+      type: "SEND_REGISTRATION_EMAIL";
       payload: {
         email: string;
         nickname: string;
         isForgeClaim?: boolean;
-        captchaToken?: string;
         locale?: string;
       };
     }
-  | { type: 'CLOSE_TERMS_MODAL' }
-  | { type: 'VERIFY_EMAIL'; payload: { secureCode: string } }
+  | { type: "CLOSE_TERMS_MODAL" }
+  | { type: "VERIFY_EMAIL"; payload: { secureCode: string } }
   | {
-      type: 'COMPLETE_REGISTRATION';
+      type: "COMPLETE_REGISTRATION";
       payload: {
         email: string;
         nickname: string;
@@ -122,30 +119,30 @@ export type AuthMachineEvents =
         device: string;
       };
     }
-  | { type: 'SEND_CODE'; payload: { email: string } }
+  | { type: "SEND_CODE"; payload: { email: string } }
   | {
-      type: 'CONFIRM_PASSWORD';
+      type: "CONFIRM_PASSWORD";
       payload: { email: string; passwordHash: string };
     }
-  | { type: 'RESET_PASSWORD' }
-  | { type: 'LOGIN' }
-  | { type: 'FORGOT_PASSWORD' }
-  | { type: 'SIGN_UP' }
-  | { type: 'LOGIN_WITH_WEB3CONNECTOR' }
-  | { type: 'CONFIRM_WEB3_LOGIN' }
+  | { type: "RESET_PASSWORD" }
+  | { type: "LOGIN" }
+  | { type: "FORGOT_PASSWORD" }
+  | { type: "SIGN_UP" }
+  | { type: "LOGIN_WITH_WEB3CONNECTOR" }
+  | { type: "CONFIRM_WEB3_LOGIN" }
   | {
-      type: 'VERIFY_EMAIL_ELIGIBILITY';
+      type: "VERIFY_EMAIL_ELIGIBILITY";
       email: string;
       isForgeClaim?: boolean;
       locale?: string;
     }
   | {
-      type: 'VERIFY_CLAIM_NFT_EMAIL_2FA';
+      type: "VERIFY_CLAIM_NFT_EMAIL_2FA";
       payload: { email: string; emailCode: string };
     }
-  | { type: 'BACK_TO_LOGIN' }
+  | { type: "BACK_TO_LOGIN" }
   | {
-      type: 'SETUP_REGISTER_USER';
+      type: "SETUP_REGISTER_USER";
       registerUser: { email: string; nickname: string; salt: string };
     };
 

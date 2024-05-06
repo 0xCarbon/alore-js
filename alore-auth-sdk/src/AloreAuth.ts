@@ -55,7 +55,7 @@ export async function generateSecureHash(
   throw new Error("Unsupported key derivation function");
 }
 
-const DEFAULT_URL = "https://api-beta.bealore.com/v1";
+const DEFAULT_URL = "https://alpha-api.bealore.com/v1";
 
 export interface AloreAuthConfiguration {
   endpoint?: string;
@@ -201,7 +201,6 @@ export class AloreAuth {
               nickname?: string | undefined;
               device?: string | undefined;
               passwordHash?: string | undefined;
-              captchaToken?: string | undefined;
               isForgeClaim?: boolean | undefined;
               locale?: string | undefined;
             };
@@ -212,13 +211,11 @@ export class AloreAuth {
               email: string;
               nickname: string;
               isForgeClaim?: boolean;
-              captchaToken?: string;
               locale?: string;
             };
           }
     ) => {
-      const { email, nickname, captchaToken, isForgeClaim, locale } =
-        event.payload;
+      const { email, nickname, isForgeClaim, locale } = event.payload;
 
       const response = await this.fetchWithProgressiveBackoff(
         "/auth/confirmation-email",
@@ -311,7 +308,6 @@ export class AloreAuth {
               device: string;
               passwordHash: string;
               isForgeClaim?: boolean | undefined;
-              captchaToken?: string | undefined;
               locale?: string | undefined;
             };
           }
@@ -322,20 +318,13 @@ export class AloreAuth {
               nickname?: string | undefined;
               device?: string | undefined;
               passwordHash?: string | undefined;
-              captchaToken?: string | undefined;
               isForgeClaim?: boolean | undefined;
               locale?: string | undefined;
             };
           }
     ) => {
-      const {
-        email,
-        passwordHash,
-        device,
-        captchaToken,
-        isForgeClaim,
-        locale,
-      } = event.payload;
+      const { email, passwordHash, device, isForgeClaim, locale } =
+        event.payload;
 
       const response = await this.fetchWithProgressiveBackoff(
         "/auth/login-verification",
