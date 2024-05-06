@@ -6,17 +6,17 @@ settings:
 
 devDependencies:
   '@0xcarbon/alore-auth-sdk':
-    specifier: 0.0.7-alpha
-    version: 0.0.7-alpha
+    specifier: 1.0.0-alpha
+    version: 1.0.0-alpha
   '@0xcarbon/alore-auth-ui':
-    specifier: 0.0.26-alpha
-    version: 0.0.26-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.3.1)
+    specifier: 1.0.0-alpha
+    version: 1.0.0-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.3.1)
   '@0xcarbon/alore-crypto-sdk':
-    specifier: 0.0.2-alpha
-    version: 0.0.2-alpha
+    specifier: 1.0.0-alpha
+    version: 1.0.0-alpha
   '@0xcarbon/dkls23-wasm':
-    specifier: 0.1.2
-    version: npm.pkg.github.com/@0xCarbon/dkls23-wasm@0.1.2
+    specifier: 1.0.2
+    version: 1.0.2
   '@types/react':
     specifier: 18.2.79
     version: 18.2.79
@@ -53,8 +53,8 @@ devDependencies:
 
 packages:
 
-  /@0xcarbon/alore-auth-sdk@0.0.7-alpha:
-    resolution: {integrity: sha512-aCsU0unHJwkenfbgYHvbBjDo34nJCKnEBsUXiwWiqkrMlwPniMh1MouxKiix+J18hzX8uAESD2JnPkU1ZkrkIQ==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-sdk/0.0.7-alpha/6661e0ae35a316bfa2a2219592ed21174dc32fe9}
+  /@0xcarbon/alore-auth-sdk@1.0.0-alpha:
+    resolution: {integrity: sha512-oxeq8BxxAff9v10z+f66BQokhDbGt23WGN1gFLL3herEWQvKPag2pxncKH6xkif8EWwf2KtrM7KmD8g6T7gsFA==}
     engines: {node: '>=20.0.0'}
     dependencies:
       '@simplewebauthn/browser': 7.4.0
@@ -67,8 +67,8 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@0xcarbon/alore-auth-ui@0.0.26-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.3.1):
-    resolution: {integrity: sha512-ZyHNWWCZQApqShredKgUEZ1RgqxZSHLa0lLc6/5B+7KNALKKKlzAVsYF7ChZMJn6Ft8+0Rz6EUxh7z3gqR/1bQ==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-auth-ui/0.0.26-alpha/dd1bf3b7f85ea5e1b2bce5887af29dccd80b5879}
+  /@0xcarbon/alore-auth-ui@1.0.0-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.3.1):
+    resolution: {integrity: sha512-KNhh5E4dg/AJnsatbLsfjC1qUs/xrOF5EKstXzXhzL+tuheIT+lo8C0XG3445SR0/+z0ionN/E46YOvcFwknrg==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       flowbite-react: 0.6.4
@@ -94,16 +94,21 @@ packages:
       - ts-node
     dev: true
 
-  /@0xcarbon/alore-crypto-sdk@0.0.2-alpha:
-    resolution: {integrity: sha512-9bXr8zBJQlMhgs4xaxDNWjeNPicaJyWYFJ++THLmpkJw5ETKT2d7Z/qf3QVhk8bqkNRiNiL8Gj2LFrfvtXxaKg==, tarball: https://npm.pkg.github.com/download/@0xcarbon/alore-crypto-sdk/0.0.2-alpha/37dda7c30ec617b938f4ad510bdaced73545aa87}
+  /@0xcarbon/alore-crypto-sdk@1.0.0-alpha:
+    resolution: {integrity: sha512-0ygRVecJ/JWgQM6KHNHw3n/Hrg2ZVdrAAyfDpIEizvjDodXX886WVsaU/jub2zQjDiAWG1uLcBz7RtNRFEBW5A==}
+    engines: {node: '>=20.0.0'}
     dependencies:
-      '@0xcarbon/dkls23-wasm': npm.pkg.github.com/@0xCarbon/dkls23-wasm@0.1.4
+      '@0xcarbon/dkls23-wasm': 1.0.2
       argon2-browser: 1.18.0
       ethers: 6.7.1
       hpke-js: 1.2.7
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+    dev: true
+
+  /@0xcarbon/dkls23-wasm@1.0.2:
+    resolution: {integrity: sha512-aBQTEAFQFsSFGiBgt/VyMLTrv/IskbWKuuejxHqaGfzpzUb1N6g2nhIegzb73ImbMjp3q4R0lgiZX6jWdvwfrw==}
     dev: true
 
   /@adraffy/ens-normalize@1.9.2:
@@ -4756,16 +4761,4 @@ packages:
 
   /zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
-    dev: true
-
-  npm.pkg.github.com/@0xCarbon/dkls23-wasm@0.1.2:
-    resolution: {integrity: sha512-CcrPM7caWoLVSwsBRhjp4rBS7Fslssb4m+NiTZaZgO/ff5r7o37HSCmrFJCnQ/YIYvac/gcnt5kVuh8D/AVp1Q==, tarball: https://npm.pkg.github.com/download/@0xCarbon/dkls23-wasm/0.1.2/42c5c9717df851a8ff5bbc13ff685658814ee53d}
-    name: '@0xCarbon/dkls23-wasm'
-    version: 0.1.2
-    dev: true
-
-  npm.pkg.github.com/@0xCarbon/dkls23-wasm@0.1.4:
-    resolution: {integrity: sha512-zx6579tihK21MM9y/9Hqqh3owyhbT7NNKklc1qaAH24L8VVxxphpTc9oWozdFIesvdSxK6dttMOZP3yYcvc7tg==, tarball: https://npm.pkg.github.com/download/@0xCarbon/dkls23-wasm/0.1.4/9a335341d2d38dce45dd6a95669b5bed4a9bb2e2}
-    name: '@0xCarbon/dkls23-wasm'
-    version: 0.1.4
     dev: true

@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@0xcarbon/dkls23-wasm':
-    specifier: 0.1.4
-    version: npm.pkg.github.com/@0xCarbon/dkls23-wasm@0.1.4
+    specifier: 1.0.2
+    version: 1.0.2
   argon2-browser:
     specifier: 1.18.0
     version: 1.18.0
@@ -27,6 +27,10 @@ devDependencies:
     version: 5.4.5
 
 packages:
+
+  /@0xcarbon/dkls23-wasm@1.0.2:
+    resolution: {integrity: sha512-aBQTEAFQFsSFGiBgt/VyMLTrv/IskbWKuuejxHqaGfzpzUb1N6g2nhIegzb73ImbMjp3q4R0lgiZX6jWdvwfrw==}
+    dev: false
 
   /@adraffy/ens-normalize@1.9.2:
     resolution: {integrity: sha512-0h+FrQDqe2Wn+IIGFkTCd4aAwTJ+7834Ek1COohCyV26AXhwQ7WQaz+4F/nLOeVl/3BtWHOHLPsq46V8YB46Eg==}
@@ -117,10 +121,4 @@ packages:
         optional: true
       utf-8-validate:
         optional: true
-    dev: false
-
-  npm.pkg.github.com/@0xCarbon/dkls23-wasm@0.1.4:
-    resolution: {integrity: sha512-zx6579tihK21MM9y/9Hqqh3owyhbT7NNKklc1qaAH24L8VVxxphpTc9oWozdFIesvdSxK6dttMOZP3yYcvc7tg==, tarball: https://npm.pkg.github.com/download/@0xCarbon/dkls23-wasm/0.1.4/9a335341d2d38dce45dd6a95669b5bed4a9bb2e2}
-    name: '@0xCarbon/dkls23-wasm'
-    version: 0.1.4
     dev: false

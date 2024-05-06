@@ -24,7 +24,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@0xcarbon/dkls23-wasm": "0.1.4",
+    "@0xcarbon/dkls23-wasm": "1.0.2",
     "argon2-browser": "1.18.0",
     "ethers": "6.7.1",
     "hpke-js": "1.2.7"

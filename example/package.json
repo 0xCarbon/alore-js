@@ -12,7 +12,7 @@
     "@0xcarbon/alore-auth-ui": "1.0.0-alpha",
     "@0xcarbon/alore-auth-sdk": "1.0.0-alpha",
     "@0xcarbon/alore-crypto-sdk": "1.0.0-alpha",
-    "@0xcarbon/dkls23-wasm": "0.1.2",
+    "@0xcarbon/dkls23-wasm": "1.0.2",
     "@types/react": "18.2.79",
     "autoprefixer": "10.4.19",
     "base64-loader": "1.0.0",
