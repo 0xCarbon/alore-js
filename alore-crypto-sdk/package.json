@@ -1,0 +1,36 @@
+{
+  "name": "@0xcarbon/alore-crypto-sdk",
+  "version": "1.0.0-alpha",
+  "repository": "https://github.com/0xCarbon/alore-js",
+  "description": "SDK for Alore Crypto",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "prepare": "pnpm build",
+    "build": "rm -rf dist/* && tsc"
+  },
+  "author": "0xCarbon",
+  "license": "LGPL-2.1-only",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@0xcarbon/dkls23-wasm": "1.0.2",
+    "argon2-browser": "1.18.0",
+    "ethers": "6.7.1",
+    "hpke-js": "1.2.7"
+  },
+  "devDependencies": {
+    "@types/argon2-browser": "1.18.1",
+    "typescript": "5.4.5"
+  }
+}

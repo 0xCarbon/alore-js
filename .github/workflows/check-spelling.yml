@@ -1,0 +1,36 @@
+name: Spell Checking
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  spelling:
+    name: Spell checking
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: check-spelling
+        uses: check-spelling/check-spelling@v0.0.22
+        with:
+          config: .github/actions/spelling
+          checkout: true
+          check_file_names: 1
+          disable_checks: noisy-file
+          experimental_apply_changes_via_bot: 1
+          extra_dictionaries:
+            cspell:public-licenses/src/generated/public-licenses.txt
+            cspell:cryptocurrencies/cryptocurrencies.txt
+            cspell:software-terms/dict/networkingTerms.txt
+            cspell:software-terms/dict/softwareTerms.txt
+            cspell:bash/dict/bash-words.txt
+            cspell:filetypes/filetypes.txt
+            cspell:fonts/fonts.txt
+            cspell:fullstack/dict/fullstack.txt
+            cspell:rust/dict/rust.txt
+            cspell:typescript/dict/typescript.txt
+            cspell:sql/src/sql.txt
+            cspell:pt_BR/src/hunspell/index.dic

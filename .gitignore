@@ -1,0 +1,14 @@
+# .gitignore
+node_modules
+.vscode
+
+.devcontainer
+
+*.typegen.*
+
+.env
+
+*.d.ts
+*.js
+
+dist
