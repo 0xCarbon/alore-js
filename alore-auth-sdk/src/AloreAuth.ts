@@ -2,6 +2,8 @@ import { startAuthentication } from '@simplewebauthn/browser';
 import ethers from 'ethers';
 import crypto from 'crypto';
 import argon2 from 'argon2-browser';
+import Cookies from 'js-cookie';
+import { jwtDecode } from 'jwt-decode';
 
 export function hashUserInfo(userInfo: string) {
   const hash = crypto.createHash('sha256');
@@ -10,6 +12,27 @@ export function hashUserInfo(userInfo: string) {
 }
 
 type KeyDerivationFunction = 'argon2d' | 'pbkdf2';
+
+const addAuthorizationCookies = (data: SessionUser) => {
+  if (data?.access_token) {
+    const decoded = jwtDecode(data.access_token);
+    Cookies.set('access_token', data.access_token, {
+      secure: true,
+      sameSite: 'strict',
+      path: '/',
+      expires: decoded?.exp ? new Date(decoded?.exp * 1000) : undefined,
+    });
+  }
+  if (data?.refresh_token) {
+    const decoded = jwtDecode(data.refresh_token);
+    Cookies.set('refresh_token', data.refresh_token, {
+      secure: true,
+      sameSite: 'strict',
+      path: '/',
+      expires: decoded?.exp ? new Date(decoded?.exp * 1000) : undefined,
+    });
+  }
+};
 
 export async function generateSecureHash(
   password: string,
@@ -53,6 +76,8 @@ type SessionUser = {
   last_transaction: string | null;
   nickname: string;
   status: string;
+  access_token: string;
+  refresh_token: string;
 };
 
 export type TwoFactorAuth = {
@@ -130,6 +155,8 @@ export class AloreAuth {
       );
 
       const data = await response.json();
+
+      addAuthorizationCookies(data);
 
       if (response.ok) return data;
 
@@ -357,6 +384,8 @@ export class AloreAuth {
 
       const data = await response.json();
 
+      addAuthorizationCookies(data);
+
       if (!response.ok) {
         if (response.status === 403) {
           return { active2fa: data };
@@ -400,6 +429,8 @@ export class AloreAuth {
       );
 
       const data = await response.json();
+
+      addAuthorizationCookies(data);
 
       if (response.ok) return data;
 
@@ -463,6 +494,8 @@ export class AloreAuth {
 
       const data = await response.json();
 
+      addAuthorizationCookies(data);
+
       if (response.ok) return data;
 
       throw new Error(data.message || data.error || 'Authentication failed');
@@ -498,6 +531,8 @@ export class AloreAuth {
       );
 
       const data = await response.json();
+
+      addAuthorizationCookies(data);
 
       if (response.ok) return data;
 
@@ -564,6 +599,8 @@ export class AloreAuth {
 
       const data = await response.json();
 
+      addAuthorizationCookies(data);
+
       if (response.ok) return data;
 
       throw new Error(data.message || data.error || 'Authentication failed');
@@ -595,6 +632,8 @@ export class AloreAuth {
       );
 
       const data = await response.json();
+
+      addAuthorizationCookies(data);
 
       if (!response.ok) throw new Error(data?.message || data?.error || data);
 
@@ -628,6 +667,8 @@ export class AloreAuth {
 
       const data = await response.json();
 
+      addAuthorizationCookies(data);
+
       if (response.ok) return data;
 
       throw new Error(data || 'Authentication failed');
@@ -644,6 +685,8 @@ export class AloreAuth {
       );
 
       const data = await response.json();
+
+      addAuthorizationCookies(data);
 
       if (!response.ok) {
         throw new Error(`Failed to this.fetchWithProgressiveBackoff: ${data}`);
@@ -673,6 +716,8 @@ export class AloreAuth {
       );
 
       const data = await response.json();
+
+      addAuthorizationCookies(data);
 
       if (response.ok) {
         return {
@@ -730,6 +775,8 @@ export class AloreAuth {
       );
 
       const data = await response.json();
+
+      addAuthorizationCookies(data);
 
       if (response.ok) return data;
 
@@ -803,8 +850,9 @@ export class AloreAuth {
           }
         }
 
-        if (response.ok || attempt === maxAttempts || response.status !== 500)
+        if (response.ok || attempt === maxAttempts || response.status !== 500) {
           return response;
+        }
       } catch (error) {
         console.error(error);
 
