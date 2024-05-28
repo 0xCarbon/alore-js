@@ -702,8 +702,8 @@ export class AloreAuth {
       );
 
       if (!response.ok) {
-        const data: string = await response.json();
-        throw new Error(data);
+        const data = await response.json();
+        throw new Error(data?.message || data?.error || data);
       } else {
         return {};
       }

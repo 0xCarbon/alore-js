@@ -17,9 +17,24 @@ devDependencies:
   '@0xcarbon/dkls23-wasm':
     specifier: 1.0.2
     version: 1.0.2
+  '@heroicons/react':
+    specifier: 2.0.16
+    version: 2.0.16(react@18.0.0)
+  '@hookform/resolvers':
+    specifier: 3.1.0
+    version: 3.1.0(react-hook-form@7.45.4)
+  '@react-oauth/google':
+    specifier: 0.12.1
+    version: 0.12.1(react-dom@18.0.0)(react@18.0.0)
+  '@simplewebauthn/browser':
+    specifier: 7.4.0
+    version: 7.4.0
   '@types/react':
     specifier: 18.2.79
     version: 18.2.79
+  '@xstate/react':
+    specifier: 3.2.2
+    version: 3.2.2(@types/react@18.2.79)(react@18.0.0)(xstate@4.38.2)
   autoprefixer:
     specifier: 10.4.19
     version: 10.4.19(postcss@8.4.38)
@@ -32,6 +47,12 @@ devDependencies:
   flowbite-react:
     specifier: 0.7.2
     version: 0.7.2(@types/react@18.2.79)(esbuild@0.21.4)(next@14.2.1)(react-dom@18.0.0)(react@18.0.0)(tailwindcss@3.4.3)
+  js-cookie:
+    specifier: 3.0.5
+    version: 3.0.5
+  jwt-decode:
+    specifier: 4.0.0
+    version: 4.0.0
   next:
     specifier: 14.2.1
     version: 14.2.1(@opentelemetry/api@1.8.0)(react-dom@18.0.0)(react@18.0.0)
@@ -44,12 +65,21 @@ devDependencies:
   react-dom:
     specifier: '18'
     version: 18.0.0(react@18.0.0)
+  react-hook-form:
+    specifier: 7.45.4
+    version: 7.45.4(react@18.0.0)
   tailwindcss:
     specifier: 3.4.3
     version: 3.4.3
   typescript:
     specifier: 5.4.5
     version: 5.4.5
+  xstate:
+    specifier: 4.38.2
+    version: 4.38.2
+  yup:
+    specifier: 1.1.1
+    version: 1.1.1
 
 packages:
 
@@ -82,7 +112,7 @@ packages:
       js-cookie: 3.0.5
       jwt-decode: 3.1.2
       react: 18.2.0
-      react-hook-form: 7.45.4(react@18.0.0)
+      react-hook-form: 7.45.4(react@18.2.0)
       tailwind-merge: 2.3.0
       tailwindcss: 3.4.3
       xstate: 4.38.2
@@ -591,6 +621,14 @@ packages:
       yargs: 17.7.2
     dev: true
 
+  /@heroicons/react@2.0.16(react@18.0.0):
+    resolution: {integrity: sha512-x89rFxH3SRdYaA+JCXwfe+RkE1SFTo9GcOkZettHer71Y3T7V+ogKmfw5CjTazgS3d0ClJ7p1NA+SP7VQLQcLw==}
+    peerDependencies:
+      react: '>= 16'
+    dependencies:
+      react: 18.0.0
+    dev: true
+
   /@heroicons/react@2.0.16(react@18.2.0):
     resolution: {integrity: sha512-x89rFxH3SRdYaA+JCXwfe+RkE1SFTo9GcOkZettHer71Y3T7V+ogKmfw5CjTazgS3d0ClJ7p1NA+SP7VQLQcLw==}
     peerDependencies:
@@ -1091,6 +1129,16 @@ packages:
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
     dev: true
 
+  /@react-oauth/google@0.12.1(react-dom@18.0.0)(react@18.0.0):
+    resolution: {integrity: sha512-qagsy22t+7UdkYAiT5ZhfM4StXi9PPNvw0zuwNmabrWyMKddczMtBIOARflbaIj+wHiQjnMAsZmzsUYuXeyoSg==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+    dependencies:
+      react: 18.0.0
+      react-dom: 18.0.0(react@18.0.0)
+    dev: true
+
   /@react-oauth/google@0.12.1(react-dom@18.0.0)(react@18.2.0):
     resolution: {integrity: sha512-qagsy22t+7UdkYAiT5ZhfM4StXi9PPNvw0zuwNmabrWyMKddczMtBIOARflbaIj+wHiQjnMAsZmzsUYuXeyoSg==}
     peerDependencies:
@@ -1216,6 +1264,26 @@ packages:
 
   /@ungap/structured-clone@1.2.0:
     resolution: {integrity: sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==}
+    dev: true
+
+  /@xstate/react@3.2.2(@types/react@18.2.79)(react@18.0.0)(xstate@4.38.2):
+    resolution: {integrity: sha512-feghXWLedyq8JeL13yda3XnHPZKwYDN5HPBLykpLeuNpr9178tQd2/3d0NrH6gSd0sG5mLuLeuD+ck830fgzLQ==}
+    peerDependencies:
+      '@xstate/fsm': ^2.0.0
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      xstate: ^4.37.2
+    peerDependenciesMeta:
+      '@xstate/fsm':
+        optional: true
+      xstate:
+        optional: true
+    dependencies:
+      react: 18.0.0
+      use-isomorphic-layout-effect: 1.1.2(@types/react@18.2.79)(react@18.0.0)
+      use-sync-external-store: 1.2.2(react@18.0.0)
+      xstate: 4.38.2
+    transitivePeerDependencies:
+      - '@types/react'
     dev: true
 
   /@xstate/react@3.2.2(@types/react@18.2.79)(react@18.2.0)(xstate@4.38.2):
@@ -3786,6 +3854,15 @@ packages:
       react: 18.0.0
     dev: true
 
+  /react-hook-form@7.45.4(react@18.2.0):
+    resolution: {integrity: sha512-HGDV1JOOBPZj10LB3+OZgfDBTn+IeEsNOKiq/cxbQAIbKaiJUe/KV8DBUzsx0Gx/7IG/orWqRRm736JwOfUSWQ==}
+    engines: {node: '>=12.22.0'}
+    peerDependencies:
+      react: ^16.8.0 || ^17 || ^18
+    dependencies:
+      react: 18.2.0
+    dev: true
+
   /react-icons@4.12.0(react@18.0.0):
     resolution: {integrity: sha512-IBaDuHiShdZqmfc/TwHu6+d6k2ltNCf3AszxNmjJc1KUfXdEeRJOKyNvLmAHaarhzGmTSVygNdyu8/opXv2gaw==}
     peerDependencies:
@@ -4564,6 +4641,19 @@ packages:
       picocolors: 1.0.1
     dev: true
 
+  /use-isomorphic-layout-effect@1.1.2(@types/react@18.2.79)(react@18.0.0):
+    resolution: {integrity: sha512-49L8yCO3iGT/ZF9QttjwLF/ZD9Iwto5LnH5LmEdk/6cFmXddqi2ulF0edxTwjj+7mqvpVVGQWvbXZdn32wRSHA==}
+    peerDependencies:
+      '@types/react': '*'
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+    dependencies:
+      '@types/react': 18.2.79
+      react: 18.0.0
+    dev: true
+
   /use-isomorphic-layout-effect@1.1.2(@types/react@18.2.79)(react@18.2.0):
     resolution: {integrity: sha512-49L8yCO3iGT/ZF9QttjwLF/ZD9Iwto5LnH5LmEdk/6cFmXddqi2ulF0edxTwjj+7mqvpVVGQWvbXZdn32wRSHA==}
     peerDependencies:
@@ -4575,6 +4665,14 @@ packages:
     dependencies:
       '@types/react': 18.2.79
       react: 18.2.0
+    dev: true
+
+  /use-sync-external-store@1.2.2(react@18.0.0):
+    resolution: {integrity: sha512-PElTlVMwpblvbNqQ82d2n6RjStvdSoNe9FG28kNfz3WiXilJm4DdNkEzRhCZuIDwY8U08WVihhGR5iRqAwfDiw==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      react: 18.0.0
     dev: true
 
   /use-sync-external-store@1.2.2(react@18.2.0):
