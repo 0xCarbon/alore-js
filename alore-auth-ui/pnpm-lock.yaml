@@ -14,6 +14,9 @@ dependencies:
   '@react-oauth/google':
     specifier: 0.12.1
     version: 0.12.1(react-dom@18.3.1)(react@18.2.0)
+  '@types/node':
+    specifier: 20.4.8
+    version: 20.4.8
   '@xstate/react':
     specifier: 3.2.2
     version: 3.2.2(@types/react@18.2.79)(react@18.2.0)(xstate@4.38.2)
@@ -223,6 +226,10 @@ packages:
   /@types/js-cookie@3.0.6:
     resolution: {integrity: sha512-wkw9yd1kEXOPnvEeEV1Go1MmxtBJL0RR79aOTAApecWFVu7w0NNXNqhcWgvw2YgZDYadliXkl14pa3WXw5jlCQ==}
     dev: true
+
+  /@types/node@20.4.8:
+    resolution: {integrity: sha512-0mHckf6D2DiIAzh8fM8f3HQCvMKDpK94YQ0DSVkfWTG9BZleYIWudw9cJxX8oCk9bM+vAkDyujDV6dmKHbvQpg==}
+    dev: false
 
   /@types/prop-types@15.7.12:
     resolution: {integrity: sha512-5zvhXYtRNRluoE/jAp4GVsSduVUzNWKkOZrCDBWYtE7biZywwdC2AcEzg+cSMLFRfVgeAFqpfNabiPjxFddV1Q==}
