@@ -1,0 +1,1 @@
+../../../../../node_modules/react-native-quick-crypto/ios/QuickCryptoModule.h

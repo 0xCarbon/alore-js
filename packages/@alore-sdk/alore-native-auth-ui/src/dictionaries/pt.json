@@ -1,0 +1,12 @@
+{
+  "startWithPasskey": "Entrar com passkey",
+  "registerCta": "Não possui uma conta ainda?",
+  "createAccountCta": "Criar uma conta",
+  "emailLabel": "Informe seu email",
+  "emailPlaceholder": "Insira seu email",
+  "next": "Próximo",
+  "createUsername": "Crie um apelido",
+  "enterUsername": "Insira seu apelido",
+  "createAccount": "Criar conta",
+  "back": "Voltar"
+}

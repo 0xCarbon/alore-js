@@ -1,0 +1,17 @@
+{
+  "name": "@0xCarbon/dkls23-wasm",
+  "version": "0.1.4",
+  "repository": "https://github.com/0xCarbon/dkls23-wasm",
+  "files": [
+    "dkls23_wasm_bg.wasm",
+    "dkls23_wasm.js",
+    "dkls23_wasm.d.ts"
+  ],
+  "module": "dkls23_wasm.js",
+  "main": "dkls23_wasm.js",
+  "types": "dkls23_wasm.d.ts",
+  "sideEffects": false,
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
+}
