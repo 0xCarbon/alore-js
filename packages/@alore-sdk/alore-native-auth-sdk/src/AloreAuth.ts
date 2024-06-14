@@ -1,18 +1,35 @@
 // import { startAuthentication } from '@simplewebauthn/browser';
 // import ethers from 'ethers';
 // import base64url from 'base64url';
-// import crypto from 'crypto';
-// import argon2 from 'argon2-browser';
-// import Cookies from 'js-cookie';
+import crypto from 'crypto';
+import argon2 from 'react-native-argon2';
 // import { jwtDecode } from 'jwt-decode';
 
-// import { Passkey } from 'react-native-passkey';
-// import { PasskeyRegistrationRequest } from 'react-native-passkey/lib/typescript/Passkey';
-
 export function hashUserInfo(userInfo: string) {
-  // const hash = crypto.createHash('sha256');
-  // hash.update(userInfo);
-  // return hash.digest('hex');
+  const hash = crypto.createHash('sha256');
+  hash.update(userInfo);
+  return hash.digest('hex');
+}
+
+type KeyDerivationFunction = 'argon2d' | 'pbkdf2';
+
+export async function generateSecureHash(
+  password: string,
+  salt: string,
+  keyDerivationFunction: KeyDerivationFunction = 'argon2d'
+): Promise<string> {
+  if (keyDerivationFunction === 'argon2d') {
+    const result = await argon2(password, salt, {
+      hashLength: 32,
+      memory: 32768,
+      iterations: 3,
+      parallelism: 2,
+      mode: 'argon2d',
+    });
+
+    return result.encodedHash;
+  }
+  throw new Error('Unsupported key derivation function');
 }
 
 const DEFAULT_URL = 'https://alpha-api.bealore.com/v1';
@@ -29,17 +46,17 @@ type FetchWithProgressiveBackoffConfig = {
 };
 
 type SessionUser = {
-  created_at: string;
+  createdAt: string;
   device: string;
-  device_created_at: string;
+  deviceCreatedAt: string;
   email: string;
   id: string;
-  last_login: string | null;
-  last_transaction: string | null;
+  lastLogin: string | null;
+  lastTransaction: string | null;
   nickname: string;
   status: string;
-  access_token: string;
-  refresh_token: string;
+  accessToken: string;
+  refreshToken: string;
 };
 
 export type TwoFactorAuth = {
@@ -52,12 +69,12 @@ interface AuthMachineContext {
   salt?: string;
   error?: string;
   active2fa?: TwoFactorAuth[];
+  sessionId?: string;
   registerUser?: {
     email: string;
     nickname: string;
-    salt: string;
+    salt?: string;
   };
-  forgeData?: any;
   googleOtpCode?: string;
   googleUser?: { email: string; nickname: string };
   sessionUser?: SessionUser;
@@ -78,15 +95,47 @@ export class AloreAuth {
     if (!apiKey) throw new Error('API_KEY is required');
 
     this.endpoint = options?.endpoint || DEFAULT_URL;
-
-    if (!apiKey) throw new Error('API_KEY is required');
-
-    this.endpoint = options?.endpoint || DEFAULT_URL;
     this.accessToken = options?.accessToken;
     this.refreshToken = options?.refreshToken;
   }
 
   services = {
+    completeRegistration: async (
+      _: AuthMachineContext,
+      event: {
+        type: 'COMPLETE_REGISTRATION';
+        payload: {
+          email: string;
+          nickname: string;
+          passwordHash: string;
+          device: string;
+        };
+      }
+    ) => {
+      const { email, nickname, passwordHash, device } = event.payload;
+
+      const response = await fetch(
+        `${this.endpoint}/auth/account-registration`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email,
+            nickname,
+            passwordHash,
+            device,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) return data;
+
+      throw new Error(data.message || data.error || 'Authentication failed');
+    },
     sendConfirmationEmail: async (
       _: AuthMachineContext,
       event:
@@ -111,7 +160,7 @@ export class AloreAuth {
             };
           }
     ) => {
-      const { email, nickname } = event.payload;
+      const { email, nickname, locale } = event.payload;
 
       const response = await fetch(`${this.endpoint}/auth/confirmation-email`, {
         method: 'POST',
@@ -121,6 +170,7 @@ export class AloreAuth {
         body: JSON.stringify({
           email,
           nickname,
+          locale,
         }),
       });
 
@@ -136,6 +186,37 @@ export class AloreAuth {
       }
 
       return { error: response?.statusText };
+    },
+    verifyEmail: async (
+      context: AuthMachineContext,
+      event: {
+        type: 'VERIFY_EMAIL';
+        payload: {
+          secureCode: string;
+        };
+      }
+    ) => {
+      const { secureCode } = event.payload;
+      const response = await fetch(
+        `${this.endpoint}/auth/registration-code-verification`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            emailCode: secureCode,
+            sessionId: context.sessionId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data?.message || data?.error || data);
+      } else {
+        return {};
+      }
     },
     retrieveSalt: async (
       _: AuthMachineContext,

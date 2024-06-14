@@ -97,6 +97,17 @@ export type AuthMachineEvents =
         locale?: string;
       };
     }
+  | {
+      type: 'RESEND_CODE';
+      payload: {
+        email: string;
+        nickname?: string;
+        device?: string;
+        passwordHash?: string;
+        isForgeClaim?: boolean;
+        locale?: string;
+      };
+    }
   | { type: 'VERIFY_EMAIL'; payload: { secureCode: string } }
   | {
       type: 'COMPLETE_REGISTRATION';
@@ -108,17 +119,7 @@ export type AuthMachineEvents =
       };
     }
   | { type: 'SEND_CODE'; payload: { email: string } }
-  | {
-      type: 'RESEND_CODE';
-      payload: {
-        email: string;
-        nickname?: string;
-        device?: string;
-        passwordHash?: string;
-        isForgeClaim?: boolean;
-        locale?: string;
-      };
-    };
+  | { type: 'REFRESH_ACCESS_TOKEN'; newAccessToken: string };
 
 type AuthReturn = {
   data: {

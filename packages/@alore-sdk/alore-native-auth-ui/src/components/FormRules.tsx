@@ -1,10 +1,9 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { FieldValues } from "react-hook-form";
-import useDictionary from "../hooks/useDictionary";
-import { Locale } from "../helpers/get-dictionary";
-import { CheckIcon, XMarkIcon } from "react-native-heroicons/solid";
-import { passwordRules, ruleValidation } from "../helpers";
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import useDictionary from '../hooks/useDictionary';
+import { Locale } from '../helpers/get-dictionary';
+import { CheckIcon, XMarkIcon } from 'react-native-heroicons/solid';
+import { passwordRules, ruleValidation } from '../helpers';
 
 interface FormRulesProps {
   locale: Locale;
@@ -18,7 +17,7 @@ const FormRules = ({ locale, passwordValues, userValues }: FormRulesProps) => {
 
   return (
     <View style={[styles.container]}>
-      {passwordRules.map((rule) => (
+      {passwordRules.map(rule => (
         <View key={rule.name} style={styles.ruleContainer}>
           {ruleValidation(rule, passwordValues, userValues) ? (
             <CheckIcon style={styles.icon} color="#10B981" />
@@ -28,7 +27,7 @@ const FormRules = ({ locale, passwordValues, userValues }: FormRulesProps) => {
           <Text style={styles.ruleText}>
             {
               dictionary?.passwordRules[
-                rule.key as keyof (typeof dictionary)["passwordRules"]
+                rule.key as keyof (typeof dictionary)['passwordRules']
               ]
             }
           </Text>
@@ -41,12 +40,12 @@ const FormRules = ({ locale, passwordValues, userValues }: FormRulesProps) => {
 const styles = StyleSheet.create({
   container: {
     marginVertical: 4,
-    flexDirection: "column",
+    flexDirection: 'column',
     gap: 8,
   },
   ruleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   icon: {
@@ -55,7 +54,7 @@ const styles = StyleSheet.create({
   },
   ruleText: {
     fontSize: 11,
-    color: "#6B7280",
+    color: '#6B7280',
   },
 });
 

@@ -86,6 +86,7 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.register.emailValidationStep',
                     actions: assign({
                       salt: (_context, event) => event.data?.salt,
+                      sessionId: (_context, event) => event.data?.sessionId,
                     }),
                   },
                   onError: {
@@ -98,18 +99,19 @@ export const authMachine = createMachine(
                 },
                 entry: assign({
                   error: () => undefined,
+                  sessionId: () => undefined,
                 }),
               },
 
               emailValidationStep: {
                 on: {
                   VERIFY_EMAIL: 'verifyingEmail',
-                  // BACK: {
-                  //   target: 'idle',
-                  //   actions: assign({
-                  //     error: () => undefined,
-                  //   }),
-                  // },
+                  BACK: {
+                    target: '#authMachine.active.register.usernameStep',
+                    actions: assign({
+                      error: () => undefined,
+                    }),
+                  },
                   RESEND_CODE:
                     '#authMachine.active.register.resendingRegistrationEmail',
                 },
@@ -132,18 +134,73 @@ export const authMachine = createMachine(
                 }),
               },
 
-              passwordStep: {},
+              passwordStep: {
+                on: {
+                  BACK: {
+                    target: '#authMachine.active.register.emailValidationStep',
+                  },
+                  COMPLETE_REGISTRATION:
+                    '#authMachine.active.register.completingRegistration',
+                },
+              },
+
+              completingRegistration: {
+                invoke: {
+                  src: 'completeRegistration',
+                  onDone: {
+                    target: '#authMachine.active.register.userCreated',
+                    actions: assign({
+                      sessionUser: (_, event) => event.data,
+                    }),
+                  },
+                  onError: {
+                    target: '#authMachine.active.register.passwordStep',
+                    actions: assign({
+                      error: (_context, event) =>
+                        event.data?.error || event.data?.message,
+                    }),
+                  },
+                },
+                entry: assign({
+                  error: () => undefined,
+                }),
+              },
+
+              userCreated: {
+                type: 'final',
+
+                entry: assign({
+                  googleUser: () => undefined,
+                  registerUser: () => undefined,
+                }),
+
+                on: {
+                  REFRESH_ACCESS_TOKEN: {
+                    target: 'userCreated',
+                    actions: assign({
+                      sessionUser: (context, event) => ({
+                        ...context.sessionUser!,
+                        accessToken: event.newAccessToken,
+                      }),
+                    }),
+                  },
+                },
+              },
 
               resendingRegistrationEmail: {
                 invoke: {
                   src: 'sendConfirmationEmail',
                   onDone: {
                     target: '#authMachine.active.register.emailValidationStep',
-                    actions: 'setSessionId',
+                    actions: assign({
+                      salt: (_context, event) => event.data?.salt,
+                      sessionId: (_context, event) => event.data?.sessionId,
+                    }),
                   },
                 },
                 entry: assign({
                   error: () => undefined,
+                  sessionId: () => undefined,
                 }),
               },
 
@@ -268,6 +325,9 @@ export const authMachine = createMachine(
   },
   {
     services: {
+      completeRegistration: async (context, event) => {
+        throw new Error('Not implemented');
+      },
       sendConfirmationEmail: async (context, event) => {
         throw new Error('Not implemented');
       },
@@ -291,9 +351,6 @@ export const authMachine = createMachine(
     actions: {
       clearContext: assign({
         sessionUser: undefined,
-      }),
-      setSessionId: assign({
-        sessionId: (_, event) => event.data.sessionId,
       }),
     },
   },
@@ -332,8 +389,8 @@ export const authService = (services: {}, context: AuthMachineContext) =>
     ),
   )
     .onTransition(state => {
-      //   if (state.changed && typeof window !== 'undefined') {
-      //     localStorage.setItem('authState', JSON.stringify(state));
-      //   }
+      // if (state.changed && typeof window !== 'undefined') {
+      //   localStorage.setItem('authState', JSON.stringify(state));
+      // }
     })
     .start();

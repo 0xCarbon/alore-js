@@ -17,6 +17,9 @@ importers:
       react-native:
         specifier: 0.74.1
         version: 0.74.1(@babel/core@7.24.7)(@babel/preset-env@7.24.7(@babel/core@7.24.7))(@types/react@18.2.79)(react@18.2.0)
+      react-native-argon2:
+        specifier: 2.0.1
+        version: 2.0.1
       react-native-passkey:
         specifier: 2.1.1
         version: 2.1.1(react-native@0.74.1(@babel/core@7.24.7)(@babel/preset-env@7.24.7(@babel/core@7.24.7))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0)
@@ -2016,6 +2019,9 @@ packages:
 
   react-is@18.3.1:
     resolution: {integrity: sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg==}
+
+  react-native-argon2@2.0.1:
+    resolution: {integrity: sha512-/iOi0S+VVgS1gQGtQgL4ZxUVS4gz6Lav3bgIbtNmr9KbOunnBYzP6/yBe/XxkbpXvasHDwdQnuppOH/nuOBn7w==}
 
   react-native-passkey@2.1.1:
     resolution: {integrity: sha512-/SBlL+8aJOiAAyO4jmRhJAxo1LklMpjQijLyl1jZlt9bKtRnh4Uz94z7AYouBR2anTB+DaEycLIhunG7h8Xbwg==}
@@ -4950,6 +4956,8 @@ snapshots:
   react-is@17.0.2: {}
 
   react-is@18.3.1: {}
+
+  react-native-argon2@2.0.1: {}
 
   react-native-passkey@2.1.1(react-native@0.74.1(@babel/core@7.24.7)(@babel/preset-env@7.24.7(@babel/core@7.24.7))(@types/react@18.2.79)(react@18.2.0))(react@18.2.0):
     dependencies:
