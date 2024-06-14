@@ -40,7 +40,7 @@ export const passwordRules: PasswordRule[] = [
 
 export function ruleValidation(
   rule: PasswordRule,
-  passwordValues: FieldValues,
+  passwordValues: { password: string; confirmPassword: string },
   userInfoValues?: { email: string; nickname: string }
 ) {
   if (passwordValues.password.length) {

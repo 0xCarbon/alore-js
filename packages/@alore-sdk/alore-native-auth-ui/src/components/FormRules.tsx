@@ -8,7 +8,7 @@ import { passwordRules, ruleValidation } from "../helpers";
 
 interface FormRulesProps {
   locale: Locale;
-  passwordValues: FieldValues;
+  passwordValues: { password: string; confirmPassword: string };
   userValues?: { email: string; nickname: string };
   className?: string;
 }
@@ -21,9 +21,9 @@ const FormRules = ({ locale, passwordValues, userValues }: FormRulesProps) => {
       {passwordRules.map((rule) => (
         <View key={rule.name} style={styles.ruleContainer}>
           {ruleValidation(rule, passwordValues, userValues) ? (
-            <CheckIcon style={styles.icon} />
+            <CheckIcon style={styles.icon} color="#10B981" />
           ) : (
-            <XMarkIcon style={styles.icon} />
+            <XMarkIcon style={styles.icon} color="#EF4444" />
           )}
           <Text style={styles.ruleText}>
             {
@@ -52,11 +52,10 @@ const styles = StyleSheet.create({
   icon: {
     height: 12,
     width: 12,
-    color: "#10B981", // Equivalent to text-green-400 in Tailwind
   },
   ruleText: {
     fontSize: 11,
-    color: "#6B7280", // Equivalent to text-gray-500 in Tailwind
+    color: "#6B7280",
   },
 });
 

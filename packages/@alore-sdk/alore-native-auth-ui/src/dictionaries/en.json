@@ -27,5 +27,11 @@
     "passwordMinimum": "Your password must contain at least 8 characters.",
     "validName": "Please enter valid name",
     "agreeTerms": "You must agree to the terms"
+  },
+  "register": {
+    "createPassword": "Create a safe password",
+    "passwordLabel": "Password",
+    "enterPassword": "********",
+    "passwordConfirmLabel": "Confirm Password"
   }
 }

@@ -27,5 +27,11 @@
     "passwordMinimum": "Sua senha deve ter pelo menos 8 caracteres",
     "validName": "Por favor insira um nome válido",
     "agreeTerms": "Você deve concordar com os termos"
+  },
+  "register": {
+    "createPassword": "Crie uma senha segura",
+    "passwordLabel": "Senha",
+    "enterPassword": "********",
+    "passwordConfirmLabel": "Confirme sua senha"
   }
 }

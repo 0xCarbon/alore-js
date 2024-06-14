@@ -38,7 +38,7 @@ const GoogleIcon = () => (
   </Svg>
 );
 
-interface RegistrationStepsProps {
+interface LoginStepsProps {
   styles?: Partial<typeof defaultStyles>;
 }
 
@@ -283,9 +283,7 @@ export const defaultStyles = {
   }),
 };
 
-export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
-  styles,
-}) => {
+export const LoginSteps: React.FC<LoginStepsProps> = ({ styles }) => {
   const [email, setEmail] = useState("kenny+asd@0xcarbon.org");
   const [username, setUsername] = useState("kenny");
   const [password, setPassword] = useState("");
@@ -573,4 +571,4 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   );
 };
 
-export default RegistrationSteps;
+export default LoginSteps;
