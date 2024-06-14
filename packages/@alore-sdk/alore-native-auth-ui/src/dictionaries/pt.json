@@ -33,5 +33,20 @@
     "passwordLabel": "Senha",
     "enterPassword": "********",
     "passwordConfirmLabel": "Confirme sua senha"
+  },
+  "login": {
+    "passwordPlaceholder": "********",
+    "login": "Conecte-se",
+    "enterSecureCode": "******",
+    "password": "Senha",
+    "continue": "Continuar",
+    "enterEmail": "user@domain.com",
+    "emailLabel": "Informe seu email",
+    "enterPassword": "Digite sua senha"
+  },
+  "verifyEmailStep": {
+    "verifyEmail": "Verifique seu e-mail",
+    "verifyEmailDescription": "Por favor, informe o código que enviamos para seu e-mail. ",
+    "nextButton": "Confirmar"
   }
 }

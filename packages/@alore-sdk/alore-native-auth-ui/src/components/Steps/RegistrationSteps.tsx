@@ -6,16 +6,13 @@ import { useActor } from "@xstate/react";
 import useAuthServiceInstance from "../../hooks/useAuthServiceInstance";
 import { Colors } from "../../constants/Colors";
 import StyledTextField from "../StyledTextField";
-import {
-  ArrowLeftCircleIcon,
-  EnvelopeIcon,
-  UserIcon,
-} from "react-native-heroicons/solid";
+import { EnvelopeIcon, UserIcon } from "react-native-heroicons/solid";
 import { validateEmailPattern } from "../../helpers";
 import DeviceInfo from "react-native-device-info";
 import { Path, Svg } from "react-native-svg";
 import FormRules from "../FormRules";
 import BackButton from "../BackButton";
+import { stepStyles } from "./styles";
 
 const GoogleIcon = () => (
   <Svg width="25" height="25" viewBox="0 0 25 25" fill="none">
@@ -39,262 +36,21 @@ const GoogleIcon = () => (
 );
 
 interface RegistrationStepsProps {
-  styles?: Partial<typeof defaultStyles>;
+  styles?: Partial<typeof stepStyles>;
 }
-
-export const defaultStyles = {
-  emailStep: StyleSheet.create({
-    container: {
-      flex: 1,
-      justifyContent: "center",
-      alignContent: "center",
-    },
-    card: {
-      width: "100%",
-      backgroundColor: "transparent",
-      borderWidth: 0,
-      shadowOpacity: 0,
-      elevation: 0,
-    },
-    cardContainer: {
-      marginLeft: 30,
-      marginRight: 30,
-    },
-    text: {
-      fontWeight: "700",
-      fontSize: 20,
-      lineHeight: 30,
-      color: Colors.gray[900],
-      marginBottom: 24,
-    },
-    backButton: {
-      backgroundColor: "transparent",
-      height: 48,
-      paddingHorizontal: 0,
-      marginRight: "auto",
-      marginTop: 20,
-    },
-    backButtonLabel: {
-      color: Colors.gray[900],
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    googleButton: {
-      backgroundColor: "transparent",
-      height: 48,
-      paddingHorizontal: 20,
-      marginTop: 30,
-      borderColor: Colors.gray[900],
-      borderWidth: 1,
-    },
-    nextButton: {
-      backgroundColor: "#E64848",
-      height: 48,
-      paddingHorizontal: 20,
-      marginTop: 30,
-    },
-    nextButtonLabel: {
-      color: "#fff",
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    createAccountButton: {
-      backgroundColor: "transparent",
-      height: 48,
-      paddingHorizontal: 20,
-      borderColor: Colors.gray[900],
-      borderWidth: 1,
-    },
-    createAccountButtonLabel: {
-      color: Colors.gray[900],
-      fontSize: 16,
-      fontWeight: "600",
-    },
-  }),
-  passwordStep: StyleSheet.create({
-    container: {
-      flex: 1,
-      justifyContent: "center",
-      alignContent: "center",
-    },
-    card: {
-      width: "100%",
-      backgroundColor: "transparent",
-      borderWidth: 0,
-      shadowOpacity: 0,
-      elevation: 0,
-    },
-    cardContainer: {
-      gap: 20,
-      marginLeft: 30,
-      marginRight: 30,
-    },
-    text: {
-      fontWeight: "700",
-      fontSize: 20,
-      lineHeight: 30,
-      color: Colors.gray[900],
-    },
-    backButton: {
-      backgroundColor: "transparent",
-      height: 48,
-      paddingHorizontal: 0,
-      marginRight: "auto",
-      marginTop: 20,
-    },
-    backButtonLabel: {
-      color: Colors.gray[900],
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    googleButton: {
-      backgroundColor: "transparent",
-      height: 48,
-      paddingHorizontal: 20,
-      marginTop: 30,
-      borderColor: Colors.gray[900],
-      borderWidth: 1,
-    },
-    nextButton: {
-      backgroundColor: "#E64848",
-      height: 48,
-      paddingHorizontal: 20,
-    },
-    nextButtonLabel: {
-      color: "#fff",
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    createAccountButton: {
-      backgroundColor: "transparent",
-      height: 48,
-      paddingHorizontal: 20,
-      borderColor: Colors.gray[900],
-      borderWidth: 1,
-    },
-    createAccountButtonLabel: {
-      color: Colors.gray[900],
-      fontSize: 16,
-      fontWeight: "600",
-    },
-  }),
-  usernameStep: StyleSheet.create({
-    container: {
-      flex: 1,
-      justifyContent: "center",
-      alignContent: "center",
-    },
-    card: {
-      width: "100%",
-      backgroundColor: "transparent",
-      borderWidth: 0,
-      shadowOpacity: 0,
-      elevation: 0,
-    },
-    cardContainer: {
-      marginLeft: 30,
-      marginRight: 30,
-    },
-    text: {
-      fontWeight: "700",
-      fontSize: 20,
-      lineHeight: 30,
-      color: Colors.gray[900],
-      marginBottom: 24,
-    },
-    backButton: {
-      backgroundColor: "transparent",
-      height: 48,
-      paddingHorizontal: 0,
-      marginRight: "auto",
-      marginTop: 20,
-    },
-    backButtonLabel: {
-      color: Colors.gray[900],
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    finishButton: {
-      backgroundColor: "#E64848",
-      height: 48,
-      marginHorizontal: "auto",
-      marginTop: 30,
-      width: "100%",
-    },
-    finishButtonLabel: {
-      color: "#fff",
-      fontSize: 16,
-      fontWeight: "600",
-    },
-  }),
-  verifyEmailStep: StyleSheet.create({
-    container: {
-      flex: 1,
-      justifyContent: "center",
-    },
-    cardContainer: {
-      marginLeft: 30,
-      marginRight: 30,
-    },
-    backButton: {
-      backgroundColor: "transparent",
-      height: 48,
-      paddingHorizontal: 0,
-      marginRight: "auto",
-      marginBottom: 20,
-    },
-    backButtonLabel: {
-      color: Colors.gray[900],
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    title: {
-      marginBottom: 24,
-      fontSize: 28,
-      fontWeight: "bold",
-      color: Colors.gray[900],
-    },
-    subtitle: {
-      marginBottom: 24,
-      fontSize: 16,
-      color: Colors.gray[900],
-    },
-    inputContainer: {
-      marginBottom: 24,
-    },
-    submitButton: {
-      marginBottom: 24,
-      backgroundColor: Colors.red[600],
-    },
-    spinner: {
-      marginRight: 10,
-    },
-    resendText: {
-      fontSize: 16,
-      fontWeight: "500",
-    },
-    disabledText: {
-      opacity: 0.5,
-    },
-    enabledText: {
-      opacity: 1,
-      color: Colors.red[600],
-    },
-  }),
-};
 
 export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   styles,
 }) => {
-  const [email, setEmail] = useState("kenny+asd@0xcarbon.org");
-  const [username, setUsername] = useState("kenny");
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
   const locale = authState.context.locale;
   const dictionary = useDictionary(locale);
-  const mergedStyles = StyleSheet.flatten([defaultStyles, styles || {}]);
+  const mergedStyles = StyleSheet.flatten([stepStyles, styles || {}]);
   const isEmailValid = validateEmailPattern(email);
   const { CCRPublicKey, googleId } = authState.context;
 
@@ -355,7 +111,8 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
     <View style={mergedStyles.emailStep?.container}>
       <Card style={mergedStyles.emailStep?.card}>
         <View style={mergedStyles.emailStep?.cardContainer}>
-          <Text style={mergedStyles.emailStep?.text}>
+          <BackButton onClick={onBack} />
+          <Text style={mergedStyles.emailStep?.title}>
             {dictionary?.emailLabel}
           </Text>
           <StyledTextField
@@ -368,19 +125,6 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
             autoCapitalize="none"
             autoCorrect={false}
             autoComplete="off"
-          />
-          <Button
-            onPress={onBack}
-            label={dictionary?.back}
-            labelProps={{ style: mergedStyles.emailStep?.backButtonLabel }}
-            style={mergedStyles.emailStep?.backButton}
-            iconSource={() => (
-              <ArrowLeftCircleIcon
-                size={20}
-                color={Colors.gray[600]}
-                style={{ marginRight: 10 }}
-              />
-            )}
           />
           <Button
             onPress={onNext}
@@ -410,7 +154,8 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
     <View style={mergedStyles.usernameStep?.container}>
       <Card style={mergedStyles.usernameStep?.card}>
         <View style={mergedStyles.usernameStep?.cardContainer}>
-          <Text style={mergedStyles.usernameStep?.text}>
+          <BackButton onClick={onBack} />
+          <Text style={mergedStyles.usernameStep?.title}>
             {dictionary?.createUsername}
           </Text>
           <StyledTextField
@@ -423,19 +168,6 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
             autoCapitalize="none"
             autoCorrect={false}
             autoComplete="off"
-          />
-          <Button
-            onPress={onBack}
-            label={dictionary?.back}
-            labelProps={{ style: mergedStyles.usernameStep?.backButtonLabel }}
-            style={mergedStyles.usernameStep?.backButton}
-            iconSource={() => (
-              <ArrowLeftCircleIcon
-                size={20}
-                color={Colors.gray[600]}
-                style={{ marginRight: 10 }}
-              />
-            )}
           />
           <Button
             onPress={onFinish}
@@ -458,24 +190,12 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
       data-test="register-verify-email-step"
     >
       <View style={mergedStyles.verifyEmailStep?.cardContainer}>
-        <Button
-          onPress={onBack}
-          label={dictionary?.back}
-          labelProps={{ style: mergedStyles.verifyEmailStep?.backButtonLabel }}
-          style={mergedStyles.verifyEmailStep?.backButton}
-          iconSource={() => (
-            <ArrowLeftCircleIcon
-              size={20}
-              color={Colors.gray[600]}
-              style={{ marginRight: 10 }}
-            />
-          )}
-        />
+        <BackButton onClick={onBack} />
         <Text style={mergedStyles.verifyEmailStep?.title}>
-          {dictionary?.verifyEmail}
+          {dictionary?.verifyEmailStep.verifyEmail}
         </Text>
         <Text style={mergedStyles.verifyEmailStep?.subtitle}>
-          {dictionary?.informCode}
+          {dictionary?.verifyEmailStep.verifyEmailDescription}
         </Text>
         <View style={mergedStyles.verifyEmailStep?.inputContainer}>
           <StyledTextField
@@ -496,7 +216,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
         </View>
         <Button
           // onPress={onClickSecureCodeSubmit}
-          label={dictionary?.confirmCode}
+          label={dictionary?.verifyEmailStep.nextButton}
           // disabled={secureCode.length !== 6 || isLoading}
           style={mergedStyles.verifyEmailStep?.submitButton}
         ></Button>
@@ -517,8 +237,8 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
     <View style={mergedStyles.passwordStep?.container}>
       <Card style={mergedStyles.passwordStep?.card}>
         <View style={mergedStyles.passwordStep?.cardContainer}>
-          <BackButton onClick={() => console.log("back")} />
-          <Text style={mergedStyles.passwordStep?.text}>
+          <BackButton onClick={onBack} />
+          <Text style={mergedStyles.passwordStep?.title}>
             {dictionary?.register.createPassword}
           </Text>
           <StyledTextField

@@ -33,5 +33,20 @@
     "passwordLabel": "Password",
     "enterPassword": "********",
     "passwordConfirmLabel": "Confirm Password"
+  },
+  "login": {
+    "passwordPlaceholder": "********",
+    "login": "Login",
+    "enterSecureCode": "******",
+    "password": "Password",
+    "continue": "Continue",
+    "enterEmail": "Enter your email",
+    "loginAccount": "Login to your account",
+    "enterPassword": "Enter your password"
+  },
+  "verifyEmailStep": {
+    "verifyEmail": "Verify your e-mail",
+    "verifyEmailDescription": "Please, inform the code we sent to your e-mail. Don’t forget to check your spam box.",
+    "nextButton": "Confirm Code"
   }
 }

@@ -31,7 +31,7 @@ const StyledTextField = ({
 const defaultStyles = StyleSheet.create({
   container: {
     backgroundColor: "transparent",
-    paddingVertical: 12,
+    paddingBottom: 12,
     borderRadius: 8,
     flexDirection: "row",
     width: "100%",

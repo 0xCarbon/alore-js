@@ -1,6 +1,7 @@
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet, View } from "react-native";
-import { ArrowLeftIcon } from "react-native-heroicons/solid";
+import { ArrowLeftCircleIcon } from "react-native-heroicons/solid";
+import { Colors } from "react-native-ui-lib";
 
 interface Props {
   onClick: () => void;
@@ -20,7 +21,7 @@ const BackButton = ({
     style={[styles.button]}
     disabled={disabled}
   >
-    <ArrowLeftIcon style={styles.icon} />
+    <ArrowLeftCircleIcon style={styles.icon} />
     <Text style={[styles.label]}>{label}</Text>
   </TouchableOpacity>
 );
@@ -30,7 +31,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    padding: 8,
+    marginBottom: 20,
   },
   label: {
     color: "black",
@@ -38,7 +39,7 @@ const styles = StyleSheet.create({
   icon: {
     height: 16,
     width: 16,
-    color: "black",
+    color: Colors.grey10,
   },
 });
 
