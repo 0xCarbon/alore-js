@@ -61,6 +61,12 @@ export const authMachine = createMachine(
                 on: {
                   BACK: { target: '#authMachine.active.initial' },
                   NEXT: { target: '#authMachine.active.register.usernameStep' },
+<<<<<<< Updated upstream
+=======
+                  GOOGLE_LOGIN: {
+                    target: '#authMachine.active.register.googleRegister',
+                  },
+>>>>>>> Stashed changes
                 },
               },
 
@@ -70,9 +76,123 @@ export const authMachine = createMachine(
                   START_PASSKEY_REGISTER: {
                     target: '#authMachine.active.register.passkeyStep',
                   },
+<<<<<<< Updated upstream
                 },
               },
 
+=======
+                  SEND_REGISTRATION_EMAIL: {
+                    target: '#authMachine.active.register.sendingEmail',
+                  },
+                },
+              },
+
+              sendingEmail: {
+                invoke: {
+                  src: 'sendConfirmationEmail',
+                  onDone: {
+                    target: '#authMachine.active.register.emailValidationStep',
+                    actions: assign({
+                      salt: (_context, event) => event.data?.salt,
+                    }),
+                  },
+                  onError: {
+                    target: '#authMachine.active.register.usernameStep',
+                    actions: assign({
+                      error: (_context, event) =>
+                        event.data?.error || event.data?.message || event.data,
+                    }),
+                  },
+                },
+                entry: assign({
+                  error: () => undefined,
+                }),
+              },
+
+              emailValidationStep: {
+                on: {
+                  VERIFY_EMAIL: 'verifyingEmail',
+                  // BACK: {
+                  //   target: 'idle',
+                  //   actions: assign({
+                  //     error: () => undefined,
+                  //   }),
+                  // },
+                  RESEND_CODE:
+                    '#authMachine.active.register.resendingRegistrationEmail',
+                },
+              },
+
+              verifyingEmail: {
+                invoke: {
+                  src: 'verifyEmail',
+                  onDone: '#authMachine.active.register.passwordStep',
+                  onError: {
+                    target: '#authMachine.active.register.emailValidationStep',
+                    actions: assign({
+                      error: (_context, event) =>
+                        event.data?.error || event.data?.message,
+                    }),
+                  },
+                },
+                entry: assign({
+                  error: () => undefined,
+                }),
+              },
+
+              passwordStep: {},
+
+              resendingRegistrationEmail: {
+                invoke: {
+                  src: 'sendConfirmationEmail',
+                  onDone: {
+                    target: '#authMachine.active.register.emailValidationStep',
+                    actions: 'setSessionId',
+                  },
+                },
+                entry: assign({
+                  error: () => undefined,
+                }),
+              },
+
+              googleRegister: {
+                invoke: {
+                  src: 'googleLogin',
+                  onDone: [
+                    {
+                      target: '#authMachine.active.register.passwordStep',
+
+                      actions: assign({
+                        registerUser: (_, event) => event.data?.registerUser,
+                      }),
+
+                      cond: 'isNewUser',
+                    },
+                    // {
+                    //   target: 'idle',
+                    //   actions: assign({
+                    //     googleOtpCode: (_, event) => event.data.googleOtpCode,
+                    //     salt: (_, event) => event.data.salt,
+                    //     googleUser: (_, event) => event.data.googleUser,
+                    //   }),
+                    // },
+                  ],
+                  onError: {
+                    target: '#authMachine.active.register.usernameStep',
+                    actions: assign({
+                      error: (_context, event) =>
+                        event.data?.error || event.data?.message || event.data,
+                    }),
+                  },
+                },
+
+                entry: assign({
+                  googleUser: () => undefined,
+                  registerUser: () => undefined,
+                }),
+              },
+
+>>>>>>> Stashed changes
               passkeyStep: {
                 states: {
                   start: {
@@ -157,6 +277,12 @@ export const authMachine = createMachine(
   },
   {
     services: {
+<<<<<<< Updated upstream
+=======
+      sendConfirmationEmail: async (context, event) => {
+        throw new Error('Not implemented');
+      },
+>>>>>>> Stashed changes
       startRegisterPasskey: async (_, event) => {
         throw new Error('Not implemented');
       },
@@ -166,12 +292,27 @@ export const authMachine = createMachine(
       userInputRegisterPasskey: async (_, event) => {
         throw new Error('Not implemented');
       },
+<<<<<<< Updated upstream
+=======
+      googleLogin: async (_, event) => {
+        throw new Error('Not implemented');
+      },
+      verifyEmail: async (_, event) => {
+        throw new Error('Not implemented');
+      },
+>>>>>>> Stashed changes
     },
     guards: {},
     actions: {
       clearContext: assign({
         sessionUser: undefined,
       }),
+<<<<<<< Updated upstream
+=======
+      setSessionId: assign({
+        sessionId: (_, event) => event.data.sessionId,
+      }),
+>>>>>>> Stashed changes
     },
   },
 );
@@ -199,7 +340,14 @@ export const authService = (services: {}, context: AuthMachineContext) =>
     authMachine.withConfig(
       {
         services,
+<<<<<<< Updated upstream
         guards: {},
+=======
+        guards: {
+          // @ts-ignore
+          isNewUser: (_, event) => !!event.data.isNewUser,
+        },
+>>>>>>> Stashed changes
         actions: {},
       },
       { ...authMachine.context, ...context },

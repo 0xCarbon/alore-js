@@ -25,11 +25,27 @@ interface PublicKeyCredentialRequestOptions {
 }
 
 export interface AuthMachineContext {
+<<<<<<< Updated upstream
+=======
+  googleId?: string;
+>>>>>>> Stashed changes
   sessionUser?: SessionUser;
   locale: Locale;
   sessionId?: string;
   CCRPublicKey?: { publicKey: PasskeyRegistrationRequest };
   RCRPublicKey?: { publicKey: PublicKeyCredentialRequestOptions };
+<<<<<<< Updated upstream
+=======
+  salt?: string;
+  error?: string;
+  registerUser?: {
+    email: string;
+    nickname: string;
+    salt?: string;
+  };
+  googleOtpCode?: string;
+  googleUser?: { email: string; nickname: string };
+>>>>>>> Stashed changes
 }
 
 export type AuthMachineEvents =
@@ -72,12 +88,55 @@ export type AuthMachineEvents =
         nickname: string;
         device: string;
       };
+<<<<<<< Updated upstream
+=======
+    }
+  | { type: 'FETCH_SALT'; payload: { email: string } }
+  | {
+      type: 'GOOGLE_LOGIN';
+      googleToken: string;
+    }
+  | {
+      type: 'SEND_REGISTRATION_EMAIL';
+      payload: {
+        email: string;
+        nickname: string;
+        isForgeClaim?: boolean;
+        locale?: string;
+      };
+    }
+  | { type: 'VERIFY_EMAIL'; payload: { secureCode: string } }
+  | {
+      type: 'COMPLETE_REGISTRATION';
+      payload: {
+        email: string;
+        nickname: string;
+        passwordHash: string;
+        device: string;
+      };
+    }
+  | { type: 'SEND_CODE'; payload: { email: string } }
+  | {
+      type: 'RESEND_CODE';
+      payload: {
+        email: string;
+        nickname?: string;
+        device?: string;
+        passwordHash?: string;
+        isForgeClaim?: boolean;
+        locale?: string;
+      };
+>>>>>>> Stashed changes
     };
 
 type AuthReturn = {
   data: {
     error?: string;
     salt?: string;
+<<<<<<< Updated upstream
+=======
+    sessionId?: string;
+>>>>>>> Stashed changes
   };
 };
 

@@ -1,13 +1,13 @@
 // import { startAuthentication } from '@simplewebauthn/browser';
 // import ethers from 'ethers';
-import base64url from 'base64url';
+// import base64url from 'base64url';
 // import crypto from 'crypto';
 // import argon2 from 'argon2-browser';
 // import Cookies from 'js-cookie';
 // import { jwtDecode } from 'jwt-decode';
 
-import { Passkey } from 'react-native-passkey';
-import { PasskeyRegistrationRequest } from 'react-native-passkey/lib/typescript/Passkey';
+// import { Passkey } from 'react-native-passkey';
+// import { PasskeyRegistrationRequest } from 'react-native-passkey/lib/typescript/Passkey';
 
 export function hashUserInfo(userInfo: string) {
   // const hash = crypto.createHash('sha256');
@@ -19,6 +19,8 @@ const DEFAULT_URL = 'https://alpha-api.bealore.com/v1';
 
 export interface AloreAuthConfiguration {
   endpoint?: string;
+  accessToken?: string;
+  refreshToken?: string;
 }
 
 type FetchWithProgressiveBackoffConfig = {
@@ -66,7 +68,8 @@ interface AuthMachineContext {
 
 export class AloreAuth {
   protected readonly endpoint: string;
-  protected readonly configuration: string;
+  protected readonly accessToken?: string;
+  protected readonly refreshToken?: string;
 
   constructor(
     public readonly apiKey: string,
@@ -76,16 +79,87 @@ export class AloreAuth {
 
     this.endpoint = options?.endpoint || DEFAULT_URL;
 
-    this.configuration = 'TODO';
+    if (!apiKey) throw new Error('API_KEY is required');
 
-    // this.configuration = Base64.encode(
-    //   JSON.stringify({
-    //     API_KEY: this.apiKey,
-    //   })
-    // );
+    this.endpoint = options?.endpoint || DEFAULT_URL;
+    this.accessToken = options?.accessToken;
+    this.refreshToken = options?.refreshToken;
   }
 
   services = {
+    sendConfirmationEmail: async (
+      _: AuthMachineContext,
+      event:
+        | {
+            type: 'RESEND_CODE';
+            payload: {
+              email: string;
+              nickname?: string | undefined;
+              device?: string | undefined;
+              passwordHash?: string | undefined;
+              isForgeClaim?: boolean | undefined;
+              locale?: string | undefined;
+            };
+          }
+        | {
+            type: 'SEND_REGISTRATION_EMAIL';
+            payload: {
+              email: string;
+              nickname: string;
+              isForgeClaim?: boolean;
+              locale?: string;
+            };
+          }
+    ) => {
+      const { email, nickname } = event.payload;
+
+      const response = await fetch(`${this.endpoint}/auth/confirmation-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          nickname,
+        }),
+      });
+
+      if (response.ok) {
+        const resJson = await response.json();
+        const { salt, sessionId } = resJson;
+        return { salt, sessionId };
+      }
+
+      if (response.status === 403) {
+        const resJson = await response.json();
+        throw new Error(resJson);
+      }
+
+      return { error: response?.statusText };
+    },
+    retrieveSalt: async (
+      _: AuthMachineContext,
+      event: {
+        type: 'NEXT';
+        payload: {
+          email: string;
+        };
+      }
+    ) => {
+      const { email } = event.payload;
+      const response = await fetch(`${this.endpoint}/auth/salt/${email}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const salt: string = await response.json();
+        return { salt };
+      }
+
+      return { error: response?.statusText };
+    },
     startRegisterPasskey: async (
       _context: AuthMachineContext,
       event: {
@@ -99,49 +173,8 @@ export class AloreAuth {
     ) => {
       const { email, nickname, device } = event.payload;
 
-      const startPasskeyRegistrationResponse =
-        await this.fetchWithProgressiveBackoff(
-          `/auth/account-registration-passkey`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userEmail: email,
-              userNickname: nickname,
-              userDevice: device,
-            }),
-          }
-        );
-
-      const ccr = await startPasskeyRegistrationResponse.json();
-
-      return ccr;
-    },
-    finishRegisterPasskey: async (
-      _context: AuthMachineContext,
-      event: {
-        type: 'FINISH_PASSKEY_REGISTER';
-        payload: {
-          passkeyRegistration: {
-            id: string;
-            rawId: string;
-            response: {
-              attestationObject: string;
-              clientDataJSON: string;
-            };
-            type: string;
-          };
-          email: string;
-          nickname: string;
-          device: string;
-        };
-      }
-    ) => {
-      const { email, nickname, device, passkeyRegistration } = event.payload;
-      const response = await this.fetchWithProgressiveBackoff(
-        `/auth/account-registration-passkey-finish`,
+      const startPasskeyRegistrationResponse = await fetch(
+        `${this.endpoint}/auth/account-registration-passkey`,
         {
           method: 'POST',
           headers: {
@@ -151,100 +184,15 @@ export class AloreAuth {
             userEmail: email,
             userNickname: nickname,
             userDevice: device,
-            passkeyRegistration,
           }),
         }
       );
 
-      const data = await response.json();
+      const ccr = await startPasskeyRegistrationResponse.json();
 
-      if (response.ok) return data;
-    },
-    userInputRegisterPasskey: async (
-      _context: AuthMachineContext,
-      event: {
-        type: 'USER_INPUT_PASSKEY_REGISTER';
-        payload: {
-          CCRPublicKey: { publicKey: PasskeyRegistrationRequest };
-          userAgent: string;
-          withSecurityKey?: boolean;
-        };
-      }
-    ) => {
-      const {
-        CCRPublicKey,
-        withSecurityKey = false,
-        userAgent,
-      } = event.payload;
-      const publicKey = CCRPublicKey.publicKey;
-      let extensions = {};
-
-      if (userAgent.toLowerCase().match(/android/i)) {
-        extensions = {
-          prf: {},
-        };
-      }
-
-      if (userAgent.toLowerCase().match(/iphone/i)) {
-        extensions = {
-          largeBlob: {
-            support: 'required',
-          },
-        };
-      }
-
-      console.log('@@@@@@@@@@@@@@@@@@@@@@@');
-      console.log(userAgent);
-      console.log({ CCRPublicKey });
-
-      try {
-        if (publicKey) {
-          console.log('publicKey: ', publicKey);
-          const result = await Passkey.register(
-            {
-              challenge: base64url.toBase64(publicKey.challenge),
-              rp: {
-                name: publicKey.rp.name,
-                id: publicKey.rp.id,
-              },
-              user: {
-                id: base64url.toBase64(publicKey.user.id),
-                name: publicKey.user.name,
-                displayName: publicKey.user.displayName,
-              },
-              pubKeyCredParams: [
-                {
-                  type: 'public-key',
-                  alg: -7,
-                },
-                {
-                  type: 'public-key',
-                  alg: -257,
-                },
-              ],
-              authenticatorSelection: {
-                authenticatorAttachment: 'platform',
-                requireResidentKey: true,
-              },
-              extensions,
-            },
-            {
-              withSecurityKey,
-            }
-          );
-
-          console.log('Registration result: ', result);
-        }
-      } catch (e) {
-        console.log(e);
-      }
+      return ccr;
     },
   };
-
-  private async delay(ms: number) {
-    // eslint-disable-next-line no-promise-executor-return
-    await new Promise((resolve) => setTimeout(resolve, ms));
-  }
 
   public async fetchWithProgressiveBackoff(
     // eslint-disable-next-line no-undef
@@ -259,7 +207,7 @@ export class AloreAuth {
     let delayValue = initialDelay;
 
     // eslint-disable-next-line no-undef
-    const init: RequestInit = {
+    let init: RequestInit = {
       ...options,
       credentials: 'include',
       headers: {
@@ -267,6 +215,16 @@ export class AloreAuth {
         'X-API-KEY': this.apiKey,
       },
     };
+
+    if (this.accessToken) {
+      init = {
+        ...init,
+        headers: {
+          ...init?.headers,
+          Authorization: `Bearer ${this.accessToken}`,
+        },
+      };
+    }
 
     while (attempt < maxAttempts) {
       if (attempt > 0) {
@@ -287,10 +245,9 @@ export class AloreAuth {
           if (data === 'ExpiredSignature') {
             // eslint-disable-next-line no-await-in-loop
             const refreshResponse = await fetch(
-              new URL(`${this.endpoint}/auth/exchange-jwt-token`),
-              {
-                credentials: 'include',
-              }
+              new URL(
+                `${this.endpoint}/auth/exchange-jwt-token/${this.refreshToken}`
+              )
             );
 
             if (!refreshResponse.ok) {
@@ -301,15 +258,14 @@ export class AloreAuth {
             throw new Error('ExpiredSignature');
           } else if (
             typeof data === 'string' &&
-            data.includes('No access token provided')
+            data.includes('No Authorization header')
           ) {
             return response;
           }
         }
 
-        if (response.ok || attempt === maxAttempts || response.status !== 500) {
+        if (response.ok || attempt === maxAttempts || response.status !== 500)
           return response;
-        }
       } catch (error) {
         console.error(error);
 
@@ -331,6 +287,11 @@ export class AloreAuth {
     }
 
     throw new Error(`Max attempts (${maxAttempts}) exceeded`);
+  }
+
+  private async delay(ms: number) {
+    // eslint-disable-next-line no-promise-executor-return
+    await new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   private async verifyBackendStatus() {

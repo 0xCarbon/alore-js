@@ -23,6 +23,12 @@ importers:
       '@react-navigation/native':
         specifier: ^6.1.17
         version: 6.1.17(react-native@0.73.8(@babel/core@7.24.7)(@babel/preset-env@7.24.7(@babel/core@7.24.7))(react@18.3.1))(react@18.3.1)
+<<<<<<< Updated upstream
+=======
+      '@react-oauth/google':
+        specifier: ^0.12.1
+        version: 0.12.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+>>>>>>> Stashed changes
       '@xstate/react':
         specifier: ^3.2.2
         version: 3.2.2(@types/react@18.3.3)(react@18.3.1)(xstate@4.38.3)
@@ -1030,6 +1036,15 @@ packages:
   '@react-navigation/routers@6.1.9':
     resolution: {integrity: sha512-lTM8gSFHSfkJvQkxacGM6VJtBt61ip2XO54aNfswD+KMw6eeZ4oehl7m0me3CR9hnDE4+60iAZR8sAhvCiI3NA==}
 
+<<<<<<< Updated upstream
+=======
+  '@react-oauth/google@0.12.1':
+    resolution: {integrity: sha512-qagsy22t+7UdkYAiT5ZhfM4StXi9PPNvw0zuwNmabrWyMKddczMtBIOARflbaIj+wHiQjnMAsZmzsUYuXeyoSg==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+
+>>>>>>> Stashed changes
   '@sideway/address@4.1.5':
     resolution: {integrity: sha512-IqO/DUQHUkPeixNQ8n0JA6102hT9CmaljNTPmQ1u8MEhBo/R4Q8eKLN/vGZxuebwOroDB4cbpjheD4+/sKFK4Q==}
 
@@ -2402,6 +2417,14 @@ packages:
   react-devtools-core@4.28.5:
     resolution: {integrity: sha512-cq/o30z9W2Wb4rzBefjv5fBalHU0rJGZCHAkf/RHSBWSSYwh8PlQTqqOJmgIIbBtpj27T6FIPXeomIjZtCNVqA==}
 
+<<<<<<< Updated upstream
+=======
+  react-dom@18.3.1:
+    resolution: {integrity: sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw==}
+    peerDependencies:
+      react: ^18.3.1
+
+>>>>>>> Stashed changes
   react-freeze@1.0.4:
     resolution: {integrity: sha512-r4F0Sec0BLxWicc7HEyo2x3/2icUTrRmDjaaRyzzn+7aDyFZliszMDOgLVwSnQnYENOlL1o569Ze2HZefk8clA==}
     engines: {node: '>=10'}
@@ -2579,6 +2602,12 @@ packages:
   safe-buffer@5.2.1:
     resolution: {integrity: sha512-rp3So07KcdmmKbGvgaNxQSJr7bGVSVk5S9Eq1F+ppbRo70+YeaDxkw5Dd8NPN+GD6bjnYm2VuPuCXmpuYvmCXQ==}
 
+<<<<<<< Updated upstream
+=======
+  scheduler@0.23.2:
+    resolution: {integrity: sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ==}
+
+>>>>>>> Stashed changes
   scheduler@0.24.0-canary-efb381bbf-20230505:
     resolution: {integrity: sha512-ABvovCDe/k9IluqSh4/ISoq8tIJnW8euVAWYt5j/bg6dRnqwQwiGO1F/V4AyK96NGF/FB04FhOUDuWj8IKfABA==}
 
@@ -4389,6 +4418,14 @@ snapshots:
     dependencies:
       nanoid: 3.3.7
 
+<<<<<<< Updated upstream
+=======
+  '@react-oauth/google@0.12.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
+>>>>>>> Stashed changes
   '@sideway/address@4.1.5':
     dependencies:
       '@hapi/hoek': 9.3.0
@@ -5882,6 +5919,15 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
+<<<<<<< Updated upstream
+=======
+  react-dom@18.3.1(react@18.3.1):
+    dependencies:
+      loose-envify: 1.4.0
+      react: 18.3.1
+      scheduler: 0.23.2
+
+>>>>>>> Stashed changes
   react-freeze@1.0.4(react@18.3.1):
     dependencies:
       react: 18.3.1
@@ -6126,6 +6172,13 @@ snapshots:
 
   safe-buffer@5.2.1: {}
 
+<<<<<<< Updated upstream
+=======
+  scheduler@0.23.2:
+    dependencies:
+      loose-envify: 1.4.0
+
+>>>>>>> Stashed changes
   scheduler@0.24.0-canary-efb381bbf-20230505:
     dependencies:
       loose-envify: 1.4.0

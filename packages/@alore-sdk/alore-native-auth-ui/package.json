@@ -12,6 +12,10 @@
     "@react-native-community/netinfo": "^11.3.2",
     "@react-native-picker/picker": "^2.7.6",
     "@react-navigation/native": "^6.1.17",
+<<<<<<< Updated upstream
+=======
+    "@react-oauth/google": "^0.12.1",
+>>>>>>> Stashed changes
     "@xstate/react": "^3.2.2",
     "react": "^18.2.0",
     "react-native": "^0.73.6",

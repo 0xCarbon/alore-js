@@ -6,6 +6,7 @@ import { SessionUser } from '../machine/types';
 import RegistrationSteps from './Steps/RegistrationSteps';
 import useAuthServiceInstance from '../hooks/useAuthServiceInstance';
 import { Text } from 'react-native-ui-lib';
+<<<<<<< Updated upstream
 
 export interface AuthProps {
   googleId?: string;
@@ -13,6 +14,15 @@ export interface AuthProps {
 }
 
 const Auth = ({ googleId, onSuccess }: AuthProps) => {
+=======
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
+export interface AuthProps {
+  onSuccess?: (sessionUser: SessionUser) => void;
+}
+
+const Auth = ({ onSuccess }: AuthProps) => {
+>>>>>>> Stashed changes
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
   // const { googleUser, sessionUser } = authState.context;
@@ -39,6 +49,7 @@ const Auth = ({ googleId, onSuccess }: AuthProps) => {
 
   return (
     <>
+<<<<<<< Updated upstream
       {authState.matches('active.initial') && <InitialStep />}
       {/* {authState.matches('active.login') && (
         <Login
@@ -60,6 +71,11 @@ const Auth = ({ googleId, onSuccess }: AuthProps) => {
       {/* <InitialStep locale={locale} /> */}
       {/* {authState.matches('active.register') && <RegistrationSteps />} */}
       {/* )} */}
+=======
+      {/* {authState.matches('active.initial') && <InitialStep />} */}
+      {/* {authState.matches('active.register') && <RegistrationSteps />} */}
+      <RegistrationSteps />
+>>>>>>> Stashed changes
     </>
   );
 };

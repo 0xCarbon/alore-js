@@ -1,5 +1,9 @@
 {
+<<<<<<< Updated upstream
   "startWithPasskey": "Entrar com passkey",
+=======
+  "start": "Entrar",
+>>>>>>> Stashed changes
   "registerCta": "Não possui uma conta ainda?",
   "createAccountCta": "Criar uma conta",
   "emailLabel": "Informe seu email",
@@ -8,5 +12,14 @@
   "createUsername": "Crie um apelido",
   "enterUsername": "Insira seu apelido",
   "createAccount": "Criar conta",
+<<<<<<< Updated upstream
   "back": "Voltar"
+=======
+  "back": "Voltar",
+  "verifyEmail": "Verify your e-mail",
+  "informCode": "Please, inform the code we sent to your e-mail. Don’t forget to check your spam box.",
+  "wrongCode": "You’ve sent the wrong code. Try again.",
+  "confirmCode": "Confirm Code",
+  "resendCode": "Re-send code to your e-mail"
+>>>>>>> Stashed changes
 }
