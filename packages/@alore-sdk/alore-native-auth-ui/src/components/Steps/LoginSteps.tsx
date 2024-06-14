@@ -50,7 +50,7 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
   cryptoUtils,
 }) => {
   const [email, setEmail] = useState("vitoralmeida.work@gmail.com");
-  const [password, setPassword] = useState("yz250ccC@");
+  const [password, setPassword] = useState("");
   const [secureCode, setSecureCode] = useState("");
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
