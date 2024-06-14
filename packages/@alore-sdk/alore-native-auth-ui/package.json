@@ -8,6 +8,7 @@
   "license": "LGPL-2.1-only",
   "dependencies": {
     "@hookform/resolvers": "^3.6.0",
+    "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-community/blur": "^4.4.0",
     "@react-native-community/datetimepicker": "^8.0.1",
     "@react-native-community/netinfo": "^11.3.2",
