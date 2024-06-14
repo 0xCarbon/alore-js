@@ -1,1 +1,0 @@
-../../../../../node_modules/react-native-quick-crypto/cpp/JSIUtils/MGLThreadAwareHostObject.h
