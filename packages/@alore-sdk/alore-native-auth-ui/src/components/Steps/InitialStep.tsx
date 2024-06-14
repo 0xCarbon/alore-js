@@ -1,9 +1,10 @@
-import React from 'react';
-import { View, StyleSheet, Text, Button } from 'react-native';
-import useDictionary from '../../hooks/useDictionary';
-import { useActor } from '@xstate/react';
-import useAuthServiceInstance from '../../hooks/useAuthServiceInstance';
-import { Colors } from '../../constants/Colors';
+import React from "react";
+import { StyleSheet } from "react-native";
+import useDictionary from "../../hooks/useDictionary";
+import { useActor } from "@xstate/react";
+import useAuthServiceInstance from "../../hooks/useAuthServiceInstance";
+import { Colors } from "../../constants/Colors";
+import { Button, Text, View } from "react-native-ui-lib";
 
 interface InitialStepProps {
   styles?: Partial<typeof defaultStyles>;
@@ -12,13 +13,13 @@ interface InitialStepProps {
 export const defaultStyles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-end',
-    alignContent: 'center',
+    justifyContent: "flex-end",
+    alignContent: "center",
   },
   card: {
     paddingVertical: 40,
     minHeight: 100,
-    width: '100%',
+    width: "100%",
   },
   cardContainer: {
     gap: 16,
@@ -26,25 +27,25 @@ export const defaultStyles = StyleSheet.create({
     marginRight: 24,
   },
   text: {
-    textAlign: 'center',
-    fontWeight: '600',
+    textAlign: "center",
+    fontWeight: "600",
     fontSize: 16,
     lineHeight: 24,
     color: Colors.gray[900],
     marginTop: 4,
   },
   enterButton: {
-    backgroundColor: '#E64848',
+    backgroundColor: "#E64848",
     height: 48,
     paddingHorizontal: 20,
   },
   enterButtonLabel: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   createAccountButton: {
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     height: 48,
     paddingHorizontal: 20,
     borderColor: Colors.gray[900],
@@ -53,7 +54,7 @@ export const defaultStyles = StyleSheet.create({
   createAccountButtonLabel: {
     color: Colors.gray[900],
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 
@@ -64,11 +65,11 @@ export const InitialStep: React.FC<InitialStepProps> = ({ styles }) => {
   const mergedStyles = StyleSheet.flatten([defaultStyles, styles || {}]);
 
   const onCreateStep = () => {
-    sendAuth(['REGISTER_STEP']);
+    sendAuth(["REGISTER_STEP"]);
   };
 
   const onLoginStep = async () => {
-    sendAuth(['LOGIN_STEP']);
+    sendAuth(["LOGIN_STEP"]);
   };
 
   return (
@@ -77,18 +78,16 @@ export const InitialStep: React.FC<InitialStepProps> = ({ styles }) => {
         <View style={mergedStyles.cardContainer}>
           <Button
             onPress={onLoginStep}
-            // label={dictionary?.startWithPasskey}
-            // labelProps={{ style: mergedStyles.enterButtonLabel }}
-            // style={mergedStyles.enterButton}
-            title={dictionary?.startWithPasskey!}
+            label={dictionary?.startWithPasskey}
+            labelProps={{ style: mergedStyles.enterButtonLabel }}
+            style={mergedStyles.enterButton}
           />
           <Text style={mergedStyles.text}>{dictionary?.registerCta}</Text>
           <Button
             onPress={onCreateStep}
-            // label={dictionary?.createAccount}
-            // labelProps={{ style: mergedStyles.createAccountButtonLabel }}
-            // style={mergedStyles.createAccountButton}
-            title={dictionary?.createAccount!}
+            label={dictionary?.createAccount}
+            labelProps={{ style: mergedStyles.createAccountButtonLabel }}
+            style={mergedStyles.createAccountButton}
           />
         </View>
       </View>
