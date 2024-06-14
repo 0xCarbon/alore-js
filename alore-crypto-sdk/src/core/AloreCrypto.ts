@@ -121,7 +121,6 @@ export class AloreCrypto {
 
             if (!refreshResponse.ok) {
               console.error('Refresh token failed');
-              window.location.href = '/login';
               return response;
             }
 
@@ -129,34 +128,6 @@ export class AloreCrypto {
           } else if (
             typeof data === 'string' &&
             data.includes('No Authorization header')
-          ) {
-            window.location.href = '/login';
-            return response;
-          }
-        }
-
-        if (response.status === 401) {
-          // eslint-disable-next-line no-await-in-loop
-          const data = await response.json();
-
-          if (data === 'ExpiredSignature') {
-            // eslint-disable-next-line no-await-in-loop
-            const refreshResponse = await fetch(
-              new URL(`${this.endpoint}/auth/exchange-jwt-token`),
-              {
-                credentials: 'include',
-              }
-            );
-
-            if (!refreshResponse.ok) {
-              console.error('Refresh token failed');
-              return response;
-            }
-
-            throw new Error('ExpiredSignature');
-          } else if (
-            typeof data === 'string' &&
-            data.includes('No access token provided')
           ) {
             return response;
           }
