@@ -13,8 +13,6 @@ import {
 } from 'react-native-heroicons/solid';
 import { validateEmailPattern } from '../../helpers';
 import DeviceInfo from 'react-native-device-info';
-<<<<<<< Updated upstream
-=======
 import { Path, Svg } from 'react-native-svg';
 
 const GoogleIcon = () => (
@@ -37,7 +35,6 @@ const GoogleIcon = () => (
     />
   </Svg>
 );
->>>>>>> Stashed changes
 
 interface RegistrationStepsProps {
   styles?: Partial<typeof defaultStyles>;
@@ -52,14 +49,10 @@ export const defaultStyles = {
     },
     card: {
       width: '100%',
-<<<<<<< Updated upstream
-      backgroundColor: 'transparent',
-=======
       backgroundColor: '#fff',
       borderWidth: 0,
       shadowOpacity: 0,
       elevation: 0,
->>>>>>> Stashed changes
     },
     cardContainer: {
       marginLeft: 30,
@@ -84,8 +77,6 @@ export const defaultStyles = {
       fontSize: 16,
       fontWeight: '600',
     },
-<<<<<<< Updated upstream
-=======
     googleButton: {
       backgroundColor: 'transparent',
       height: 48,
@@ -94,7 +85,6 @@ export const defaultStyles = {
       borderColor: Colors.gray[900],
       borderWidth: 1,
     },
->>>>>>> Stashed changes
     nextButton: {
       backgroundColor: '#E64848',
       height: 48,
@@ -128,12 +118,9 @@ export const defaultStyles = {
     card: {
       width: '100%',
       backgroundColor: 'transparent',
-<<<<<<< Updated upstream
-=======
       borderWidth: 0,
       shadowOpacity: 0,
       elevation: 0,
->>>>>>> Stashed changes
     },
     cardContainer: {
       marginLeft: 30,
@@ -171,8 +158,6 @@ export const defaultStyles = {
       fontWeight: '600',
     },
   }),
-<<<<<<< Updated upstream
-=======
   verifyEmailStep: StyleSheet.create({
     container: {
       flex: 1,
@@ -227,7 +212,6 @@ export const defaultStyles = {
       color: Colors.red[600],
     },
   }),
->>>>>>> Stashed changes
 };
 
 export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
@@ -237,12 +221,6 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   const [username, setUsername] = useState('kenny');
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
-<<<<<<< Updated upstream
-  const dictionary = useDictionary(authState.context.locale);
-  const mergedStyles = StyleSheet.flatten([defaultStyles, styles || {}]);
-  const isEmailValid = validateEmailPattern(email);
-  const { CCRPublicKey } = authState.context;
-=======
   const locale = authState.context.locale;
   const dictionary = useDictionary(locale);
   const mergedStyles = StyleSheet.flatten([defaultStyles, styles || {}]);
@@ -250,7 +228,6 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   const { CCRPublicKey, googleId } = authState.context;
 
   console.log(authState.context);
->>>>>>> Stashed changes
 
   useEffect(() => {
     const fetchDeviceAndProceed = async () => {
@@ -278,11 +255,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   };
 
   const onNext = () => {
-<<<<<<< Updated upstream
-    sendAuth(['NEXT']);
-=======
     sendAuth({ type: 'NEXT' });
->>>>>>> Stashed changes
   };
 
   const onStartPasskey = async () => {
@@ -300,93 +273,6 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
     ]);
   };
 
-<<<<<<< Updated upstream
-  const finishPasskeyRegistration = async () => {
-    const device = await DeviceInfo.getUserAgent();
-
-    const publicKey = CCRPublicKey?.publicKey;
-
-    if (publicKey) {
-      const registerCredential = (await navigator.credentials
-        .create({
-          publicKey: {
-            challenge: Buffer.from(publicKey.challenge, 'base64'),
-            rp: {
-              name: publicKey.rp.name,
-            },
-            user: {
-              id: Buffer.from(publicKey.user.id, 'base64'),
-              name: email,
-              displayName: username,
-            },
-            pubKeyCredParams: [
-              {
-                type: 'public-key',
-                alg: -7,
-              },
-              {
-                type: 'public-key',
-                alg: -257,
-              },
-            ],
-            authenticatorSelection: {
-              authenticatorAttachment: 'platform',
-              requireResidentKey: true,
-            },
-            // extensions: credentialExtensionsOnCreate,
-          },
-        })
-        .catch(() => {
-          sendAuth('BACK');
-        })) as PublicKeyCredential;
-
-      console.log(registerCredential);
-
-      // if (registerCredential) {
-      //   if (
-      //     // @ts-ignore
-      //     !registerCredential?.publicKey?.extensions?.prf &&
-      //     // @ts-ignore
-      //     registerCredential?.publicKey?.extensions?.largeBlob
-      //   ) {
-      //     sendAuth({
-      //       type: 'FORCE_PASSWORD_METHOD',
-      //       payload: {
-      //         email,
-      //       },
-      //     });
-      //   } else {
-      //     sendAuth({
-      //       type: 'FINISH_PASSKEY_REGISTER',
-      //       payload: {
-      //         passkeyRegistration: {
-      //           id: registerCredential.id,
-      //           rawId: Buffer.from(registerCredential.rawId).toString('base64'),
-      //           response: {
-      //             attestationObject: Buffer.from(
-      //               // eslint-disable-next-line no-undef
-      //               (
-      //                 registerCredential.response as AuthenticatorAttestationResponse
-      //               ).attestationObject,
-      //             ).toString('base64'),
-      //             clientDataJSON: Buffer.from(
-      //               // eslint-disable-next-line no-undef
-      //               (
-      //                 registerCredential.response as AuthenticatorAttestationResponse
-      //               ).clientDataJSON,
-      //             ).toString('base64'),
-      //           },
-      //           type: 'public-key',
-      //         },
-      //         email,
-      //         device,
-      //         nickname,
-      //       },
-      //     });
-      //   }
-      // }
-    }
-=======
   const onGoogleRegister = () => {}; // TODO: implement
 
   const onFinish = () => {
@@ -394,7 +280,6 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
       type: 'SEND_REGISTRATION_EMAIL',
       payload: { email, nickname: username, locale },
     });
->>>>>>> Stashed changes
   };
 
   const emailStep = () => (
@@ -438,8 +323,6 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
             }}
             disabled={!isEmailValid}
           />
-<<<<<<< Updated upstream
-=======
           {googleId && (
             <Button
               onPress={onGoogleRegister}
@@ -449,7 +332,6 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
               iconSource={() => <GoogleIcon />}
             />
           )}
->>>>>>> Stashed changes
         </View>
       </Card>
     </View>
@@ -487,11 +369,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
             )}
           />
           <Button
-<<<<<<< Updated upstream
-            onPress={onStartPasskey}
-=======
             onPress={onFinish}
->>>>>>> Stashed changes
             label={dictionary?.createAccount}
             labelProps={{ style: mergedStyles.usernameStep?.finishButtonLabel }}
             style={{
@@ -505,12 +383,6 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
     </View>
   );
 
-<<<<<<< Updated upstream
-  return (
-    <>
-      {authState.matches('active.register.emailStep') && emailStep()}
-      {authState.matches('active.register.usernameStep') && usernameStep()}
-=======
   const emailValidationStep = () => (
     <View
       style={mergedStyles.verifyEmailStep?.container}
@@ -575,7 +447,6 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
       {/* {authState.matches('active.register.usernameStep') && usernameStep()} */}
       {/* {authState.matches('active.register.emailValidationStep') && emailValidationStep()} */}
       {emailValidationStep()}
->>>>>>> Stashed changes
     </>
   );
 };
