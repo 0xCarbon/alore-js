@@ -757,7 +757,7 @@ export const Login = ({
               </Button>
               <Button
                 data-test='login-method-selection-passkey'
-                disabled={!isPasskeyEnabled}
+                disabled
                 onClick={() => setLoginMethod('passkey')}
                 color='light'
                 className={`${
