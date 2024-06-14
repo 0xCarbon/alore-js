@@ -1,15 +1,17 @@
 import { authService } from '.';
 
 export type SessionUser = {
-  created_at: string;
+  createdAt: string;
   device: string;
-  device_created_at: string;
+  deviceCreatedAt: string;
   email: string;
   id: string;
-  last_login: string | null;
-  last_transaction: string | null;
+  lastLogin: string | null;
+  lastTransaction: string | null;
   nickname: string;
   status: string;
+  accessToken: string;
+  refreshToken: string;
 };
 
 interface PublicKeyCredentialCreationOptions {
@@ -48,6 +50,7 @@ export interface AuthMachineContext {
   salt?: string;
   error?: string;
   active2fa?: TwoFactorAuth[];
+  sessionId?: string;
   registerUser?: {
     email: string;
     nickname: string;
@@ -66,6 +69,7 @@ export type AuthMachineEvents =
   | { type: 'INITIALIZE'; forgeId?: null | string }
   | { type: 'RESET' }
   | { type: 'RESET_CONTEXT' }
+  | { type: 'REFRESH_ACCESS_TOKEN'; newAccessToken: string }
   | { type: 'ADVANCE_TO_PASSWORD' }
   | { type: 'BACK' }
   | { type: 'BACK_TO_IDLE' }
@@ -260,6 +264,7 @@ type AuthReturn = {
   data: {
     error?: string;
     salt?: string;
+    sessionId?: string;
   };
 };
 
@@ -290,9 +295,7 @@ export type AuthMachineServices = {
   googleLogin: { data: {} };
   verifyGoogleLogin: ValidSession;
   fetchForgeData: { data: any };
-  verifyEmailEligibility: {
-    data: {};
-  };
+  verifyEmailEligibility: AuthReturn;
   verifyClaimNftEmail2fa: {
     data: {};
   };

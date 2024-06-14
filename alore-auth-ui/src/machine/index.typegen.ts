@@ -8,6 +8,11 @@ export interface Typegen0 {
       data: unknown;
       __tip: 'See the XState TS docs to learn how to strongly type this.';
     };
+    'done.invoke.authMachine.active.login.resendingEmailCode:invocation[0]': {
+      type: 'done.invoke.authMachine.active.login.resendingEmailCode:invocation[0]';
+      data: unknown;
+      __tip: 'See the XState TS docs to learn how to strongly type this.';
+    };
     'done.invoke.authMachine.active.login.verifying2faCode:invocation[0]': {
       type: 'done.invoke.authMachine.active.login.verifying2faCode:invocation[0]';
       data: unknown;
@@ -53,6 +58,11 @@ export interface Typegen0 {
       data: unknown;
       __tip: 'See the XState TS docs to learn how to strongly type this.';
     };
+    'done.invoke.authMachine.active.register.resendingRegistrationEmail:invocation[0]': {
+      type: 'done.invoke.authMachine.active.register.resendingRegistrationEmail:invocation[0]';
+      data: unknown;
+      __tip: 'See the XState TS docs to learn how to strongly type this.';
+    };
     'done.invoke.authMachine.active.register.sendingAuthPublicCredential:invocation[0]': {
       type: 'done.invoke.authMachine.active.register.sendingAuthPublicCredential:invocation[0]';
       data: unknown;
@@ -60,6 +70,11 @@ export interface Typegen0 {
     };
     'done.invoke.authMachine.active.register.sendingPublicCredential:invocation[0]': {
       type: 'done.invoke.authMachine.active.register.sendingPublicCredential:invocation[0]';
+      data: unknown;
+      __tip: 'See the XState TS docs to learn how to strongly type this.';
+    };
+    'done.invoke.authMachine.active.web3Connector.verifyingEmailEligibility:invocation[0]': {
+      type: 'done.invoke.authMachine.active.web3Connector.verifyingEmailEligibility:invocation[0]';
       data: unknown;
       __tip: 'See the XState TS docs to learn how to strongly type this.';
     };
@@ -99,13 +114,18 @@ export interface Typegen0 {
       | 'done.invoke.authMachine.active.login.verifyingLogin:invocation[0]';
   };
   missingImplementations: {
-    actions: never;
+    actions: 'setSessionId' | 'updateAccessToken';
     delays: never;
     guards: never;
     services: never;
   };
   eventsCausingActions: {
     clearContext: 'RESET_CONTEXT';
+    setSessionId:
+      | 'done.invoke.authMachine.active.login.resendingEmailCode:invocation[0]'
+      | 'done.invoke.authMachine.active.login.verifyingLogin:invocation[0]'
+      | 'done.invoke.authMachine.active.register.resendingRegistrationEmail:invocation[0]'
+      | 'done.invoke.authMachine.active.web3Connector.verifyingEmailEligibility:invocation[0]';
     setSessionUser:
       | 'done.invoke.authMachine.active.login.verifying2faCode:invocation[0]'
       | 'done.invoke.authMachine.active.login.verifyingCode:invocation[0]'
@@ -116,6 +136,7 @@ export interface Typegen0 {
       | 'done.invoke.authMachine.active.register.completingRegistration:invocation[0]'
       | 'done.invoke.authMachine.active.register.sendingAuthPublicCredential:invocation[0]';
     setupRegisterUser: 'SETUP_REGISTER_USER';
+    updateAccessToken: 'REFRESH_ACCESS_TOKEN';
   };
   eventsCausingDelays: {};
   eventsCausingGuards: {
