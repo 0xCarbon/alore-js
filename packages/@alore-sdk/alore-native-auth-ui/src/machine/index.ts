@@ -61,12 +61,9 @@ export const authMachine = createMachine(
                 on: {
                   BACK: { target: '#authMachine.active.initial' },
                   NEXT: { target: '#authMachine.active.register.usernameStep' },
-<<<<<<< Updated upstream
-=======
                   GOOGLE_LOGIN: {
                     target: '#authMachine.active.register.googleRegister',
                   },
->>>>>>> Stashed changes
                 },
               },
 
@@ -76,11 +73,6 @@ export const authMachine = createMachine(
                   START_PASSKEY_REGISTER: {
                     target: '#authMachine.active.register.passkeyStep',
                   },
-<<<<<<< Updated upstream
-                },
-              },
-
-=======
                   SEND_REGISTRATION_EMAIL: {
                     target: '#authMachine.active.register.sendingEmail',
                   },
@@ -192,7 +184,6 @@ export const authMachine = createMachine(
                 }),
               },
 
->>>>>>> Stashed changes
               passkeyStep: {
                 states: {
                   start: {
@@ -277,12 +268,9 @@ export const authMachine = createMachine(
   },
   {
     services: {
-<<<<<<< Updated upstream
-=======
       sendConfirmationEmail: async (context, event) => {
         throw new Error('Not implemented');
       },
->>>>>>> Stashed changes
       startRegisterPasskey: async (_, event) => {
         throw new Error('Not implemented');
       },
@@ -292,27 +280,21 @@ export const authMachine = createMachine(
       userInputRegisterPasskey: async (_, event) => {
         throw new Error('Not implemented');
       },
-<<<<<<< Updated upstream
-=======
       googleLogin: async (_, event) => {
         throw new Error('Not implemented');
       },
       verifyEmail: async (_, event) => {
         throw new Error('Not implemented');
       },
->>>>>>> Stashed changes
     },
     guards: {},
     actions: {
       clearContext: assign({
         sessionUser: undefined,
       }),
-<<<<<<< Updated upstream
-=======
       setSessionId: assign({
         sessionId: (_, event) => event.data.sessionId,
       }),
->>>>>>> Stashed changes
     },
   },
 );
@@ -340,14 +322,10 @@ export const authService = (services: {}, context: AuthMachineContext) =>
     authMachine.withConfig(
       {
         services,
-<<<<<<< Updated upstream
-        guards: {},
-=======
         guards: {
           // @ts-ignore
           isNewUser: (_, event) => !!event.data.isNewUser,
         },
->>>>>>> Stashed changes
         actions: {},
       },
       { ...authMachine.context, ...context },

@@ -1,17 +1,10 @@
 import React from 'react';
-<<<<<<< Updated upstream
-import { View, StyleSheet, Text, Button } from 'react-native';
-=======
 import { View, StyleSheet } from 'react-native';
->>>>>>> Stashed changes
 import useDictionary from '../../hooks/useDictionary';
 import { useActor } from '@xstate/react';
 import useAuthServiceInstance from '../../hooks/useAuthServiceInstance';
 import { Colors } from '../../constants/Colors';
-<<<<<<< Updated upstream
-=======
 import { Button, Text } from 'react-native-ui-lib';
->>>>>>> Stashed changes
 
 interface InitialStepProps {
   styles?: Partial<typeof defaultStyles>;
@@ -85,30 +78,16 @@ export const InitialStep: React.FC<InitialStepProps> = ({ styles }) => {
         <View style={mergedStyles.cardContainer}>
           <Button
             onPress={onLoginStep}
-<<<<<<< Updated upstream
-            // label={dictionary?.startWithPasskey}
-            // labelProps={{ style: mergedStyles.enterButtonLabel }}
-            // style={mergedStyles.enterButton}
-            title={dictionary?.startWithPasskey!}
-=======
             label={dictionary?.start}
             labelProps={{ style: mergedStyles.enterButtonLabel }}
             style={mergedStyles.enterButton}
->>>>>>> Stashed changes
           />
           <Text style={mergedStyles.text}>{dictionary?.registerCta}</Text>
           <Button
             onPress={onCreateStep}
-<<<<<<< Updated upstream
-            // label={dictionary?.createAccount}
-            // labelProps={{ style: mergedStyles.createAccountButtonLabel }}
-            // style={mergedStyles.createAccountButton}
-            title={dictionary?.createAccount!}
-=======
             label={dictionary?.createAccount}
             labelProps={{ style: mergedStyles.createAccountButtonLabel }}
             style={mergedStyles.createAccountButton}
->>>>>>> Stashed changes
           />
         </View>
       </View>

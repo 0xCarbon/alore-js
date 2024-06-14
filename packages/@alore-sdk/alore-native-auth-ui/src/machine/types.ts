@@ -25,17 +25,12 @@ interface PublicKeyCredentialRequestOptions {
 }
 
 export interface AuthMachineContext {
-<<<<<<< Updated upstream
-=======
   googleId?: string;
->>>>>>> Stashed changes
   sessionUser?: SessionUser;
   locale: Locale;
   sessionId?: string;
   CCRPublicKey?: { publicKey: PasskeyRegistrationRequest };
   RCRPublicKey?: { publicKey: PublicKeyCredentialRequestOptions };
-<<<<<<< Updated upstream
-=======
   salt?: string;
   error?: string;
   registerUser?: {
@@ -45,7 +40,6 @@ export interface AuthMachineContext {
   };
   googleOtpCode?: string;
   googleUser?: { email: string; nickname: string };
->>>>>>> Stashed changes
 }
 
 export type AuthMachineEvents =
@@ -88,8 +82,6 @@ export type AuthMachineEvents =
         nickname: string;
         device: string;
       };
-<<<<<<< Updated upstream
-=======
     }
   | { type: 'FETCH_SALT'; payload: { email: string } }
   | {
@@ -126,17 +118,13 @@ export type AuthMachineEvents =
         isForgeClaim?: boolean;
         locale?: string;
       };
->>>>>>> Stashed changes
     };
 
 type AuthReturn = {
   data: {
     error?: string;
     salt?: string;
-<<<<<<< Updated upstream
-=======
     sessionId?: string;
->>>>>>> Stashed changes
   };
 };
 
