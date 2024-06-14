@@ -13,5 +13,19 @@
   "informCode": "Please, inform the code we sent to your e-mail. Don’t forget to check your spam box.",
   "wrongCode": "You’ve sent the wrong code. Try again.",
   "confirmCode": "Confirm Code",
-  "resendCode": "Re-send code to your e-mail"
+  "resendCode": "Re-send code to your e-mail",
+  "passwordRules": {
+    "specialCharacter": "Use pelo menos um caractere especial (@!",
+    "uppercaseLetter": "Use pelo menos uma letra maiúscula",
+    "minimumEightCharacters": "Sua senha deve ter pelo menos 8 caracteres",
+    "passwordMatch": "As senhas devem corresponder",
+    "dontUseYourNameOrEmail": "Não use seu nome ou e-mail"
+  },
+  "formValidation": {
+    "required": "Este campo é obrigatório",
+    "invalidEmail": "E-mail inválido",
+    "passwordMinimum": "Sua senha deve ter pelo menos 8 caracteres",
+    "validName": "Por favor insira um nome válido",
+    "agreeTerms": "Você deve concordar com os termos"
+  }
 }

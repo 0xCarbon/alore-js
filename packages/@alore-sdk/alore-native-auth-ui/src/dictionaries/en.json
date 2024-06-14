@@ -13,5 +13,19 @@
   "informCode": "Please, inform the code we sent to your e-mail. Don’t forget to check your spam box.",
   "wrongCode": "You’ve sent the wrong code. Try again.",
   "confirmCode": "Confirm Code",
-  "resendCode": "Re-send code to your e-mail"
+  "resendCode": "Re-send code to your e-mail",
+  "passwordRules": {
+    "specialCharacter": "Use at leat one special character (@!#%&*)",
+    "uppercaseLetter": "Use at least one uppercase letter",
+    "minimumEightCharacters": "Your password must have at least 8 character's",
+    "passwordMatch": "Passwords must match",
+    "dontUseYourNameOrEmail": "Don’t use your name or e-mail"
+  },
+  "formValidation": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid e-mail address",
+    "passwordMinimum": "Your password must contain at least 8 characters.",
+    "validName": "Please enter valid name",
+    "agreeTerms": "You must agree to the terms"
+  }
 }

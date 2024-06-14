@@ -1,19 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Card, Text, Button } from 'react-native-ui-lib';
-import useDictionary from '../../hooks/useDictionary';
-import { useActor } from '@xstate/react';
-import useAuthServiceInstance from '../../hooks/useAuthServiceInstance';
-import { Colors } from '../../constants/Colors';
-import StyledTextField from '../StyledTextField';
+import React, { useEffect, useState } from "react";
+import { View, StyleSheet } from "react-native";
+import { Card, Text, Button } from "react-native-ui-lib";
+import useDictionary from "../../hooks/useDictionary";
+import { useActor } from "@xstate/react";
+import useAuthServiceInstance from "../../hooks/useAuthServiceInstance";
+import { Colors } from "../../constants/Colors";
+import StyledTextField from "../StyledTextField";
 import {
   ArrowLeftCircleIcon,
   EnvelopeIcon,
   UserIcon,
-} from 'react-native-heroicons/solid';
-import { validateEmailPattern } from '../../helpers';
-import DeviceInfo from 'react-native-device-info';
-import { Path, Svg } from 'react-native-svg';
+} from "react-native-heroicons/solid";
+import { validateEmailPattern } from "../../helpers";
+import DeviceInfo from "react-native-device-info";
+import { Path, Svg } from "react-native-svg";
+import FormRules from "../FormRules";
+import { FieldValues, useForm, useWatch } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 
 const GoogleIcon = () => (
   <Svg width="25" height="25" viewBox="0 0 25 25" fill="none">
@@ -44,12 +48,12 @@ export const defaultStyles = {
   emailStep: StyleSheet.create({
     container: {
       flex: 1,
-      justifyContent: 'center',
-      alignContent: 'center',
+      justifyContent: "center",
+      alignContent: "center",
     },
     card: {
-      width: '100%',
-      backgroundColor: '#fff',
+      width: "100%",
+      backgroundColor: "transparent",
       borderWidth: 0,
       shadowOpacity: 0,
       elevation: 0,
@@ -59,26 +63,26 @@ export const defaultStyles = {
       marginRight: 30,
     },
     text: {
-      fontWeight: '700',
+      fontWeight: "700",
       fontSize: 20,
       lineHeight: 30,
       color: Colors.gray[900],
       marginBottom: 24,
     },
     backButton: {
-      backgroundColor: 'transparent',
+      backgroundColor: "transparent",
       height: 48,
       paddingHorizontal: 0,
-      marginRight: 'auto',
+      marginRight: "auto",
       marginTop: 20,
     },
     backButtonLabel: {
       color: Colors.gray[900],
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: "600",
     },
     googleButton: {
-      backgroundColor: 'transparent',
+      backgroundColor: "transparent",
       height: 48,
       paddingHorizontal: 20,
       marginTop: 30,
@@ -86,18 +90,18 @@ export const defaultStyles = {
       borderWidth: 1,
     },
     nextButton: {
-      backgroundColor: '#E64848',
+      backgroundColor: "#E64848",
       height: 48,
       paddingHorizontal: 20,
       marginTop: 30,
     },
     nextButtonLabel: {
-      color: '#fff',
+      color: "#fff",
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: "600",
     },
     createAccountButton: {
-      backgroundColor: 'transparent',
+      backgroundColor: "transparent",
       height: 48,
       paddingHorizontal: 20,
       borderColor: Colors.gray[900],
@@ -106,18 +110,18 @@ export const defaultStyles = {
     createAccountButtonLabel: {
       color: Colors.gray[900],
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: "600",
     },
   }),
   usernameStep: StyleSheet.create({
     container: {
       flex: 1,
-      justifyContent: 'center',
-      alignContent: 'center',
+      justifyContent: "center",
+      alignContent: "center",
     },
     card: {
-      width: '100%',
-      backgroundColor: 'transparent',
+      width: "100%",
+      backgroundColor: "transparent",
       borderWidth: 0,
       shadowOpacity: 0,
       elevation: 0,
@@ -127,62 +131,62 @@ export const defaultStyles = {
       marginRight: 30,
     },
     text: {
-      fontWeight: '700',
+      fontWeight: "700",
       fontSize: 20,
       lineHeight: 30,
       color: Colors.gray[900],
       marginBottom: 24,
     },
     backButton: {
-      backgroundColor: 'transparent',
+      backgroundColor: "transparent",
       height: 48,
       paddingHorizontal: 0,
-      marginRight: 'auto',
+      marginRight: "auto",
       marginTop: 20,
     },
     backButtonLabel: {
       color: Colors.gray[900],
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: "600",
     },
     finishButton: {
-      backgroundColor: '#E64848',
+      backgroundColor: "#E64848",
       height: 48,
-      marginHorizontal: 'auto',
+      marginHorizontal: "auto",
       marginTop: 30,
-      width: '100%',
+      width: "100%",
     },
     finishButtonLabel: {
-      color: '#fff',
+      color: "#fff",
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: "600",
     },
   }),
   verifyEmailStep: StyleSheet.create({
     container: {
       flex: 1,
-      justifyContent: 'center',
+      justifyContent: "center",
     },
     cardContainer: {
       marginLeft: 30,
       marginRight: 30,
     },
     backButton: {
-      backgroundColor: 'transparent',
+      backgroundColor: "transparent",
       height: 48,
       paddingHorizontal: 0,
-      marginRight: 'auto',
+      marginRight: "auto",
       marginBottom: 20,
     },
     backButtonLabel: {
       color: Colors.gray[900],
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: "600",
     },
     title: {
       marginBottom: 24,
       fontSize: 28,
-      fontWeight: 'bold',
+      fontWeight: "bold",
       color: Colors.gray[900],
     },
     subtitle: {
@@ -202,7 +206,7 @@ export const defaultStyles = {
     },
     resendText: {
       fontSize: 16,
-      fontWeight: '500',
+      fontWeight: "500",
     },
     disabledText: {
       opacity: 0.5,
@@ -217,8 +221,8 @@ export const defaultStyles = {
 export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   styles,
 }) => {
-  const [email, setEmail] = useState('kenny+asd@0xcarbon.org');
-  const [username, setUsername] = useState('kenny');
+  const [email, setEmail] = useState("kenny+asd@0xcarbon.org");
+  const [username, setUsername] = useState("kenny");
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
   const locale = authState.context.locale;
@@ -229,6 +233,31 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
 
   console.log(authState.context);
 
+  const passwordFormSchema = yup
+    .object({
+      password: yup.string().required(dictionary?.formValidation.required),
+      confirmPassword: yup
+        .string()
+        .required(dictionary?.formValidation.required),
+    })
+    .required();
+
+  const passwordDefaultValues: FieldValues = {
+    password: "",
+    confirmPassword: "",
+  };
+  const {
+    control: passwordControl,
+    formState: { errors: passwordErrors, dirtyFields: passwordDirtyFields },
+    handleSubmit: passwordHandleSubmit,
+    getValues: passwordGetValues,
+  } = useForm({
+    resolver: yupResolver(passwordFormSchema),
+    defaultValues: passwordDefaultValues,
+  });
+  useWatch({ control: passwordControl, name: "password" });
+  useWatch({ control: passwordControl, name: "confirmPassword" });
+
   useEffect(() => {
     const fetchDeviceAndProceed = async () => {
       if (!CCRPublicKey) return;
@@ -236,7 +265,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
       const device = await DeviceInfo.getUserAgent(); // Await the promise
 
       sendAuth({
-        type: 'USER_INPUT_PASSKEY_REGISTER',
+        type: "USER_INPUT_PASSKEY_REGISTER",
         payload: {
           CCRPublicKey,
           userAgent: device,
@@ -245,17 +274,17 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
       });
     };
 
-    if (authState.matches('active.register.passkeyStep.idle')) {
+    if (authState.matches("active.register.passkeyStep.idle")) {
       fetchDeviceAndProceed();
     }
-  }, [authState.matches('active.register.passkeyStep.idle')]);
+  }, [authState.matches("active.register.passkeyStep.idle")]);
 
   const onBack = () => {
-    sendAuth(['BACK']);
+    sendAuth(["BACK"]);
   };
 
   const onNext = () => {
-    sendAuth({ type: 'NEXT' });
+    sendAuth({ type: "NEXT" });
   };
 
   const onStartPasskey = async () => {
@@ -263,7 +292,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
 
     sendAuth([
       {
-        type: 'START_PASSKEY_REGISTER',
+        type: "START_PASSKEY_REGISTER",
         payload: {
           device,
           email,
@@ -277,13 +306,18 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
 
   const onFinish = () => {
     sendAuth({
-      type: 'SEND_REGISTRATION_EMAIL',
+      type: "SEND_REGISTRATION_EMAIL",
       payload: { email, nickname: username, locale },
     });
   };
 
   const emailStep = () => (
     <View style={mergedStyles.emailStep?.container}>
+      <FormRules
+        locale="pt" // TODO remove hardcoded
+        passwordValues={passwordGetValues()}
+        userValues={{ email, nickname: username }}
+      />
       <Card style={mergedStyles.emailStep?.card}>
         <View style={mergedStyles.emailStep?.cardContainer}>
           <Text style={mergedStyles.emailStep?.text}>
@@ -374,9 +408,9 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
             labelProps={{ style: mergedStyles.usernameStep?.finishButtonLabel }}
             style={{
               ...mergedStyles.usernameStep?.finishButton,
-              opacity: username === '' || username.length < 4 ? 0.5 : 1,
+              opacity: username === "" || username.length < 4 ? 0.5 : 1,
             }}
-            disabled={username === '' || username.length < 4}
+            disabled={username === "" || username.length < 4}
           />
         </View>
       </Card>
@@ -386,7 +420,8 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   const emailValidationStep = () => (
     <View
       style={mergedStyles.verifyEmailStep?.container}
-      data-test="register-verify-email-step">
+      data-test="register-verify-email-step"
+    >
       <View style={mergedStyles.verifyEmailStep?.cardContainer}>
         <Button
           onPress={onBack}
@@ -428,13 +463,15 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
           // onPress={onClickSecureCodeSubmit}
           label={dictionary?.confirmCode}
           // disabled={secureCode.length !== 6 || isLoading}
-          style={mergedStyles.verifyEmailStep?.submitButton}></Button>
+          style={mergedStyles.verifyEmailStep?.submitButton}
+        ></Button>
         <Text
           // onPress={resendSecureCode}
           style={[
             mergedStyles.verifyEmailStep?.resendText,
             // sendEmailCooldown > 0 ? mergedStyles.verifyEmailStep?.disabledText : mergedStyles.verifyEmailStep?.enabledText,
-          ]}>
+          ]}
+        >
           {/* {`${dictionary?.resendCode}${sendEmailCooldown ? ` (${sendEmailCooldown}s)` : ''}`} */}
         </Text>
       </View>
@@ -443,10 +480,9 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
 
   return (
     <>
-      {/* {authState.matches('active.register.emailStep') && emailStep()} */}
-      {/* {authState.matches('active.register.usernameStep') && usernameStep()} */}
-      {/* {authState.matches('active.register.emailValidationStep') && emailValidationStep()} */}
-      {emailValidationStep()}
+      {/* {authState.matches("active.register.emailStep") && emailStep()}
+      {authState.matches("active.register.usernameStep") && usernameStep()} */}
+      {emailStep()}
     </>
   );
 };
