@@ -854,7 +854,7 @@ export const Register = ({
               </Button>
               <Button
                 data-test='register-method-selection-passkey'
-                disabled={!isPasskeyEnabled}
+                disabled
                 onClick={() => setRegistrationMethod('passkey')}
                 color='light'
                 className={`${
