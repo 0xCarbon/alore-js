@@ -36,7 +36,10 @@ export const authMachine = createMachine(
           initial: {
             states: {
               idle: {
-                on: {},
+                on: {
+                  REGISTER_STEP: '#authMachine.active.register',
+                  LOGIN_STEP: '#authMachine.active.login',
+                },
               },
             },
 
@@ -45,14 +48,157 @@ export const authMachine = createMachine(
 
           login: {
             states: {
-              idle: {
+              emailStep: {
                 on: {
                   BACK: { target: '#authMachine.active.initial' },
+                  FETCH_SALT: {
+                    target: '#authMachine.active.login.retrievingSalt',
+                    actions: assign({
+                      googleOtpCode: () => undefined,
+                      googleUser: () => undefined,
+                      registerUser: () => undefined,
+                      sessionId: () => undefined,
+                    }),
+                  },
+                },
+              },
+
+              retrievingSalt: {
+                invoke: {
+                  src: 'retrieveSalt',
+                  onDone: {
+                    target: '#authMachine.active.login.passwordStep',
+                    actions: assign({
+                      salt: (_context, event) => event.data?.salt,
+                    }),
+                  },
+                  onError: {
+                    target: '#authMachine.active.login.emailStep',
+                    actions: assign({
+                      error: (_context, event) => event.data?.error,
+                    }),
+                  },
+                },
+                entry: assign({
+                  error: () => undefined,
+                }),
+              },
+
+              passwordStep: {
+                on: {
+                  BACK: {
+                    target: '#authMachine.active.login.emailStep',
+                    actions: assign({
+                      googleUser: () => undefined,
+                      registerUser: () => undefined,
+                      error: () => undefined,
+                    }),
+                  },
+
+                  VERIFY_LOGIN: '#authMachine.active.login.verifyingLogin',
+                },
+              },
+
+              verifyingLogin: {
+                invoke: {
+                  src: 'verifyLogin',
+                  onDone: [
+                    {
+                      target: 'email2fa',
+                      actions: assign({
+                        sessionId: (_, event) => event.data.sessionId,
+                      }),
+                    },
+                  ],
+                  onError: {
+                    target: '#authMachine.active.login.passwordStep',
+                    actions: assign({
+                      error: (_context, event) =>
+                        event.data?.error || event.data?.message,
+                    }),
+                  },
+                },
+                entry: assign({
+                  error: () => undefined,
+                }),
+              },
+
+              email2fa: {
+                on: {
+                  RESEND_CODE: '#authMachine.active.login.resendingEmailCode',
+                  VERIFY_EMAIL_2FA:
+                    '#authMachine.active.login.verifyingEmail2fa',
+                  BACK: {
+                    target: '#authMachine.active.login.passwordStep',
+                    actions: assign({
+                      error: () => undefined,
+                    }),
+                  },
+                },
+              },
+
+              verifyingEmail2fa: {
+                invoke: {
+                  src: 'verifyEmail2fa',
+
+                  onError: {
+                    target: '#authMachine.active.login.email2fa',
+                    actions: assign({
+                      error: (_context, event) =>
+                        event.data?.error || event.data?.message,
+                    }),
+                  },
+
+                  onDone: {
+                    target: '#authMachine.active.login.successfulLogin',
+                    actions: assign({
+                      sessionUser: (_, event) => event.data,
+                    }),
+                  },
+                },
+                entry: assign({
+                  error: () => undefined,
+                }),
+              },
+
+              resendingEmailCode: {
+                invoke: {
+                  src: 'verifyLogin',
+                  onDone: {
+                    target: '#authMachine.active.login.email2fa',
+                    actions: assign({
+                      sessionId: (_, event) => event.data.sessionId,
+                    }),
+                  },
+                },
+                entry: assign({
+                  error: () => undefined,
+                }),
+              },
+
+              successfulLogin: {
+                type: 'final',
+
+                entry: assign({
+                  googleUser: () => undefined,
+                  registerUser: () => undefined,
+                }),
+
+                on: {
+                  REFRESH_ACCESS_TOKEN: {
+                    target: '#authMachine.active.login.successfulLogin',
+                    actions: assign({
+                      sessionUser: (context, event) => ({
+                        ...context.sessionUser!,
+                        accessToken: event.newAccessToken,
+                      }),
+                    }),
+                  },
                 },
               },
             },
 
-            initial: 'idle',
+            initial: 'emailStep',
           },
 
           register: {
@@ -308,8 +454,6 @@ export const authMachine = createMachine(
 
         on: {
           RESET: { target: 'inactive', actions: ['clearContext'] },
-          REGISTER_STEP: '.register',
-          LOGIN_STEP: '.login',
         },
       },
     },
@@ -334,6 +478,9 @@ export const authMachine = createMachine(
       startRegisterPasskey: async (_, event) => {
         throw new Error('Not implemented');
       },
+      retrieveSalt: async (context, event) => {
+        throw new Error('Not implemented');
+      },
       // finishRegisterPasskey: async (_, event) => {
       //   throw new Error('Not implemented');
       // },
@@ -344,6 +491,12 @@ export const authMachine = createMachine(
         throw new Error('Not implemented');
       },
       verifyEmail: async (_, event) => {
+        throw new Error('Not implemented');
+      },
+      verifyLogin: async (_, event) => {
+        throw new Error('Not implemented');
+      },
+      verifyEmail2fa: async (context, event) => {
         throw new Error('Not implemented');
       },
     },

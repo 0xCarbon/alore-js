@@ -119,7 +119,21 @@ export type AuthMachineEvents =
       };
     }
   | { type: 'SEND_CODE'; payload: { email: string } }
-  | { type: 'REFRESH_ACCESS_TOKEN'; newAccessToken: string };
+  | { type: 'REFRESH_ACCESS_TOKEN'; newAccessToken: string }
+  | {
+      type: 'VERIFY_LOGIN';
+      payload: {
+        email: string;
+        device: string;
+        passwordHash: string;
+        isForgeClaim?: boolean;
+        locale?: string;
+      };
+    }
+  | {
+      type: 'VERIFY_EMAIL_2FA';
+      payload: { email: string; secureCode: string; passwordHash: string };
+    };
 
 type AuthReturn = {
   data: {

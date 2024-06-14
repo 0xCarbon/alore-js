@@ -1,17 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { View, StyleSheet } from "react-native";
-import { Card, Text, Button } from "react-native-ui-lib";
-import useDictionary from "../../hooks/useDictionary";
-import { useActor } from "@xstate/react";
-import useAuthServiceInstance from "../../hooks/useAuthServiceInstance";
-import { Colors } from "../../constants/Colors";
-import StyledTextField from "../StyledTextField";
-import { EnvelopeIcon } from "react-native-heroicons/solid";
-import { validateEmailPattern } from "../../helpers";
-import DeviceInfo from "react-native-device-info";
-import { Path, Svg } from "react-native-svg";
-import BackButton from "../BackButton";
-import { stepStyles } from "./styles";
+import React, { useState } from 'react';
+import { View, StyleSheet } from 'react-native';
+import { Card, Text, Button } from 'react-native-ui-lib';
+import useDictionary from '../../hooks/useDictionary';
+import { useActor } from '@xstate/react';
+import useAuthServiceInstance from '../../hooks/useAuthServiceInstance';
+import StyledTextField from '../StyledTextField';
+import { EnvelopeIcon } from 'react-native-heroicons/solid';
+import { validateEmailPattern } from '../../helpers';
+import { Path, Svg } from 'react-native-svg';
+import BackButton from '../BackButton';
+import { stepStyles } from './styles';
+import DeviceInfo from 'react-native-device-info';
 
 const GoogleIcon = () => (
   <Svg width="25" height="25" viewBox="0 0 25 25" fill="none">
@@ -36,46 +35,95 @@ const GoogleIcon = () => (
 
 interface LoginStepsProps {
   styles?: Partial<typeof stepStyles>;
+  cryptoUtils: {
+    hashUserInfo: (userInfo: string) => string;
+    generateSecureHash: (
+      data: string,
+      salt: string,
+      keyDerivationFunction: 'argon2d' | 'pbkdf2',
+    ) => Promise<string>;
+  };
 }
 
-export const LoginSteps: React.FC<LoginStepsProps> = ({ styles }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+export const LoginSteps: React.FC<LoginStepsProps> = ({
+  styles,
+  cryptoUtils,
+}) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [secureCode, setSecureCode] = useState('');
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
   const locale = authState.context.locale;
   const dictionary = useDictionary(locale);
   const mergedStyles = StyleSheet.flatten([stepStyles, styles || {}]);
   const isEmailValid = validateEmailPattern(email);
-  const { CCRPublicKey, googleId } = authState.context;
-
-  useEffect(() => {
-    const fetchDeviceAndProceed = async () => {
-      if (!CCRPublicKey) return;
-
-      const device = await DeviceInfo.getUserAgent(); // Await the promise
-
-      sendAuth({
-        type: "USER_INPUT_PASSKEY_REGISTER",
-        payload: {
-          CCRPublicKey,
-          userAgent: device,
-          withSecurityKey: true, // TODO: get from param
-        },
-      });
-    };
-
-    if (authState.matches("active.register.passkeyStep.idle")) {
-      fetchDeviceAndProceed();
-    }
-  }, [authState.matches("active.register.passkeyStep.idle")]);
+  const { generateSecureHash, hashUserInfo } = cryptoUtils;
+  const { googleId, salt, error } = authState.context;
+  const isLoadingEmailValidationStep =
+    authState.matches('active.login.resendingEmailCode') ||
+    authState.matches('active.login.verifyingEmail2fa');
 
   const onBack = () => {
-    sendAuth(["BACK"]);
+    sendAuth(['BACK']);
   };
 
-  const onNext = () => {
-    sendAuth({ type: "NEXT" });
+  const onVerifyLogin = async () => {
+    if (!salt) return;
+
+    const hashedPassword = await generateSecureHash(password, salt, 'argon2d');
+    const userAgent = await DeviceInfo.getUserAgent();
+    const device = hashUserInfo(userAgent);
+
+    sendAuth({
+      type: 'VERIFY_LOGIN',
+      payload: { email, passwordHash: hashedPassword, locale, device },
+    });
+  };
+
+  const onFetchSalt = () => {
+    sendAuth({ type: 'FETCH_SALT', payload: { email } });
+  };
+
+  const onResendEmail = async () => {
+    if (!salt) return;
+
+    const secureHashArgon2d = await generateSecureHash(
+      password,
+      salt,
+      'argon2d',
+    );
+    const device = hashUserInfo(await DeviceInfo.getUserAgent());
+
+    sendAuth({
+      type: 'RESEND_CODE',
+      payload: {
+        email,
+        passwordHash: secureHashArgon2d,
+        device,
+        nickname: email,
+        locale,
+      },
+    });
+  };
+
+  const onClickSecureCodeSubmit = async () => {
+    if (!salt) return;
+
+    const secureHashArgon2d = await generateSecureHash(
+      password,
+      salt,
+      'argon2d',
+    );
+
+    sendAuth({
+      type: 'VERIFY_EMAIL_2FA',
+      payload: {
+        email,
+        passwordHash: secureHashArgon2d,
+        secureCode,
+      },
+    });
   };
 
   const onGoogleRegister = () => {}; // TODO: implement
@@ -100,14 +148,16 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({ styles }) => {
             autoComplete="off"
           />
           <Button
-            onPress={onNext}
+            onPress={onFetchSalt}
             label={dictionary?.next}
             labelProps={{ style: mergedStyles.emailStep?.nextButtonLabel }}
             style={{
               ...mergedStyles.emailStep?.nextButton,
               opacity: isEmailValid ? 1 : 0.5,
             }}
-            disabled={!isEmailValid}
+            disabled={
+              !isEmailValid || authState.matches('active.login.retrievingSalt')
+            }
           />
           {googleId && (
             <Button
@@ -123,60 +173,11 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({ styles }) => {
     </View>
   );
 
-  const verifyEmailStep = () => (
-    <View
-      style={mergedStyles.verifyEmailStep?.container}
-      data-test="register-verify-email-step"
-    >
-      <View style={mergedStyles.verifyEmailStep?.cardContainer}>
-        <BackButton onClick={onBack} />
-        <Text style={mergedStyles.verifyEmailStep?.title}>
-          {dictionary?.verifyEmailStep.verifyEmail}
-        </Text>
-        <Text style={mergedStyles.verifyEmailStep?.subtitle}>
-          {dictionary?.verifyEmailStep.verifyEmailDescription}
-        </Text>
-        <View style={mergedStyles.verifyEmailStep?.inputContainer}>
-          <StyledTextField
-            placeholder={dictionary?.login.enterSecureCode}
-            // value={secureCode}
-            // onChangeText={setSecureCode}
-            maxLength={6}
-            keyboardType="number-pad"
-            autoCapitalize="none"
-            autoCorrect={false}
-            autoComplete="off"
-            // errorMessage={
-            //   authError?.includes('wrong')
-            //     ? `${dictionary?.wrongCode}`
-            //     : undefined
-            // }
-          />
-        </View>
-        <Button
-          // onPress={onClickSecureCodeSubmit}
-          label={dictionary?.verifyEmailStep.nextButton}
-          // disabled={secureCode.length !== 6 || isLoading}
-          style={mergedStyles.verifyEmailStep?.submitButton}
-        ></Button>
-        <Text
-          // onPress={resendSecureCode}
-          style={[
-            mergedStyles.verifyEmailStep?.resendText,
-            // sendEmailCooldown > 0 ? mergedStyles.verifyEmailStep?.disabledText : mergedStyles.verifyEmailStep?.enabledText,
-          ]}
-        >
-          {/* {`${dictionary?.resendCode}${sendEmailCooldown ? ` (${sendEmailCooldown}s)` : ''}`} */}
-        </Text>
-      </View>
-    </View>
-  );
-
   const passwordStep = () => (
     <View style={mergedStyles.passwordStep?.container}>
       <Card style={mergedStyles.passwordStep?.card}>
         <View style={mergedStyles.passwordStep?.cardContainer}>
-          <BackButton onClick={() => console.log("back")} />
+          <BackButton onClick={onBack} />
           <Text style={mergedStyles.passwordStep?.title}>
             {dictionary?.login.enterPassword}
           </Text>
@@ -193,24 +194,86 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({ styles }) => {
             autoComplete="off"
           />
           <Button
-            onPress={onNext}
+            onPress={onVerifyLogin}
             label={dictionary?.next}
             labelProps={{ style: mergedStyles.passwordStep?.nextButtonLabel }}
             style={{
               ...mergedStyles.passwordStep?.nextButton,
-              opacity: isEmailValid ? 1 : 0.5,
+              opacity: password.length > 8 ? 1 : 0.5,
             }}
-            disabled={!isEmailValid}
+            disabled={
+              password.length < 8 ||
+              authState.matches('active.login.verifyingLogin')
+            }
           />
         </View>
       </Card>
     </View>
   );
+
+  const emailValidationStep = () => (
+    <View
+      style={mergedStyles.verifyEmailStep?.container}
+      data-test="register-verify-email-step">
+      <View style={mergedStyles.verifyEmailStep?.cardContainer}>
+        <BackButton onClick={onBack} />
+        <Text style={mergedStyles.verifyEmailStep?.title}>
+          {dictionary?.verifyEmailStep.verifyEmail}
+        </Text>
+        <Text style={mergedStyles.verifyEmailStep?.subtitle}>
+          {dictionary?.verifyEmailStep.verifyEmailDescription}
+        </Text>
+        <View style={mergedStyles.verifyEmailStep?.inputContainer}>
+          <StyledTextField
+            value={secureCode}
+            onChangeText={setSecureCode}
+            maxLength={6}
+            keyboardType="number-pad"
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="off"
+            errorMessage={
+              error?.includes('code') ? `${dictionary?.wrongCode}` : undefined
+            }
+          />
+        </View>
+        <Button
+          onPress={onClickSecureCodeSubmit}
+          label={dictionary?.confirmCode}
+          disabled={secureCode.length !== 6 || isLoadingEmailValidationStep}
+          style={{
+            ...mergedStyles.verifyEmailStep?.submitButton,
+            opacity:
+              secureCode.length === 6 || !isLoadingEmailValidationStep
+                ? 1
+                : 0.5,
+          }}
+        />
+        <Button
+          onPress={onResendEmail}
+          label={dictionary?.resendCode}
+          labelProps={{
+            style: mergedStyles.verifyEmailStep?.resendEmailButton,
+          }}
+          style={mergedStyles.verifyEmailStep?.resendEmailButton}
+          disabled={isLoadingEmailValidationStep}
+        />
+      </View>
+    </View>
+  );
+
   return (
     <>
-      {/* {authState.matches("active.register.emailStep") && emailStep()}
-      {authState.matches("active.register.usernameStep") && usernameStep()} */}
-      {passwordStep()}
+      {(authState.matches('active.login.emailStep') ||
+        authState.matches('active.login.retrievingSalt')) &&
+        emailStep()}
+      {(authState.matches('active.login.passwordStep') ||
+        authState.matches('active.login.verifyingLogin')) &&
+        passwordStep()}
+      {(authState.matches('active.login.email2fa') ||
+        authState.matches('active.login.verifyingEmail2fa') ||
+        authState.matches('active.login.resendingEmailCode')) &&
+        emailValidationStep()}
     </>
   );
 };

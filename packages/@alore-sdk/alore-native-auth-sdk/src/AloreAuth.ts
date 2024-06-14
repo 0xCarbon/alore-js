@@ -273,6 +273,94 @@ export class AloreAuth {
 
       return ccr;
     },
+    verifyLogin: async (
+      _: AuthMachineContext,
+      event:
+        | {
+            type: 'VERIFY_LOGIN';
+            payload: {
+              email: string;
+              device: string;
+              passwordHash: string;
+              isForgeClaim?: boolean | undefined;
+              locale?: string | undefined;
+            };
+          }
+        | {
+            type: 'RESEND_CODE';
+            payload: {
+              email: string;
+              nickname?: string | undefined;
+              device?: string | undefined;
+              passwordHash?: string | undefined;
+              isForgeClaim?: boolean | undefined;
+              locale?: string | undefined;
+            };
+          }
+    ) => {
+      const { email, passwordHash, device } = event.payload;
+
+      const response = await fetch(`${this.endpoint}/auth/login-verification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          passwordHash,
+          device,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 403) {
+          return { active2fa: data };
+        }
+        if (data?.error?.includes('2FA') || data?.error?.includes('device')) {
+          return { error: data?.error };
+        }
+        throw new Error(data?.message || data?.error || data);
+      } else {
+        return data;
+      }
+    },
+    verifyEmail2fa: async (
+      context: AuthMachineContext,
+      event: {
+        type: 'VERIFY_EMAIL_2FA';
+        payload: {
+          email: string;
+          secureCode: string;
+          passwordHash: string;
+        };
+      }
+    ) => {
+      const { email, passwordHash, secureCode } = event.payload;
+
+      const response = await fetch(
+        `${this.endpoint}/auth/email-2fa-verification`,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            email,
+            passwordHash,
+            emailCode: secureCode,
+            sessionId: context.sessionId,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) return data;
+
+      throw new Error(data.message || data.error || 'Authentication failed');
+    },
   };
 
   public async fetchWithProgressiveBackoff(

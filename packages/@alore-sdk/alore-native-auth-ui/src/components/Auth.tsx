@@ -1,5 +1,3 @@
-import { Locale } from '../helpers/get-dictionary';
-import { Text } from 'react-native-ui-lib';
 import LoginSteps from './Steps/LoginSteps';
 import { useActor } from '@xstate/react';
 import React, { useEffect } from 'react';
@@ -23,6 +21,7 @@ export interface AuthProps {
 const Auth = ({ onSuccess, cryptoUtils }: AuthProps) => {
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
+  const { sessionUser } = authState.context;
 
   useEffect(() => {
     sendAuth([{ type: 'INITIALIZE' }]);
@@ -32,23 +31,24 @@ const Auth = ({ onSuccess, cryptoUtils }: AuthProps) => {
     };
   }, []);
 
-  // useEffect(() => {
-  // if (
-  //   (authState.matches('active.login.successfulLogin') ||
-  //     authState.matches('active.register.userCreated')) &&
-  //   sessionUser
-  // ) {
-  //   onSuccess?.(sessionUser);
-  // }
-  // }, [sessionUser]);
-
-  console.log(authState.value);
+  useEffect(() => {
+    if (
+      (authState.matches('active.login.successfulLogin') ||
+        authState.matches('active.register.userCreated')) &&
+      sessionUser
+    ) {
+      onSuccess?.(sessionUser);
+    }
+  }, [sessionUser]);
 
   return (
     <>
       {authState.matches('active.initial') && <InitialStep />}
       {authState.matches('active.register') && (
         <RegistrationSteps cryptoUtils={cryptoUtils} />
+      )}
+      {authState.matches('active.login') && (
+        <LoginSteps cryptoUtils={cryptoUtils} />
       )}
     </>
   );
