@@ -1,21 +1,21 @@
-import { State, assign, createMachine, interpret } from "xstate";
+import { State, assign, createMachine, interpret } from 'xstate';
 import {
   AuthMachineContext,
   AuthMachineEvents,
   AuthMachineServices,
-} from "./types";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+} from './types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const initialContext: AuthMachineContext = {
-  locale: "en",
+  locale: 'en',
 };
 
 export const authMachine = createMachine(
   {
-    id: "authMachine",
+    id: 'authMachine',
 
     predictableActionArguments: true,
-    tsTypes: {} as import("./index.typegen").Typegen0,
+    tsTypes: {} as import('./index.typegen').Typegen0,
 
     schema: {
       context: {} as AuthMachineContext,
@@ -28,7 +28,7 @@ export const authMachine = createMachine(
     states: {
       inactive: {
         on: {
-          INITIALIZE: ["active"],
+          INITIALIZE: ['active'],
         },
       },
 
@@ -38,22 +38,22 @@ export const authMachine = createMachine(
             states: {
               idle: {
                 on: {
-                  REGISTER_STEP: "#authMachine.active.register",
-                  LOGIN_STEP: "#authMachine.active.login",
+                  REGISTER_STEP: '#authMachine.active.register',
+                  LOGIN_STEP: '#authMachine.active.login',
                 },
               },
             },
 
-            initial: "idle",
+            initial: 'idle',
           },
 
           login: {
             states: {
               emailStep: {
                 on: {
-                  BACK: { target: "#authMachine.active.initial" },
+                  BACK: { target: '#authMachine.active.initial' },
                   FETCH_SALT: {
-                    target: "#authMachine.active.login.retrievingSalt",
+                    target: '#authMachine.active.login.retrievingSalt',
                     actions: assign({
                       googleOtpCode: () => undefined,
                       googleUser: () => undefined,
@@ -66,15 +66,15 @@ export const authMachine = createMachine(
 
               retrievingSalt: {
                 invoke: {
-                  src: "retrieveSalt",
+                  src: 'retrieveSalt',
                   onDone: {
-                    target: "#authMachine.active.login.passwordStep",
+                    target: '#authMachine.active.login.passwordStep',
                     actions: assign({
                       salt: (_context, event) => event.data?.salt,
                     }),
                   },
                   onError: {
-                    target: "#authMachine.active.login.emailStep",
+                    target: '#authMachine.active.login.emailStep',
                     actions: assign({
                       error: (_context, event) => event.data?.error,
                     }),
@@ -88,7 +88,7 @@ export const authMachine = createMachine(
               passwordStep: {
                 on: {
                   BACK: {
-                    target: "#authMachine.active.login.emailStep",
+                    target: '#authMachine.active.login.emailStep',
                     actions: assign({
                       googleUser: () => undefined,
                       registerUser: () => undefined,
@@ -96,23 +96,23 @@ export const authMachine = createMachine(
                     }),
                   },
 
-                  VERIFY_LOGIN: "#authMachine.active.login.verifyingLogin",
+                  VERIFY_LOGIN: '#authMachine.active.login.verifyingLogin',
                 },
               },
 
               verifyingLogin: {
                 invoke: {
-                  src: "verifyLogin",
+                  src: 'verifyLogin',
                   onDone: [
                     {
-                      target: "email2fa",
+                      target: 'email2fa',
                       actions: assign({
                         sessionId: (_, event) => event.data.sessionId,
                       }),
                     },
                   ],
                   onError: {
-                    target: "#authMachine.active.login.passwordStep",
+                    target: '#authMachine.active.login.passwordStep',
                     actions: assign({
                       error: (_context, event) =>
                         event.data?.error || event.data?.message,
@@ -126,11 +126,11 @@ export const authMachine = createMachine(
 
               email2fa: {
                 on: {
-                  RESEND_CODE: "#authMachine.active.login.resendingEmailCode",
+                  RESEND_CODE: '#authMachine.active.login.resendingEmailCode',
                   VERIFY_EMAIL_2FA:
-                    "#authMachine.active.login.verifyingEmail2fa",
+                    '#authMachine.active.login.verifyingEmail2fa',
                   BACK: {
-                    target: "#authMachine.active.login.passwordStep",
+                    target: '#authMachine.active.login.passwordStep',
                     actions: assign({
                       error: () => undefined,
                     }),
@@ -140,10 +140,10 @@ export const authMachine = createMachine(
 
               verifyingEmail2fa: {
                 invoke: {
-                  src: "verifyEmail2fa",
+                  src: 'verifyEmail2fa',
 
                   onError: {
-                    target: "#authMachine.active.login.email2fa",
+                    target: '#authMachine.active.login.email2fa',
                     actions: assign({
                       error: (_context, event) =>
                         event.data?.error || event.data?.message,
@@ -151,7 +151,7 @@ export const authMachine = createMachine(
                   },
 
                   onDone: {
-                    target: "#authMachine.active.login.successfulLogin",
+                    target: '#authMachine.active.login.successfulLogin',
                     actions: assign({
                       sessionUser: (_, event) => event.data,
                     }),
@@ -164,9 +164,9 @@ export const authMachine = createMachine(
 
               resendingEmailCode: {
                 invoke: {
-                  src: "verifyLogin",
+                  src: 'verifyLogin',
                   onDone: {
-                    target: "#authMachine.active.login.email2fa",
+                    target: '#authMachine.active.login.email2fa',
                     actions: assign({
                       sessionId: (_, event) => event.data.sessionId,
                     }),
@@ -178,7 +178,7 @@ export const authMachine = createMachine(
               },
 
               successfulLogin: {
-                type: "final",
+                type: 'final',
 
                 entry: assign({
                   googleUser: () => undefined,
@@ -187,7 +187,7 @@ export const authMachine = createMachine(
 
                 on: {
                   REFRESH_ACCESS_TOKEN: {
-                    target: "#authMachine.active.login.successfulLogin",
+                    target: '#authMachine.active.login.successfulLogin',
                     actions: assign({
                       sessionUser: (context, event) => ({
                         ...context.sessionUser!,
@@ -199,45 +199,45 @@ export const authMachine = createMachine(
               },
             },
 
-            initial: "emailStep",
+            initial: 'emailStep',
           },
 
           register: {
             states: {
               emailStep: {
                 on: {
-                  BACK: { target: "#authMachine.active.initial" },
-                  NEXT: { target: "#authMachine.active.register.usernameStep" },
+                  BACK: { target: '#authMachine.active.initial' },
+                  NEXT: { target: '#authMachine.active.register.usernameStep' },
                   GOOGLE_LOGIN: {
-                    target: "#authMachine.active.register.googleRegister",
+                    target: '#authMachine.active.register.googleRegister',
                   },
                 },
               },
 
               usernameStep: {
                 on: {
-                  BACK: { target: "#authMachine.active.register.emailStep" },
+                  BACK: { target: '#authMachine.active.register.emailStep' },
                   START_PASSKEY_REGISTER: {
-                    target: "#authMachine.active.register.passkeyStep",
+                    target: '#authMachine.active.register.passkeyStep',
                   },
                   SEND_REGISTRATION_EMAIL: {
-                    target: "#authMachine.active.register.sendingEmail",
+                    target: '#authMachine.active.register.sendingEmail',
                   },
                 },
               },
 
               sendingEmail: {
                 invoke: {
-                  src: "sendConfirmationEmail",
+                  src: 'sendConfirmationEmail',
                   onDone: {
-                    target: "#authMachine.active.register.emailValidationStep",
+                    target: '#authMachine.active.register.emailValidationStep',
                     actions: assign({
                       salt: (_context, event) => event.data?.salt,
                       sessionId: (_context, event) => event.data?.sessionId,
                     }),
                   },
                   onError: {
-                    target: "#authMachine.active.register.usernameStep",
+                    target: '#authMachine.active.register.usernameStep',
                     actions: assign({
                       error: (_context, event) =>
                         event.data?.error || event.data?.message || event.data,
@@ -252,24 +252,24 @@ export const authMachine = createMachine(
 
               emailValidationStep: {
                 on: {
-                  VERIFY_EMAIL: "verifyingEmail",
+                  VERIFY_EMAIL: 'verifyingEmail',
                   BACK: {
-                    target: "#authMachine.active.register.usernameStep",
+                    target: '#authMachine.active.register.usernameStep',
                     actions: assign({
                       error: () => undefined,
                     }),
                   },
                   RESEND_CODE:
-                    "#authMachine.active.register.resendingRegistrationEmail",
+                    '#authMachine.active.register.resendingRegistrationEmail',
                 },
               },
 
               verifyingEmail: {
                 invoke: {
-                  src: "verifyEmail",
-                  onDone: "#authMachine.active.register.passwordStep",
+                  src: 'verifyEmail',
+                  onDone: '#authMachine.active.register.passwordStep',
                   onError: {
-                    target: "#authMachine.active.register.emailValidationStep",
+                    target: '#authMachine.active.register.emailValidationStep',
                     actions: assign({
                       error: (_context, event) =>
                         event.data?.error || event.data?.message,
@@ -284,24 +284,24 @@ export const authMachine = createMachine(
               passwordStep: {
                 on: {
                   BACK: {
-                    target: "#authMachine.active.register.emailValidationStep",
+                    target: '#authMachine.active.register.emailValidationStep',
                   },
                   COMPLETE_REGISTRATION:
-                    "#authMachine.active.register.completingRegistration",
+                    '#authMachine.active.register.completingRegistration',
                 },
               },
 
               completingRegistration: {
                 invoke: {
-                  src: "completeRegistration",
+                  src: 'completeRegistration',
                   onDone: {
-                    target: "#authMachine.active.register.userCreated",
+                    target: '#authMachine.active.register.userCreated',
                     actions: assign({
                       sessionUser: (_, event) => event.data,
                     }),
                   },
                   onError: {
-                    target: "#authMachine.active.register.passwordStep",
+                    target: '#authMachine.active.register.passwordStep',
                     actions: assign({
                       error: (_context, event) =>
                         event.data?.error || event.data?.message,
@@ -314,7 +314,7 @@ export const authMachine = createMachine(
               },
 
               userCreated: {
-                type: "final",
+                type: 'final',
 
                 entry: assign({
                   googleUser: () => undefined,
@@ -323,7 +323,7 @@ export const authMachine = createMachine(
 
                 on: {
                   REFRESH_ACCESS_TOKEN: {
-                    target: "userCreated",
+                    target: 'userCreated',
                     actions: assign({
                       sessionUser: (context, event) => ({
                         ...context.sessionUser!,
@@ -336,9 +336,9 @@ export const authMachine = createMachine(
 
               resendingRegistrationEmail: {
                 invoke: {
-                  src: "sendConfirmationEmail",
+                  src: 'sendConfirmationEmail',
                   onDone: {
-                    target: "#authMachine.active.register.emailValidationStep",
+                    target: '#authMachine.active.register.emailValidationStep',
                     actions: assign({
                       salt: (_context, event) => event.data?.salt,
                       sessionId: (_context, event) => event.data?.sessionId,
@@ -353,16 +353,16 @@ export const authMachine = createMachine(
 
               googleRegister: {
                 invoke: {
-                  src: "googleLogin",
+                  src: 'googleLogin',
                   onDone: [
                     {
-                      target: "#authMachine.active.register.passwordStep",
+                      target: '#authMachine.active.register.passwordStep',
 
                       actions: assign({
                         registerUser: (_, event) => event.data?.registerUser,
                       }),
 
-                      cond: "isNewUser",
+                      cond: 'isNewUser',
                     },
                     // {
                     //   target: 'idle',
@@ -374,7 +374,7 @@ export const authMachine = createMachine(
                     // },
                   ],
                   onError: {
-                    target: "#authMachine.active.register.usernameStep",
+                    target: '#authMachine.active.register.usernameStep',
                     actions: assign({
                       error: (_context, event) =>
                         event.data?.error || event.data?.message || event.data,
@@ -392,10 +392,10 @@ export const authMachine = createMachine(
                 states: {
                   start: {
                     invoke: {
-                      src: "startRegisterPasskey",
+                      src: 'startRegisterPasskey',
 
                       onDone: {
-                        target: "#authMachine.active.register.passkeyStep.idle",
+                        target: '#authMachine.active.register.passkeyStep.idle',
                         actions: assign({
                           CCRPublicKey: (_context, event) => event.data.ccr,
                           sessionId: (_, event) => event.data.sessionId,
@@ -403,7 +403,7 @@ export const authMachine = createMachine(
                       },
 
                       onError: {
-                        target: "#authMachine.active.register.usernameStep",
+                        target: '#authMachine.active.register.usernameStep',
                         actions: (_context, event) =>
                           assign({
                             error:
@@ -417,20 +417,20 @@ export const authMachine = createMachine(
                   idle: {
                     on: {
                       USER_INPUT_PASSKEY_REGISTER:
-                        "#authMachine.active.register.passkeyStep.userInput",
+                        '#authMachine.active.register.passkeyStep.userInput',
                     },
                   },
                   userInput: {
                     invoke: {
-                      src: "userInputRegisterPasskey",
+                      src: 'userInputRegisterPasskey',
                       onDone: {
                         target:
-                          "#authMachine.active.register.passkeyStep.passkeyResult",
+                          '#authMachine.active.register.passkeyStep.passkeyResult',
                         actions: (_context, event) => console.log(event.data),
                       },
 
                       onError: {
-                        target: "#authMachine.active.register.usernameStep",
+                        target: '#authMachine.active.register.usernameStep',
                         actions: (_context, event) =>
                           assign({
                             error:
@@ -443,79 +443,86 @@ export const authMachine = createMachine(
                   },
                   passkeyResult: {},
                 },
-                initial: "start",
+                initial: 'start',
               },
             },
 
-            initial: "emailStep",
+            initial: 'emailStep',
           },
         },
 
-        initial: "initial",
+        initial: 'initial',
 
         on: {
-          RESET: { target: "inactive" },
+          RESET: { target: 'inactive' },
         },
       },
     },
 
-    initial: "inactive",
+    initial: 'inactive',
 
     on: {
       RESET_CONTEXT: {
-        target: "#authMachine.inactive",
-        actions: ["clearContext"],
+        target: '#authMachine.inactive',
+        actions: ['clearContext'],
       },
       LOGOUT: {
-        target: "#authMachine.inactive",
-        actions: ["clearContext"],
+        target: '#authMachine.inactive',
+        actions: ['clearContext'],
       },
     },
   },
   {
     services: {
       completeRegistration: async (context, event) => {
-        throw new Error("Not implemented");
+        throw new Error('Not implemented');
       },
       sendConfirmationEmail: async (context, event) => {
-        throw new Error("Not implemented");
+        throw new Error('Not implemented');
       },
       startRegisterPasskey: async (_, event) => {
-        throw new Error("Not implemented");
+        throw new Error('Not implemented');
       },
       retrieveSalt: async (context, event) => {
-        throw new Error("Not implemented");
+        throw new Error('Not implemented');
       },
       // finishRegisterPasskey: async (_, event) => {
       //   throw new Error('Not implemented');
       // },
       userInputRegisterPasskey: async (_, event) => {
-        throw new Error("Not implemented");
+        throw new Error('Not implemented');
       },
       googleLogin: async (_, event) => {
-        throw new Error("Not implemented");
+        throw new Error('Not implemented');
       },
       verifyEmail: async (_, event) => {
-        throw new Error("Not implemented");
+        throw new Error('Not implemented');
       },
       verifyLogin: async (_, event) => {
-        throw new Error("Not implemented");
+        throw new Error('Not implemented');
       },
       verifyEmail2fa: async (context, event) => {
-        throw new Error("Not implemented");
+        throw new Error('Not implemented');
       },
     },
     guards: {},
     actions: {
       clearContext: assign({
         sessionUser: undefined,
+        CCRPublicKey: undefined,
+        error: undefined,
+        googleOtpCode: undefined,
+        googleUser: undefined,
+        RCRPublicKey: undefined,
+        salt: undefined,
+        sessionId: undefined,
       }),
     },
   },
 );
 
 export const getResolvedState = async () => {
-  const state = await AsyncStorage.getItem("authState");
+  const state = await AsyncStorage.getItem('authState');
   let resolvedState;
 
   if (state) {
@@ -547,9 +554,9 @@ export const authService = (
       { ...authMachine.context, ...context },
     ),
   )
-    .onTransition(async (state) => {
-      if (state.changed) {
-        await AsyncStorage.setItem("authState", JSON.stringify(state));
+    .onTransition(async state => {
+      if (state.changed && state.matches('inactive')) {
+        await AsyncStorage.setItem('authState', JSON.stringify(state));
       }
     })
     .start(resolvedState);
