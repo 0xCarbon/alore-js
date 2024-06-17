@@ -287,12 +287,13 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
           label={dictionary?.confirmCode}
           disabled={secureCode.length !== 6 || isLoadingEmailValidationStep}
           style={{
-            ...styles.verifyEmailStep?.submitButton,
+            ...styles.verifyEmailStep?.nextButton,
             opacity:
               secureCode.length === 6 || !isLoadingEmailValidationStep
                 ? 1
                 : 0.5,
           }}
+          labelProps={styles.passwordStep?.nextButtonLabel}
         />
         <Button
           onPress={onResendEmail}

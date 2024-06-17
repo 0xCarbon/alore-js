@@ -250,9 +250,17 @@ export const stepStyles = {
     inputContainer: {
       marginBottom: 24,
     },
-    submitButton: {
-      marginBottom: 24,
-      backgroundColor: Colors.red[600],
+    nextButton: {
+      backgroundColor: "#E64848",
+      height: 48,
+      marginHorizontal: "auto",
+      marginTop: 30,
+      width: "100%",
+    },
+    nextButtonLabel: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "600",
     },
     spinner: {
       marginRight: 10,
