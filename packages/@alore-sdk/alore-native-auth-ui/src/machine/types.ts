@@ -120,7 +120,6 @@ export type AuthMachineEvents =
       };
     }
   | { type: 'SEND_CODE'; payload: { email: string } }
-  | { type: 'REFRESH_ACCESS_TOKEN'; newAccessToken: string }
   | {
       type: 'VERIFY_LOGIN';
       payload: {

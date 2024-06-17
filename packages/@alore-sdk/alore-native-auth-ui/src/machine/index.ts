@@ -184,18 +184,6 @@ export const authMachine = createMachine(
                   googleUser: () => undefined,
                   registerUser: () => undefined,
                 }),
-
-                on: {
-                  REFRESH_ACCESS_TOKEN: {
-                    target: '#authMachine.active.login.successfulLogin',
-                    actions: assign({
-                      sessionUser: (context, event) => ({
-                        ...context.sessionUser!,
-                        accessToken: event.newAccessToken,
-                      }),
-                    }),
-                  },
-                },
               },
             },
 
@@ -320,18 +308,6 @@ export const authMachine = createMachine(
                   googleUser: () => undefined,
                   registerUser: () => undefined,
                 }),
-
-                on: {
-                  REFRESH_ACCESS_TOKEN: {
-                    target: 'userCreated',
-                    actions: assign({
-                      sessionUser: (context, event) => ({
-                        ...context.sessionUser!,
-                        accessToken: event.newAccessToken,
-                      }),
-                    }),
-                  },
-                },
               },
 
               resendingRegistrationEmail: {
@@ -342,6 +318,13 @@ export const authMachine = createMachine(
                     actions: assign({
                       salt: (_context, event) => event.data?.salt,
                       sessionId: (_context, event) => event.data?.sessionId,
+                    }),
+                  },
+                  onError: {
+                    target: '#authMachine.active.register.emailValidationStep',
+                    actions: assign({
+                      error: (_context, event) =>
+                        event.data?.error || event.data?.message,
                     }),
                   },
                 },
