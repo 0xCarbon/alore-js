@@ -5,18 +5,16 @@ import { useActor } from "@xstate/react";
 import useAuthServiceInstance from "../../hooks/useAuthServiceInstance";
 import { Button, Text } from "react-native-ui-lib";
 import { stepStyles } from "./styles";
-import { mergeStyles } from "../../helpers";
 import { RecursivePartial } from "../../types";
 
 interface InitialStepProps {
-  styles?: RecursivePartial<(typeof stepStyles)["initialStep"]>;
+  styles: RecursivePartial<typeof stepStyles>;
 }
 
 export const InitialStep: React.FC<InitialStepProps> = ({ styles }) => {
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
   const dictionary = useDictionary(authState.context.locale);
-  const mergedStyles = mergeStyles(stepStyles["initialStep"], styles || {});
 
   const onCreateStep = () => {
     sendAuth(["REGISTER_STEP"]);
@@ -27,23 +25,25 @@ export const InitialStep: React.FC<InitialStepProps> = ({ styles }) => {
   };
 
   return (
-    <View style={mergedStyles.container}>
-      <View style={mergedStyles.card}>
-        <View style={mergedStyles.cardContainer}>
+    <View style={styles.initialStep?.container}>
+      <View style={styles.initialStep?.card}>
+        <View style={styles.initialStep?.cardContainer}>
           <Button
             onPress={onLoginStep}
             label={dictionary?.start}
-            labelProps={{ style: mergedStyles.enterButtonLabel }}
-            style={mergedStyles.enterButton}
+            labelProps={{ style: styles.initialStep?.enterButtonLabel }}
+            style={styles.initialStep?.enterButton}
           />
-          <Text style={mergedStyles.text}>{dictionary?.registerCta}</Text>
+          <Text style={styles.initialStep?.text}>
+            {dictionary?.registerCta}
+          </Text>
           <Button
             onPress={onCreateStep}
             label={dictionary?.createAccount}
             labelProps={{
-              style: mergedStyles.createAccountButtonLabel,
+              style: styles.initialStep?.createAccountButtonLabel,
             }}
-            style={mergedStyles.createAccountButton}
+            style={styles.initialStep?.createAccountButton}
           />
         </View>
       </View>

@@ -41,7 +41,7 @@ const GoogleIcon = () => (
 );
 
 interface RegistrationStepsProps {
-  styles?: RecursivePartial<typeof stepStyles>;
+  styles: RecursivePartial<typeof stepStyles>;
   cryptoUtils: {
     hashUserInfo: (userInfo: string) => string;
     generateSecureHash: (
@@ -65,7 +65,6 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   const [authState, sendAuth] = useActor(authServiceInstance);
   const locale = authState.context.locale;
   const dictionary = useDictionary(locale);
-  const mergedStyles = mergeStyles(stepStyles, styles || {});
   const isEmailValid = validateEmailPattern(email);
   const isLoadingUsernameStep = authState.matches(
     "active.register.sendingEmail",
@@ -177,13 +176,11 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   };
 
   const emailStep = () => (
-    <View style={mergedStyles.emailStep?.container}>
-      <Card style={mergedStyles.emailStep?.card}>
-        <View style={mergedStyles.emailStep?.cardContainer}>
+    <View style={styles.emailStep?.container}>
+      <Card style={styles.emailStep?.card}>
+        <View style={styles.emailStep?.cardContainer}>
           <BackButton onClick={onBack} />
-          <Text style={mergedStyles.emailStep?.title}>
-            {dictionary?.emailLabel}
-          </Text>
+          <Text style={styles.emailStep?.title}>{dictionary?.emailLabel}</Text>
           <StyledTextField
             placeholder={dictionary?.emailPlaceholder}
             value={email}
@@ -198,9 +195,9 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
           <Button
             onPress={onNext}
             label={dictionary?.next}
-            labelProps={{ style: mergedStyles.emailStep?.nextButtonLabel }}
+            labelProps={{ style: styles.emailStep?.nextButtonLabel }}
             style={{
-              ...mergedStyles.emailStep?.nextButton,
+              ...styles.emailStep?.nextButton,
               opacity: isEmailValid ? 1 : 0.5,
             }}
             disabled={!isEmailValid}
@@ -209,7 +206,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
             <Button
               onPress={onGoogleRegister}
               style={{
-                ...mergedStyles.emailStep?.googleButton,
+                ...styles.emailStep?.googleButton,
               }}
               iconSource={() => <GoogleIcon />}
             />
@@ -220,11 +217,11 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   );
 
   const usernameStep = () => (
-    <View style={mergedStyles.usernameStep?.container}>
-      <Card style={mergedStyles.usernameStep?.card}>
-        <View style={mergedStyles.usernameStep?.cardContainer}>
+    <View style={styles.usernameStep?.container}>
+      <Card style={styles.usernameStep?.card}>
+        <View style={styles.usernameStep?.cardContainer}>
           <BackButton onClick={onBack} />
-          <Text style={mergedStyles.usernameStep?.title}>
+          <Text style={styles.usernameStep?.title}>
             {dictionary?.createUsername}
           </Text>
           <StyledTextField
@@ -241,9 +238,9 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
           <Button
             onPress={onFinish}
             label={dictionary?.createAccount}
-            labelProps={{ style: mergedStyles.usernameStep?.nextButtonLabel }}
+            labelProps={{ style: styles.usernameStep?.nextButtonLabel }}
             style={{
-              ...mergedStyles.usernameStep?.nextButton,
+              ...styles.usernameStep?.nextButton,
               opacity:
                 username === "" || username.length < 4 || isLoadingUsernameStep
                   ? 0.5
@@ -260,18 +257,18 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
 
   const emailValidationStep = () => (
     <View
-      style={mergedStyles.verifyEmailStep?.container}
+      style={styles.verifyEmailStep?.container}
       data-test="register-verify-email-step"
     >
-      <View style={mergedStyles.verifyEmailStep?.cardContainer}>
+      <View style={styles.verifyEmailStep?.cardContainer}>
         <BackButton onClick={onBack} />
-        <Text style={mergedStyles.verifyEmailStep?.title}>
+        <Text style={styles.verifyEmailStep?.title}>
           {dictionary?.verifyEmailStep.verifyEmail}
         </Text>
-        <Text style={mergedStyles.verifyEmailStep?.subtitle}>
+        <Text style={styles.verifyEmailStep?.subtitle}>
           {dictionary?.verifyEmailStep.verifyEmailDescription}
         </Text>
-        <View style={mergedStyles.verifyEmailStep?.inputContainer}>
+        <View style={styles.verifyEmailStep?.inputContainer}>
           <StyledTextField
             value={secureCode}
             onChangeText={setSecureCode}
@@ -290,7 +287,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
           label={dictionary?.confirmCode}
           disabled={secureCode.length !== 6 || isLoadingEmailValidationStep}
           style={{
-            ...mergedStyles.verifyEmailStep?.submitButton,
+            ...styles.verifyEmailStep?.submitButton,
             opacity:
               secureCode.length === 6 || !isLoadingEmailValidationStep
                 ? 1
@@ -301,9 +298,9 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
           onPress={onResendEmail}
           label={dictionary?.resendCode}
           labelProps={{
-            style: mergedStyles.verifyEmailStep?.resendEmailButton,
+            style: styles.verifyEmailStep?.resendEmailButton,
           }}
-          style={mergedStyles.verifyEmailStep?.resendEmailButton}
+          style={styles.verifyEmailStep?.resendEmailButton}
           disabled={isLoadingEmailValidationStep}
         />
       </View>
@@ -311,11 +308,11 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   );
 
   const passwordStep = () => (
-    <View style={mergedStyles.passwordStep?.container}>
-      <Card style={mergedStyles.passwordStep?.card}>
-        <View style={mergedStyles.passwordStep?.cardContainer}>
+    <View style={styles.passwordStep?.container}>
+      <Card style={styles.passwordStep?.card}>
+        <View style={styles.passwordStep?.cardContainer}>
           <BackButton onClick={onBack} disabled={isLoadingPasswordStep} />
-          <Text style={mergedStyles.passwordStep?.title}>
+          <Text style={styles.passwordStep?.title}>
             {dictionary?.register.createPassword}
           </Text>
           <StyledTextField
@@ -350,9 +347,9 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
           <Button
             onPress={onCompleteRegistration}
             label={dictionary?.next}
-            labelProps={{ style: mergedStyles.passwordStep?.nextButtonLabel }}
+            labelProps={{ style: styles.passwordStep?.nextButtonLabel }}
             style={{
-              ...mergedStyles.passwordStep?.nextButton,
+              ...styles.passwordStep?.nextButton,
               opacity: isPasswordValid ? 1 : 0.5,
             }}
             disabled={!isPasswordValid || isLoadingPasswordStep}

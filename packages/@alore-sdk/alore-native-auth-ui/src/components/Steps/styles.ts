@@ -182,6 +182,7 @@ export const stepStyles = {
       elevation: 0,
     },
     cardContainer: {
+      gap: 20,
       marginLeft: 30,
       marginRight: 30,
     },

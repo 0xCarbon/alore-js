@@ -63,14 +63,41 @@ export function ruleValidation(
   return false;
 }
 
+function isPlainObject(obj: any): boolean {
+  return obj && typeof obj === "object" && !Array.isArray(obj);
+}
+
+function mergeValues(defaultValue: any, customValue: any): any {
+  if (Array.isArray(defaultValue) || Array.isArray(customValue)) {
+    return StyleSheet.flatten([defaultValue, customValue]);
+  }
+  return customValue !== undefined ? customValue : defaultValue;
+}
+
 export function mergeStyles(defaultStyles: any, customStyles?: any): any {
   const mergedStyles: any = {};
+
   for (const key in defaultStyles) {
-    const customStyle = customStyles?.[key] ?? [];
-    mergedStyles[key] = StyleSheet.compose(
-      defaultStyles[key],
-      customStyle,
-    ) as any;
+    if (defaultStyles.hasOwnProperty(key)) {
+      const defaultStyle = defaultStyles[key];
+      const customStyle = customStyles?.[key];
+
+      if (isPlainObject(defaultStyle)) {
+        mergedStyles[key] = mergeStyles(defaultStyle, customStyle);
+      } else {
+        mergedStyles[key] = mergeValues(defaultStyle, customStyle);
+      }
+    }
   }
+
+  for (const key in customStyles) {
+    if (
+      customStyles.hasOwnProperty(key) &&
+      !defaultStyles.hasOwnProperty(key)
+    ) {
+      mergedStyles[key] = customStyles[key];
+    }
+  }
+
   return mergedStyles;
 }

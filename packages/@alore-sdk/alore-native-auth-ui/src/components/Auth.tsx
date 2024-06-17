@@ -6,12 +6,8 @@ import { SessionUser } from "../machine/types";
 import RegistrationSteps from "./Steps/RegistrationSteps";
 import useAuthServiceInstance from "../hooks/useAuthServiceInstance";
 import { stepStyles } from "./Steps/styles";
-
-type RecursivePartial<T> = {
-  [P in keyof T]?: T[P] extends object ? RecursivePartial<T[P]> : T[P];
-};
-
-
+import { RecursivePartial } from "../types";
+import { mergeStyles } from "../helpers";
 
 export interface AuthProps {
   styles?: RecursivePartial<typeof stepStyles>;
@@ -49,14 +45,18 @@ const Auth = ({ styles, onSuccess, cryptoUtils }: AuthProps) => {
     }
   }, [sessionUser]);
 
+  const mergedStyles = mergeStyles(stepStyles, styles || {});
+
   return (
     <>
-      {authState.matches("active.initial") && <InitialStep styles={styles?.["initialStep"]} />}
+      {authState.matches("active.initial") && (
+        <InitialStep styles={mergedStyles} />
+      )}
       {authState.matches("active.register") && (
-        <RegistrationSteps styles={styles} cryptoUtils={cryptoUtils} />
+        <RegistrationSteps styles={mergedStyles} cryptoUtils={cryptoUtils} />
       )}
       {authState.matches("active.login") && (
-        <LoginSteps styles={styles} cryptoUtils={cryptoUtils} />
+        <LoginSteps styles={mergedStyles} cryptoUtils={cryptoUtils} />
       )}
     </>
   );
