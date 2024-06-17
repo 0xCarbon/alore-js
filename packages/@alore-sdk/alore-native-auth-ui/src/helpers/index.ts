@@ -1,4 +1,5 @@
-import { PasswordRule } from '../types';
+import { ImageStyle, StyleSheet, TextStyle, ViewStyle } from "react-native";
+import { PasswordRule } from "../types";
 
 export const validateEmailPattern = (email: string) => {
   const emailPattern = /\S+@\S+\.\S+/;
@@ -8,32 +9,32 @@ export const validateEmailPattern = (email: string) => {
 
 export const passwordRules: PasswordRule[] = [
   {
-    name: 'special_character',
-    label: 'Use at least one special character (@!#%&*)',
+    name: "special_character",
+    label: "Use at least one special character (@!#%&*)",
     regex: /[^a-zA-Z0-9]/g,
-    key: 'specialCharacter',
+    key: "specialCharacter",
   },
   {
-    name: 'uppercase_letter',
-    label: 'Use at least one uppercase letter',
+    name: "uppercase_letter",
+    label: "Use at least one uppercase letter",
     regex: /[A-Z]/g,
-    key: 'uppercaseLetter',
+    key: "uppercaseLetter",
   },
   {
-    name: 'minimum_eight_characters',
-    label: 'Your password must have at least 8 characters',
+    name: "minimum_eight_characters",
+    label: "Your password must have at least 8 characters",
     regex: /[^ ]{8,}$/,
-    key: 'minimumEightCharacters',
+    key: "minimumEightCharacters",
   },
   {
-    name: 'password_match',
-    label: 'Password must match',
-    key: 'passwordMatch',
+    name: "password_match",
+    label: "Password must match",
+    key: "passwordMatch",
   },
   {
-    name: 'dont_use_your_name_or_email',
-    label: 'Don’t use your name or e-mail',
-    key: 'dontUseYourNameOrEmail',
+    name: "dont_use_your_name_or_email",
+    label: "Don’t use your name or e-mail",
+    key: "dontUseYourNameOrEmail",
   },
 ];
 
@@ -43,10 +44,10 @@ export function ruleValidation(
   userInfoValues?: { email: string; nickname: string },
 ) {
   if (passwordValues.password.length) {
-    if (rule.name === 'password_match') {
+    if (rule.name === "password_match") {
       return passwordValues.password === passwordValues.confirmPassword;
     }
-    if (rule.name === 'dont_use_your_name_or_email') {
+    if (rule.name === "dont_use_your_name_or_email") {
       if (!userInfoValues) return true;
       return !passwordValues.password
         .toLowerCase()
@@ -60,4 +61,16 @@ export function ruleValidation(
   }
 
   return false;
+}
+
+export function mergeStyles(defaultStyles: any, customStyles?: any): any {
+  const mergedStyles: any = {};
+  for (const key in defaultStyles) {
+    const customStyle = customStyles?.[key] ?? [];
+    mergedStyles[key] = StyleSheet.compose(
+      defaultStyles[key],
+      customStyle,
+    ) as any;
+  }
+  return mergedStyles;
 }

@@ -1,21 +1,23 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Card, Text, Button } from 'react-native-ui-lib';
-import useDictionary from '../../hooks/useDictionary';
-import { useActor } from '@xstate/react';
-import useAuthServiceInstance from '../../hooks/useAuthServiceInstance';
-import StyledTextField from '../StyledTextField';
-import { EnvelopeIcon, UserIcon } from 'react-native-heroicons/solid';
+import React, { useEffect, useMemo, useState } from "react";
+import { View, StyleSheet } from "react-native";
+import { Card, Text, Button } from "react-native-ui-lib";
+import useDictionary from "../../hooks/useDictionary";
+import { useActor } from "@xstate/react";
+import useAuthServiceInstance from "../../hooks/useAuthServiceInstance";
+import StyledTextField from "../StyledTextField";
+import { EnvelopeIcon, UserIcon } from "react-native-heroicons/solid";
 import {
+  mergeStyles,
   passwordRules,
   ruleValidation,
   validateEmailPattern,
-} from '../../helpers';
-import DeviceInfo from 'react-native-device-info';
-import { Path, Svg } from 'react-native-svg';
-import FormRules from '../FormRules';
-import BackButton from '../BackButton';
-import { stepStyles } from './styles';
+} from "../../helpers";
+import DeviceInfo from "react-native-device-info";
+import { Path, Svg } from "react-native-svg";
+import FormRules from "../FormRules";
+import BackButton from "../BackButton";
+import { stepStyles } from "./styles";
+import { RecursivePartial } from "../../types";
 
 const GoogleIcon = () => (
   <Svg width="25" height="25" viewBox="0 0 25 25" fill="none">
@@ -39,13 +41,13 @@ const GoogleIcon = () => (
 );
 
 interface RegistrationStepsProps {
-  styles?: Partial<typeof stepStyles>;
+  styles?: RecursivePartial<typeof stepStyles>;
   cryptoUtils: {
     hashUserInfo: (userInfo: string) => string;
     generateSecureHash: (
       data: string,
       salt: string,
-      keyDerivationFunction: 'argon2d' | 'pbkdf2',
+      keyDerivationFunction: "argon2d" | "pbkdf2",
     ) => Promise<string>;
   };
 }
@@ -54,25 +56,25 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   styles,
   cryptoUtils,
 }) => {
-  const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [secureCode, setSecureCode] = useState('');
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [secureCode, setSecureCode] = useState("");
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
   const locale = authState.context.locale;
   const dictionary = useDictionary(locale);
-  const mergedStyles = StyleSheet.flatten([stepStyles, styles || {}]);
+  const mergedStyles = mergeStyles(stepStyles, styles || {});
   const isEmailValid = validateEmailPattern(email);
   const isLoadingUsernameStep = authState.matches(
-    'active.register.sendingEmail',
+    "active.register.sendingEmail",
   );
   const isLoadingEmailValidationStep =
-    authState.matches('active.register.resendingRegistrationEmail') ||
-    authState.matches('active.register.verifyingEmail');
+    authState.matches("active.register.resendingRegistrationEmail") ||
+    authState.matches("active.register.verifyingEmail");
   const isLoadingPasswordStep = authState.matches(
-    'active.register.completingRegistration',
+    "active.register.completingRegistration",
   );
   const { CCRPublicKey, googleId, error, salt } = authState.context;
   const { generateSecureHash, hashUserInfo } = cryptoUtils;
@@ -84,7 +86,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
       const device = await DeviceInfo.getUserAgent();
 
       sendAuth({
-        type: 'USER_INPUT_PASSKEY_REGISTER',
+        type: "USER_INPUT_PASSKEY_REGISTER",
         payload: {
           CCRPublicKey,
           userAgent: device,
@@ -93,10 +95,10 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
       });
     };
 
-    if (authState.matches('active.register.passkeyStep.idle')) {
+    if (authState.matches("active.register.passkeyStep.idle")) {
       fetchDeviceAndProceed();
     }
-  }, [authState.matches('active.register.passkeyStep.idle')]);
+  }, [authState.matches("active.register.passkeyStep.idle")]);
 
   const isPasswordValid = useMemo(
     () =>
@@ -114,16 +116,16 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   );
 
   const onBack = () => {
-    sendAuth(['BACK']);
+    sendAuth(["BACK"]);
   };
 
   const onNext = () => {
-    sendAuth({ type: 'NEXT' });
+    sendAuth({ type: "NEXT" });
   };
 
   const onResendEmail = () => {
     sendAuth({
-      type: 'RESEND_CODE',
+      type: "RESEND_CODE",
       payload: { email, locale, nickname: username },
     });
   };
@@ -133,7 +135,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
 
     sendAuth([
       {
-        type: 'START_PASSKEY_REGISTER',
+        type: "START_PASSKEY_REGISTER",
         payload: {
           device,
           email,
@@ -147,24 +149,24 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
 
   const onFinish = () => {
     sendAuth({
-      type: 'SEND_REGISTRATION_EMAIL',
+      type: "SEND_REGISTRATION_EMAIL",
       payload: { email, nickname: username, locale },
     });
   };
 
   const onClickSecureCodeSubmit = () => {
-    sendAuth({ type: 'VERIFY_EMAIL', payload: { secureCode } });
+    sendAuth({ type: "VERIFY_EMAIL", payload: { secureCode } });
   };
 
   const onCompleteRegistration = async () => {
     if (!salt) return;
 
-    const hashedPassword = await generateSecureHash(password, salt, 'argon2d');
+    const hashedPassword = await generateSecureHash(password, salt, "argon2d");
     const userAgent = await DeviceInfo.getUserAgent();
     const device = hashUserInfo(userAgent);
 
     sendAuth({
-      type: 'COMPLETE_REGISTRATION',
+      type: "COMPLETE_REGISTRATION",
       payload: {
         nickname: username,
         passwordHash: hashedPassword,
@@ -239,16 +241,16 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
           <Button
             onPress={onFinish}
             label={dictionary?.createAccount}
-            labelProps={{ style: mergedStyles.usernameStep?.finishButtonLabel }}
+            labelProps={{ style: mergedStyles.usernameStep?.nextButtonLabel }}
             style={{
-              ...mergedStyles.usernameStep?.finishButton,
+              ...mergedStyles.usernameStep?.nextButton,
               opacity:
-                username === '' || username.length < 4 || isLoadingUsernameStep
+                username === "" || username.length < 4 || isLoadingUsernameStep
                   ? 0.5
                   : 1,
             }}
             disabled={
-              username === '' || username.length < 4 || isLoadingUsernameStep
+              username === "" || username.length < 4 || isLoadingUsernameStep
             }
           />
         </View>
@@ -259,7 +261,8 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   const emailValidationStep = () => (
     <View
       style={mergedStyles.verifyEmailStep?.container}
-      data-test="register-verify-email-step">
+      data-test="register-verify-email-step"
+    >
       <View style={mergedStyles.verifyEmailStep?.cardContainer}>
         <BackButton onClick={onBack} />
         <Text style={mergedStyles.verifyEmailStep?.title}>
@@ -278,7 +281,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
             autoCorrect={false}
             autoComplete="off"
             errorMessage={
-              error?.includes('code') ? `${dictionary?.wrongCode}` : undefined
+              error?.includes("code") ? `${dictionary?.wrongCode}` : undefined
             }
           />
         </View>
@@ -361,16 +364,16 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
 
   return (
     <>
-      {authState.matches('active.register.emailStep') && emailStep()}
-      {(authState.matches('active.register.usernameStep') ||
-        authState.matches('active.register.sendingEmail')) &&
+      {authState.matches("active.register.emailStep") && emailStep()}
+      {(authState.matches("active.register.usernameStep") ||
+        authState.matches("active.register.sendingEmail")) &&
         usernameStep()}
-      {(authState.matches('active.register.emailValidationStep') ||
-        authState.matches('active.register.resendingRegistrationEmail') ||
-        authState.matches('active.register.verifyingEmail')) &&
+      {(authState.matches("active.register.emailValidationStep") ||
+        authState.matches("active.register.resendingRegistrationEmail") ||
+        authState.matches("active.register.verifyingEmail")) &&
         emailValidationStep()}
-      {(authState.matches('active.register.passwordStep') ||
-        authState.matches('active.register.completingRegistration')) &&
+      {(authState.matches("active.register.passwordStep") ||
+        authState.matches("active.register.completingRegistration")) &&
         passwordStep()}
     </>
   );

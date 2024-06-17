@@ -6,11 +6,12 @@ import { useActor } from "@xstate/react";
 import useAuthServiceInstance from "../../hooks/useAuthServiceInstance";
 import StyledTextField from "../StyledTextField";
 import { EnvelopeIcon } from "react-native-heroicons/solid";
-import { validateEmailPattern } from "../../helpers";
+import { mergeStyles, validateEmailPattern } from "../../helpers";
 import { Path, Svg } from "react-native-svg";
 import BackButton from "../BackButton";
 import { stepStyles } from "./styles";
 import DeviceInfo from "react-native-device-info";
+import { RecursivePartial } from "../../types";
 
 const GoogleIcon = () => (
   <Svg width="25" height="25" viewBox="0 0 25 25" fill="none">
@@ -34,7 +35,7 @@ const GoogleIcon = () => (
 );
 
 interface LoginStepsProps {
-  styles?: Partial<typeof stepStyles>;
+  styles?: RecursivePartial<typeof stepStyles>;
   cryptoUtils: {
     hashUserInfo: (userInfo: string) => string;
     generateSecureHash: (
@@ -56,7 +57,7 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
   const [authState, sendAuth] = useActor(authServiceInstance);
   const locale = authState.context.locale;
   const dictionary = useDictionary(locale);
-  const mergedStyles = StyleSheet.flatten([stepStyles, styles || {}]);
+  const mergedStyles = mergeStyles(stepStyles, styles || {});
   const isEmailValid = validateEmailPattern(email);
   const { generateSecureHash, hashUserInfo } = cryptoUtils;
   const { googleId, salt, error } = authState.context;
