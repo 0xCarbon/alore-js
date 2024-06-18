@@ -46,7 +46,16 @@
   },
   "verifyEmailStep": {
     "verifyEmail": "Verify your e-mail",
+    "enterSecureCode": "******",
     "verifyEmailDescription": "Please, inform the code we sent to your e-mail. Don’t forget to check your spam box.",
-    "nextButton": "Confirm Code"
+    "nextButton": "Confirm Code",
+    "codeSent": "Code sent to your e-mail"
+  },
+  "errors": {
+    "invalidEmailPassword": "Invalid e-mail or password",
+    "somethingWrong": "Something went wrong",
+    "invalidEmailPasswordDescription": "The combination of e-mail and password you wrote is incorrect or not valid.",
+    "defaultError": "We could not process your login at this moment. Try again in a few seconds.",
+    "wrongCode": "You’ve sent the wrong code. Try again."
   }
 }

@@ -1,13 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, StyleSheet } from "react-native";
-import { Card, Text, Button } from "react-native-ui-lib";
+import { View, Keyboard } from "react-native";
+import { Card, Text, Button, LoaderScreen } from "react-native-ui-lib";
 import useDictionary from "../../hooks/useDictionary";
 import { useActor } from "@xstate/react";
 import useAuthServiceInstance from "../../hooks/useAuthServiceInstance";
 import StyledTextField from "../StyledTextField";
 import { EnvelopeIcon, UserIcon } from "react-native-heroicons/solid";
 import {
-  mergeStyles,
   passwordRules,
   ruleValidation,
   validateEmailPattern,
@@ -18,6 +17,7 @@ import FormRules from "../FormRules";
 import BackButton from "../BackButton";
 import { stepStyles } from "./styles";
 import { RecursivePartial } from "../../types";
+import { Toast, ToastProps } from "react-native-ui-lib/src/incubator";
 
 const GoogleIcon = () => (
   <Svg width="25" height="25" viewBox="0 0 25 25" fill="none">
@@ -41,6 +41,7 @@ const GoogleIcon = () => (
 );
 
 interface RegistrationStepsProps {
+  toast?: boolean;
   styles: RecursivePartial<typeof stepStyles>;
   cryptoUtils: {
     hashUserInfo: (userInfo: string) => string;
@@ -53,30 +54,47 @@ interface RegistrationStepsProps {
 }
 
 export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
+  toast,
   styles,
   cryptoUtils,
 }) => {
+  const authServiceInstance = useAuthServiceInstance();
+  const [authState, sendAuth] = useActor(authServiceInstance);
+  const locale = authState.context.locale;
+
+  const dictionary = useDictionary(locale);
+
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [secureCode, setSecureCode] = useState("");
-  const authServiceInstance = useAuthServiceInstance();
-  const [authState, sendAuth] = useActor(authServiceInstance);
-  const locale = authState.context.locale;
-  const dictionary = useDictionary(locale);
+
+  const [showToast, setShowToast] = useState(false);
+  const [toastProps, setToastProps] = useState<ToastProps>({
+    message: "",
+    preset: "general",
+    position: "bottom",
+    autoDismiss: 5000,
+  });
+
   const isEmailValid = validateEmailPattern(email);
-  const isLoadingUsernameStep = authState.matches(
-    "active.register.sendingEmail",
+
+  const isLoading = useMemo(
+    () =>
+      authState.matches("active.register.completingRegistration") ||
+      authState.matches("active.register.sendingEmail") ||
+      authState.matches("active.register.verifyingEmail") ||
+      authState.matches("active.register.resendingRegistrationEmail"),
+    [authState.value],
   );
-  const isLoadingEmailValidationStep =
-    authState.matches("active.register.resendingRegistrationEmail") ||
-    authState.matches("active.register.verifyingEmail");
-  const isLoadingPasswordStep = authState.matches(
-    "active.register.completingRegistration",
-  );
-  const { CCRPublicKey, googleId, error, salt } = authState.context;
+
+  const { CCRPublicKey, googleId, salt } = authState.context;
   const { generateSecureHash, hashUserInfo } = cryptoUtils;
+
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
 
   useEffect(() => {
     const fetchDeviceAndProceed = async () => {
@@ -115,14 +133,28 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   );
 
   const onBack = () => {
+    dismissKeyboard();
+
     sendAuth(["BACK"]);
   };
 
   const onNext = () => {
+    dismissKeyboard();
+
     sendAuth({ type: "NEXT" });
   };
 
   const onResendEmail = () => {
+    dismissKeyboard();
+
+    setShowToast(true);
+    setToastProps({
+      message: dictionary?.verifyEmailStep?.codeSent || "",
+      preset: "general",
+      position: "bottom",
+      autoDismiss: 5000,
+    });
+
     sendAuth({
       type: "RESEND_CODE",
       payload: { email, locale, nickname: username },
@@ -147,6 +179,8 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   const onGoogleRegister = () => {}; // TODO: implement
 
   const onFinish = () => {
+    dismissKeyboard();
+
     sendAuth({
       type: "SEND_REGISTRATION_EMAIL",
       payload: { email, nickname: username, locale },
@@ -154,10 +188,14 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   };
 
   const onClickSecureCodeSubmit = () => {
+    dismissKeyboard();
+
     sendAuth({ type: "VERIFY_EMAIL", payload: { secureCode } });
   };
 
   const onCompleteRegistration = async () => {
+    dismissKeyboard();
+
     if (!salt) return;
 
     const hashedPassword = await generateSecureHash(password, salt, "argon2d");
@@ -244,13 +282,9 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
             style={{
               ...styles.common?.nextButton,
               opacity:
-                username === "" || username.length < 4 || isLoadingUsernameStep
-                  ? 0.5
-                  : 1,
+                username === "" || username.length < 4 || isLoading ? 0.5 : 1,
             }}
-            disabled={
-              username === "" || username.length < 4 || isLoadingUsernameStep
-            }
+            disabled={username === "" || username.length < 4 || isLoading}
           />
         </View>
       </Card>
@@ -274,38 +308,34 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
           <StyledTextField
             styles={styles}
             value={secureCode}
+            placeholder={dictionary?.verifyEmailStep?.enterSecureCode}
             onChangeText={setSecureCode}
             maxLength={6}
             keyboardType="number-pad"
             autoCapitalize="none"
             autoCorrect={false}
             autoComplete="off"
-            errorMessage={
-              error?.includes("code") ? `${dictionary?.wrongCode}` : undefined
-            }
           />
         </View>
         <Button
           onPress={onClickSecureCodeSubmit}
           label={dictionary?.confirmCode}
-          disabled={secureCode.length !== 6 || isLoadingEmailValidationStep}
+          labelProps={{ style: styles.common?.nextButtonLabel }}
           style={{
             ...styles.common?.nextButton,
-            opacity:
-              secureCode.length === 6 || !isLoadingEmailValidationStep
-                ? 1
-                : 0.5,
+            opacity: secureCode.length === 6 || !isLoading ? 1 : 0.5,
           }}
-          labelProps={styles.common?.nextButtonLabel}
+          disabled={secureCode.length !== 6 || isLoading}
         />
+
         <Button
           onPress={onResendEmail}
           label={dictionary?.resendCode}
           labelProps={{
-            style: styles.verifyEmailStep?.resendEmailButton,
+            style: styles.verifyEmailStep?.resendEmailButtonLabel,
           }}
           style={styles.verifyEmailStep?.resendEmailButton}
-          disabled={isLoadingEmailValidationStep}
+          disabled={isLoading}
         />
       </View>
     </View>
@@ -315,11 +345,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
     <View style={styles.passwordStep?.container}>
       <Card style={styles.passwordStep?.card}>
         <View style={styles.passwordStep?.cardContainer}>
-          <BackButton
-            styles={styles}
-            onClick={onBack}
-            disabled={isLoadingPasswordStep}
-          />
+          <BackButton styles={styles} onClick={onBack} disabled={isLoading} />
           <Text style={styles.common?.stepTitle}>
             {dictionary?.register.createPassword}
           </Text>
@@ -362,12 +388,21 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
               ...styles.common?.nextButton,
               opacity: isPasswordValid ? 1 : 0.5,
             }}
-            disabled={!isPasswordValid || isLoadingPasswordStep}
+            disabled={!isPasswordValid || isLoading}
           />
         </View>
       </Card>
     </View>
   );
+
+  if (isLoading) {
+    return (
+      <LoaderScreen
+        loaderColor={styles?.common?.stepTitle?.color || "black"}
+        size={48}
+      />
+    );
+  }
 
   return (
     <>
@@ -382,6 +417,13 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
       {(authState.matches("active.register.passwordStep") ||
         authState.matches("active.register.completingRegistration")) &&
         passwordStep()}
+      {toast && (
+        <Toast
+          {...toastProps}
+          visible={showToast}
+          onDismiss={() => setShowToast(false)}
+        />
+      )}
     </>
   );
 };

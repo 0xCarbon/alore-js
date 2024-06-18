@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { View, StyleSheet } from "react-native";
-import { Card, Text, Button } from "react-native-ui-lib";
+import React, { useMemo, useState } from "react";
+import { View, Keyboard } from "react-native";
+import { Card, Text, Button, LoaderScreen } from "react-native-ui-lib";
 import useDictionary from "../../hooks/useDictionary";
 import { useActor } from "@xstate/react";
 import useAuthServiceInstance from "../../hooks/useAuthServiceInstance";
@@ -12,6 +12,7 @@ import BackButton from "../BackButton";
 import { stepStyles } from "./styles";
 import DeviceInfo from "react-native-device-info";
 import { RecursivePartial } from "../../types";
+import { Toast, ToastProps } from "react-native-ui-lib/src/incubator";
 
 const GoogleIcon = () => (
   <Svg width="25" height="25" viewBox="0 0 25 25" fill="none">
@@ -35,6 +36,7 @@ const GoogleIcon = () => (
 );
 
 interface LoginStepsProps {
+  toast?: boolean;
   styles: RecursivePartial<typeof stepStyles>;
   cryptoUtils: {
     hashUserInfo: (userInfo: string) => string;
@@ -47,6 +49,7 @@ interface LoginStepsProps {
 }
 
 export const LoginSteps: React.FC<LoginStepsProps> = ({
+  toast,
   styles,
   cryptoUtils,
 }) => {
@@ -59,16 +62,37 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
   const dictionary = useDictionary(locale);
   const isEmailValid = validateEmailPattern(email);
   const { generateSecureHash, hashUserInfo } = cryptoUtils;
-  const { googleId, salt, error } = authState.context;
-  const isLoadingEmailValidationStep =
-    authState.matches("active.login.resendingEmailCode") ||
-    authState.matches("active.login.verifyingEmail2fa");
+  const { googleId, salt } = authState.context;
+
+  const [showToast, setShowToast] = useState(false);
+  const [toastProps, setToastProps] = useState<ToastProps>({
+    message: "",
+    preset: "general",
+    position: "bottom",
+    autoDismiss: 5000,
+  });
+
+  const isLoading = useMemo(
+    () =>
+      authState.matches("active.login.retrievingSalt") ||
+      authState.matches("active.login.verifyingLogin") ||
+      authState.matches("active.login.verifyingEmail2fa") ||
+      authState.matches("active.login.resendingEmailCode"),
+    [authState.value],
+  );
+
+  const dismissKeyboard = () => {
+    Keyboard.dismiss();
+  };
 
   const onBack = () => {
     sendAuth(["BACK"]);
+    dismissKeyboard();
   };
 
   const onVerifyLogin = async () => {
+    dismissKeyboard();
+
     if (!salt) return;
 
     const hashedPassword = await generateSecureHash(password, salt, "argon2d");
@@ -82,11 +106,23 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
   };
 
   const onFetchSalt = () => {
+    dismissKeyboard();
+
     sendAuth({ type: "FETCH_SALT", payload: { email } });
   };
 
   const onResendEmail = async () => {
+    dismissKeyboard();
+
     if (!salt) return;
+
+    setShowToast(true);
+    setToastProps({
+      message: dictionary?.verifyEmailStep?.codeSent || "",
+      preset: "general",
+      position: "bottom",
+      autoDismiss: 5000,
+    });
 
     const secureHashArgon2d = await generateSecureHash(
       password,
@@ -108,6 +144,8 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
   };
 
   const onClickSecureCodeSubmit = async () => {
+    dismissKeyboard();
+
     if (!salt) return;
 
     const secureHashArgon2d = await generateSecureHash(
@@ -228,42 +266,46 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
           <StyledTextField
             styles={styles}
             value={secureCode}
+            placeholder={dictionary?.verifyEmailStep?.enterSecureCode}
             onChangeText={setSecureCode}
             maxLength={6}
             keyboardType="number-pad"
             autoCapitalize="none"
             autoCorrect={false}
             autoComplete="off"
-            errorMessage={
-              error?.includes("code") ? `${dictionary?.wrongCode}` : undefined
-            }
           />
         </View>
         <Button
           onPress={onClickSecureCodeSubmit}
           label={dictionary?.confirmCode}
-          disabled={secureCode.length !== 6 || isLoadingEmailValidationStep}
+          labelProps={{ style: styles.common?.nextButtonLabel }}
+          disabled={secureCode.length !== 6 || isLoading}
           style={{
             ...styles.common?.nextButton,
-            opacity:
-              secureCode.length === 6 || !isLoadingEmailValidationStep
-                ? 1
-                : 0.5,
+            opacity: secureCode.length === 6 || !isLoading ? 1 : 0.5,
           }}
-          labelProps={styles.common?.nextButtonLabel}
         />
         <Button
           onPress={onResendEmail}
           label={dictionary?.resendCode}
           labelProps={{
-            style: styles.verifyEmailStep?.resendEmailButton,
+            style: styles.verifyEmailStep?.resendEmailButtonLabel,
           }}
           style={styles.verifyEmailStep?.resendEmailButton}
-          disabled={isLoadingEmailValidationStep}
+          disabled={isLoading}
         />
       </View>
     </View>
   );
+
+  if (isLoading) {
+    return (
+      <LoaderScreen
+        loaderColor={styles?.common?.stepTitle?.color || "black"}
+        size={48}
+      />
+    );
+  }
 
   return (
     <>
@@ -277,6 +319,13 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
         authState.matches("active.login.verifyingEmail2fa") ||
         authState.matches("active.login.resendingEmailCode")) &&
         emailValidationStep()}
+      {toast && (
+        <Toast
+          {...toastProps}
+          visible={showToast}
+          onDismiss={() => setShowToast(false)}
+        />
+      )}
     </>
   );
 };

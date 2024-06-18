@@ -46,7 +46,15 @@
   },
   "verifyEmailStep": {
     "verifyEmail": "Verifique seu e-mail",
+    "enterSecureCode": "******",
     "verifyEmailDescription": "Por favor, informe o código que enviamos para seu e-mail. ",
-    "nextButton": "Confirmar"
+    "nextButton": "Confirmar",
+    "codeSent": "Código enviado para seu e-mail"
+  },
+  "errors": {
+    "invalidEmailPassword": "E-mail ou senha inválida",
+    "somethingWrong": "Algo deu errado",
+    "defaultError": "Não foi possível processar seu login neste momento. ",
+    "wrongCode": "Código inválido. "
   }
 }
