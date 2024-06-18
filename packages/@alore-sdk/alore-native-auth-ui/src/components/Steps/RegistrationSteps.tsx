@@ -179,13 +179,14 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
     <View style={styles.emailStep?.container}>
       <Card style={styles.emailStep?.card}>
         <View style={styles.emailStep?.cardContainer}>
-          <BackButton onClick={onBack} />
-          <Text style={styles.emailStep?.title}>{dictionary?.emailLabel}</Text>
+          <BackButton styles={styles} onClick={onBack} />
+          <Text style={styles.common?.stepTitle}>{dictionary?.emailLabel}</Text>
           <StyledTextField
+            styles={styles}
             placeholder={dictionary?.emailPlaceholder}
             value={email}
             onChangeText={setEmail}
-            icon={<EnvelopeIcon color="rgb(107 114 128)" size={16} />}
+            Icon={EnvelopeIcon}
             maxLength={320}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -195,9 +196,9 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
           <Button
             onPress={onNext}
             label={dictionary?.next}
-            labelProps={{ style: styles.emailStep?.nextButtonLabel }}
+            labelProps={{ style: styles.common?.nextButtonLabel }}
             style={{
-              ...styles.emailStep?.nextButton,
+              ...styles.common?.nextButton,
               opacity: isEmailValid ? 1 : 0.5,
             }}
             disabled={!isEmailValid}
@@ -220,15 +221,16 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
     <View style={styles.usernameStep?.container}>
       <Card style={styles.usernameStep?.card}>
         <View style={styles.usernameStep?.cardContainer}>
-          <BackButton onClick={onBack} />
-          <Text style={styles.usernameStep?.title}>
+          <BackButton styles={styles} onClick={onBack} />
+          <Text style={styles.common?.stepTitle}>
             {dictionary?.createUsername}
           </Text>
           <StyledTextField
+            styles={styles}
             placeholder={dictionary?.enterUsername}
             value={username}
             onChangeText={setUsername}
-            icon={<UserIcon color="rgb(107 114 128)" size={16} />}
+            Icon={UserIcon}
             maxLength={320}
             keyboardType="default"
             autoCapitalize="none"
@@ -238,9 +240,9 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
           <Button
             onPress={onFinish}
             label={dictionary?.createAccount}
-            labelProps={{ style: styles.usernameStep?.nextButtonLabel }}
+            labelProps={{ style: styles.common?.nextButtonLabel }}
             style={{
-              ...styles.usernameStep?.nextButton,
+              ...styles.common?.nextButton,
               opacity:
                 username === "" || username.length < 4 || isLoadingUsernameStep
                   ? 0.5
@@ -261,8 +263,8 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
       data-test="register-verify-email-step"
     >
       <View style={styles.verifyEmailStep?.cardContainer}>
-        <BackButton onClick={onBack} />
-        <Text style={styles.verifyEmailStep?.title}>
+        <BackButton styles={styles} onClick={onBack} />
+        <Text style={styles.common?.stepTitle}>
           {dictionary?.verifyEmailStep.verifyEmail}
         </Text>
         <Text style={styles.verifyEmailStep?.subtitle}>
@@ -270,6 +272,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
         </Text>
         <View style={styles.verifyEmailStep?.inputContainer}>
           <StyledTextField
+            styles={styles}
             value={secureCode}
             onChangeText={setSecureCode}
             maxLength={6}
@@ -287,13 +290,13 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
           label={dictionary?.confirmCode}
           disabled={secureCode.length !== 6 || isLoadingEmailValidationStep}
           style={{
-            ...styles.verifyEmailStep?.nextButton,
+            ...styles.common?.nextButton,
             opacity:
               secureCode.length === 6 || !isLoadingEmailValidationStep
                 ? 1
                 : 0.5,
           }}
-          labelProps={styles.passwordStep?.nextButtonLabel}
+          labelProps={styles.common?.nextButtonLabel}
         />
         <Button
           onPress={onResendEmail}
@@ -312,11 +315,16 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
     <View style={styles.passwordStep?.container}>
       <Card style={styles.passwordStep?.card}>
         <View style={styles.passwordStep?.cardContainer}>
-          <BackButton onClick={onBack} disabled={isLoadingPasswordStep} />
-          <Text style={styles.passwordStep?.title}>
+          <BackButton
+            styles={styles}
+            onClick={onBack}
+            disabled={isLoadingPasswordStep}
+          />
+          <Text style={styles.common?.stepTitle}>
             {dictionary?.register.createPassword}
           </Text>
           <StyledTextField
+            styles={styles}
             secureTextEntry
             label={dictionary?.register.passwordLabel}
             placeholder={dictionary?.register.enterPassword}
@@ -329,6 +337,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
             autoComplete="off"
           />
           <StyledTextField
+            styles={styles}
             secureTextEntry
             label={dictionary?.register.passwordConfirmLabel}
             placeholder={dictionary?.register.enterPassword}
@@ -348,9 +357,9 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
           <Button
             onPress={onCompleteRegistration}
             label={dictionary?.next}
-            labelProps={{ style: styles.passwordStep?.nextButtonLabel }}
+            labelProps={{ style: styles.common?.nextButtonLabel }}
             style={{
-              ...styles.passwordStep?.nextButton,
+              ...styles.common?.nextButton,
               opacity: isPasswordValid ? 1 : 0.5,
             }}
             disabled={!isPasswordValid || isLoadingPasswordStep}

@@ -6,7 +6,7 @@ import { useActor } from "@xstate/react";
 import useAuthServiceInstance from "../../hooks/useAuthServiceInstance";
 import StyledTextField from "../StyledTextField";
 import { EnvelopeIcon } from "react-native-heroicons/solid";
-import { mergeStyles, validateEmailPattern } from "../../helpers";
+import { validateEmailPattern } from "../../helpers";
 import { Path, Svg } from "react-native-svg";
 import BackButton from "../BackButton";
 import { stepStyles } from "./styles";
@@ -132,13 +132,14 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
     <View style={styles.emailStep?.container}>
       <Card style={styles.emailStep?.card}>
         <View style={styles.emailStep?.cardContainer}>
-          <BackButton onClick={onBack} />
-          <Text style={styles.emailStep?.title}>{dictionary?.emailLabel}</Text>
+          <BackButton styles={styles} onClick={onBack} />
+          <Text style={styles.common?.stepTitle}>{dictionary?.emailLabel}</Text>
           <StyledTextField
+            styles={styles}
             placeholder={dictionary?.emailPlaceholder}
             value={email}
             onChangeText={setEmail}
-            icon={<EnvelopeIcon color="rgb(107 114 128)" size={16} />}
+            Icon={EnvelopeIcon}
             maxLength={320}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -148,9 +149,9 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
           <Button
             onPress={onFetchSalt}
             label={dictionary?.next}
-            labelProps={{ style: styles.emailStep?.nextButtonLabel }}
+            labelProps={{ style: styles.common?.nextButtonLabel }}
             style={{
-              ...styles.emailStep?.nextButton,
+              ...styles.common?.nextButton,
               opacity: isEmailValid ? 1 : 0.5,
             }}
             disabled={
@@ -175,11 +176,12 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
     <View style={styles.passwordStep?.container}>
       <Card style={styles.passwordStep?.card}>
         <View style={styles.passwordStep?.cardContainer}>
-          <BackButton onClick={onBack} />
-          <Text style={styles.passwordStep?.title}>
+          <BackButton styles={styles} onClick={onBack} />
+          <Text style={styles.common?.stepTitle}>
             {dictionary?.login.enterPassword}
           </Text>
           <StyledTextField
+            styles={styles}
             secureTextEntry
             label={dictionary?.login.password}
             placeholder={dictionary?.login.passwordPlaceholder}
@@ -194,9 +196,9 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
           <Button
             onPress={onVerifyLogin}
             label={dictionary?.next}
-            labelProps={{ style: styles.passwordStep?.nextButtonLabel }}
+            labelProps={{ style: styles.common?.nextButtonLabel }}
             style={{
-              ...styles.passwordStep?.nextButton,
+              ...styles.common?.nextButton,
               opacity: password.length > 8 ? 1 : 0.5,
             }}
             disabled={
@@ -215,8 +217,8 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
       data-test="register-verify-email-step"
     >
       <View style={styles.verifyEmailStep?.cardContainer}>
-        <BackButton onClick={onBack} />
-        <Text style={styles.verifyEmailStep?.title}>
+        <BackButton styles={styles} onClick={onBack} />
+        <Text style={styles.common?.stepTitle}>
           {dictionary?.verifyEmailStep.verifyEmail}
         </Text>
         <Text style={styles.verifyEmailStep?.subtitle}>
@@ -224,6 +226,7 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
         </Text>
         <View style={styles.verifyEmailStep?.inputContainer}>
           <StyledTextField
+            styles={styles}
             value={secureCode}
             onChangeText={setSecureCode}
             maxLength={6}
@@ -241,13 +244,13 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
           label={dictionary?.confirmCode}
           disabled={secureCode.length !== 6 || isLoadingEmailValidationStep}
           style={{
-            ...styles.verifyEmailStep?.nextButton,
+            ...styles.common?.nextButton,
             opacity:
               secureCode.length === 6 || !isLoadingEmailValidationStep
                 ? 1
                 : 0.5,
           }}
-          labelProps={styles.passwordStep?.nextButtonLabel}
+          labelProps={styles.common?.nextButtonLabel}
         />
         <Button
           onPress={onResendEmail}

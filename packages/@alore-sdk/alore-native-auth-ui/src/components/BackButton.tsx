@@ -1,16 +1,19 @@
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet, View } from "react-native";
+import { TouchableOpacity, Text } from "react-native";
 import { ArrowLeftCircleIcon } from "react-native-heroicons/solid";
-import { Colors } from "react-native-ui-lib";
+import { stepStyles } from "./Steps/styles";
+import { RecursivePartial } from "../types";
 
 interface Props {
   onClick: () => void;
+  styles?: RecursivePartial<typeof stepStyles>;
   disabled?: boolean;
   label?: string;
 }
 
 const BackButton = ({
   onClick,
+  styles,
   disabled = false,
   label = "Voltar",
   ...props
@@ -18,29 +21,12 @@ const BackButton = ({
   <TouchableOpacity
     {...props}
     onPress={!disabled ? onClick : undefined}
-    style={[styles.button]}
+    style={styles?.common?.backButton}
     disabled={disabled}
   >
-    <ArrowLeftCircleIcon style={styles.icon} />
-    <Text style={[styles.label]}>{label}</Text>
+    <ArrowLeftCircleIcon style={styles?.common?.backButtonIcon} />
+    <Text style={styles?.common?.backButtonLabel}>{label}</Text>
   </TouchableOpacity>
 );
-
-const styles = StyleSheet.create({
-  button: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginBottom: 20,
-  },
-  label: {
-    color: "black",
-  },
-  icon: {
-    height: 16,
-    width: 16,
-    color: Colors.grey10,
-  },
-});
 
 export default BackButton;

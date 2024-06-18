@@ -2,6 +2,64 @@ import { StyleSheet } from "react-native";
 import { Colors } from "../../constants/Colors";
 
 export const stepStyles = {
+  common: StyleSheet.create({
+    stepTitle: {
+      fontSize: 28,
+      fontWeight: "bold",
+      color: Colors.gray[900],
+    },
+    inputContainer: {
+      backgroundColor: "transparent",
+      paddingBottom: 12,
+      flexDirection: "row",
+      width: "100%",
+      alignItems: "center",
+      borderBottomWidth: 1,
+    },
+    inputIconContainer: {
+      paddingHorizontal: 10,
+    },
+    inputIcon: {
+      color: "rgb(107 114 128)",
+    },
+    inputField: {
+      color: "white",
+      fontSize: 16,
+      fontWeight: "400",
+    },
+    inputFieldPlaceholderColor: {
+      color: "white",
+    },
+    inputErrorMessage: {
+      marginTop: 12,
+      marginLeft: 4,
+      color: Colors.red[500],
+    },
+    nextButton: {
+      backgroundColor: "#E64848",
+      height: 48,
+      paddingHorizontal: 20,
+    },
+    nextButtonLabel: {
+      color: "#fff",
+      fontFamily: "Inter-SemiBold",
+      fontSize: 16,
+    },
+    backButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      marginBottom: 20,
+    },
+    backButtonLabel: {
+      color: "black",
+    },
+    backButtonIcon: {
+      height: 16,
+      width: 16,
+      color: "black",
+    },
+  }),
   initialStep: StyleSheet.create({
     container: {
       flex: 1,
@@ -26,16 +84,6 @@ export const stepStyles = {
       color: Colors.gray[900],
       marginTop: 4,
     },
-    enterButton: {
-      backgroundColor: "#E64848",
-      height: 48,
-      paddingHorizontal: 20,
-    },
-    enterButtonLabel: {
-      color: "#fff",
-      fontSize: 16,
-      fontWeight: "600",
-    },
     createAccountButton: {
       backgroundColor: "transparent",
       height: 48,
@@ -46,7 +94,7 @@ export const stepStyles = {
     createAccountButtonLabel: {
       color: Colors.gray[900],
       fontSize: 16,
-      fontWeight: "600",
+      fontFamily: "Inter-SemiBold",
     },
   }),
   emailStep: StyleSheet.create({
@@ -67,11 +115,6 @@ export const stepStyles = {
       marginLeft: 30,
       marginRight: 30,
     },
-    title: {
-      fontSize: 28,
-      fontWeight: "bold",
-      color: Colors.gray[900],
-    },
     googleButton: {
       backgroundColor: "transparent",
       height: 48,
@@ -79,16 +122,6 @@ export const stepStyles = {
       marginTop: 30,
       borderColor: Colors.gray[900],
       borderWidth: 1,
-    },
-    nextButton: {
-      backgroundColor: "#E64848",
-      height: 48,
-      paddingHorizontal: 20,
-    },
-    nextButtonLabel: {
-      color: "#fff",
-      fontSize: 16,
-      fontWeight: "600",
     },
     createAccountButton: {
       backgroundColor: "transparent",
@@ -121,22 +154,6 @@ export const stepStyles = {
       marginLeft: 30,
       marginRight: 30,
     },
-    title: {
-      fontSize: 28,
-      fontWeight: "bold",
-      color: Colors.gray[900],
-    },
-    backButton: {
-      backgroundColor: "transparent",
-      height: 48,
-      paddingHorizontal: 0,
-      marginRight: "auto",
-    },
-    backButtonLabel: {
-      color: Colors.gray[900],
-      fontSize: 16,
-      fontWeight: "600",
-    },
     googleButton: {
       backgroundColor: "transparent",
       height: 48,
@@ -144,16 +161,6 @@ export const stepStyles = {
       marginTop: 30,
       borderColor: Colors.gray[900],
       borderWidth: 1,
-    },
-    nextButton: {
-      backgroundColor: "#E64848",
-      height: 48,
-      paddingHorizontal: 20,
-    },
-    nextButtonLabel: {
-      color: "#fff",
-      fontSize: 16,
-      fontWeight: "600",
     },
     createAccountButton: {
       backgroundColor: "transparent",
@@ -186,35 +193,6 @@ export const stepStyles = {
       marginLeft: 30,
       marginRight: 30,
     },
-    title: {
-      fontSize: 28,
-      fontWeight: "bold",
-      color: Colors.gray[900],
-    },
-    backButton: {
-      backgroundColor: "transparent",
-      height: 48,
-      paddingHorizontal: 0,
-      marginRight: "auto",
-      marginTop: 20,
-    },
-    backButtonLabel: {
-      color: Colors.gray[900],
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    nextButton: {
-      backgroundColor: "#E64848",
-      height: 48,
-      marginHorizontal: "auto",
-      marginTop: 30,
-      width: "100%",
-    },
-    nextButtonLabel: {
-      color: "#fff",
-      fontSize: 16,
-      fontWeight: "600",
-    },
   }),
   verifyEmailStep: StyleSheet.create({
     container: {
@@ -225,42 +203,12 @@ export const stepStyles = {
       marginLeft: 30,
       marginRight: 30,
     },
-    backButton: {
-      backgroundColor: "transparent",
-      height: 48,
-      paddingHorizontal: 0,
-      marginRight: "auto",
-      marginBottom: 20,
-    },
-    backButtonLabel: {
-      color: Colors.gray[900],
-      fontSize: 16,
-      fontWeight: "600",
-    },
-    title: {
-      marginBottom: 20,
-      fontSize: 28,
-      fontWeight: "bold",
-      color: Colors.gray[900],
-    },
     subtitle: {
       fontSize: 16,
       color: Colors.gray[900],
     },
     inputContainer: {
       marginBottom: 24,
-    },
-    nextButton: {
-      backgroundColor: "#E64848",
-      height: 48,
-      marginHorizontal: "auto",
-      marginTop: 30,
-      width: "100%",
-    },
-    nextButtonLabel: {
-      color: "#fff",
-      fontSize: 16,
-      fontWeight: "600",
     },
     spinner: {
       marginRight: 10,
@@ -280,6 +228,7 @@ export const stepStyles = {
       backgroundColor: "transparent",
       height: 48,
       paddingHorizontal: 20,
+      marginTop: 20,
     },
     resendEmailButtonLabel: {
       color: Colors.gray[900],

@@ -31,8 +31,8 @@ export const InitialStep: React.FC<InitialStepProps> = ({ styles }) => {
           <Button
             onPress={onLoginStep}
             label={dictionary?.start}
-            labelProps={{ style: styles.initialStep?.enterButtonLabel }}
-            style={styles.initialStep?.enterButton}
+            labelProps={{ style: styles.common?.nextButtonLabel }}
+            style={styles.common?.nextButton}
           />
           <Text style={styles.initialStep?.text}>
             {dictionary?.registerCta}

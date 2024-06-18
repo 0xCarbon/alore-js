@@ -1,62 +1,37 @@
-import { Colors } from '../constants/Colors';
-import { StyleSheet } from 'react-native';
-import { Text, TextField, TextFieldProps, View } from 'react-native-ui-lib';
+import { StyleSheet } from "react-native";
+import { Text, TextField, TextFieldProps, View } from "react-native-ui-lib";
+import { stepStyles } from "./Steps/styles";
+import { RecursivePartial } from "../types";
 
 interface StyledTextField {
-  icon?: React.ReactNode;
-  styles?: Partial<typeof defaultStyles>;
+  Icon?: React.ComponentType<{ color?: string; size?: number; style?: any }>;
+  styles?: RecursivePartial<typeof stepStyles>;
   errorMessage?: string;
 }
 
 const StyledTextField = ({
-  icon,
+  Icon,
   styles,
   errorMessage,
   ...props
 }: StyledTextField & TextFieldProps) => {
-  const mergedStyles = StyleSheet.flatten([defaultStyles, styles || {}]);
-
   return (
-    <View style={mergedStyles.container}>
-      {icon && (
-        <View style={mergedStyles.iconContainer}>
-          <View>{icon}</View>
+    <View style={styles?.common?.inputContainer}>
+      {Icon && (
+        <View style={styles?.common?.inputIconContainer}>
+          <Icon style={styles?.common?.inputIcon} size={16} />
         </View>
       )}
-      <View style={mergedStyles.textFieldContainer}>
-        <TextField {...props} style={mergedStyles.textField} />
-      </View>
+      <TextField
+        {...props}
+        style={styles?.common?.inputField}
+        placeholderTextColor={styles?.common?.inputFieldPlaceholderColor?.color}
+      />
       {errorMessage && (
-        <Text style={mergedStyles.errorMessage}>{errorMessage}</Text>
+        <Text style={styles?.common?.inputErrorMessage}>{errorMessage}</Text>
       )}
     </View>
   );
 };
-
-const defaultStyles = StyleSheet.create({
-  container: {
-    backgroundColor: 'transparent',
-    paddingBottom: 12,
-    borderRadius: 8,
-    flexDirection: 'row',
-    width: '100%',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-  },
-  iconContainer: {
-    paddingHorizontal: 10,
-  },
-  textFieldContainer: { flexGrow: 1, flex: 1 },
-  textField: {
-    color: Colors.gray[900],
-    fontSize: 16,
-    fontWeight: '400',
-  },
-  errorMessage: {
-    marginTop: 12,
-    marginLeft: 4,
-    color: Colors.red[500],
-  },
-});
 
 export default StyledTextField;
