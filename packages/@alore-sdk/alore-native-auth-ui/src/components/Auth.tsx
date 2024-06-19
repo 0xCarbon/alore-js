@@ -1,13 +1,13 @@
-import LoginSteps from "./Steps/LoginSteps";
-import { useActor } from "@xstate/react";
-import React, { useEffect } from "react";
-import InitialStep from "./Steps/InitialStep";
-import { SessionUser } from "../machine/types";
-import RegistrationSteps from "./Steps/RegistrationSteps";
-import useAuthServiceInstance from "../hooks/useAuthServiceInstance";
-import { stepStyles } from "./Steps/styles";
-import { RecursivePartial } from "../types";
-import { mergeStyles } from "../helpers";
+import LoginSteps from './Steps/LoginSteps';
+import { useActor } from '@xstate/react';
+import React, { useEffect } from 'react';
+import InitialStep from './Steps/InitialStep';
+import { SessionUser } from '../machine/types';
+import RegistrationSteps from './Steps/RegistrationSteps';
+import useAuthServiceInstance from '../hooks/useAuthServiceInstance';
+import { stepStyles } from './Steps/styles';
+import { RecursivePartial } from '../types';
+import { mergeStyles } from '../helpers';
 
 export interface AuthProps {
   styles?: RecursivePartial<typeof stepStyles>;
@@ -17,7 +17,7 @@ export interface AuthProps {
     generateSecureHash: (
       data: string,
       salt: string,
-      keyDerivationFunction: "argon2d" | "pbkdf2",
+      keyDerivationFunction: 'argon2d' | 'pbkdf2',
     ) => Promise<string>;
   };
 }
@@ -28,17 +28,17 @@ const Auth = ({ styles, onSuccess, cryptoUtils }: AuthProps) => {
   const { sessionUser } = authState.context;
 
   useEffect(() => {
-    sendAuth([{ type: "INITIALIZE" }]);
+    sendAuth([{ type: 'INITIALIZE' }]);
 
     return () => {
-      sendAuth("RESET");
+      sendAuth('RESET');
     };
   }, []);
 
   useEffect(() => {
     if (
-      (authState.matches("active.login.successfulLogin") ||
-        authState.matches("active.register.userCreated")) &&
+      (authState.matches('active.login.successfulLogin') ||
+        authState.matches('active.register.userCreated')) &&
       sessionUser
     ) {
       onSuccess?.(sessionUser);
@@ -49,13 +49,13 @@ const Auth = ({ styles, onSuccess, cryptoUtils }: AuthProps) => {
 
   return (
     <>
-      {authState.matches("active.initial") && (
+      {authState.matches('active.initial') && (
         <InitialStep styles={mergedStyles} />
       )}
-      {authState.matches("active.register") && (
+      {authState.matches('active.register') && (
         <RegistrationSteps styles={mergedStyles} cryptoUtils={cryptoUtils} />
       )}
-      {authState.matches("active.login") && (
+      {authState.matches('active.login') && (
         <LoginSteps styles={mergedStyles} cryptoUtils={cryptoUtils} />
       )}
     </>

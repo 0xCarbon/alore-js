@@ -14,14 +14,36 @@ export type SessionUser = {
   status: string;
 };
 
-interface PublicKeyCredentialRequestOptions {
+interface Rp {
+  name: string;
+  id: string;
+}
+
+interface User {
+  id: string;
+  name: string;
+  displayName: string;
+}
+
+interface PubKeyCredParam {
+  type: string;
+  alg: number;
+}
+
+interface AuthenticatorSelection {
+  requireResidentKey: boolean;
+  userVerification: string;
+}
+
+interface PublicKeyCredentialCreationOptions {
+  rp: Rp;
+  user: User;
   challenge: string;
-  timeout?: number;
-  rpId: string;
-  pubKeyCredParams: [];
-  allowCredentials?: [];
-  userVerification?: {};
-  extensions?: {};
+  pubKeyCredParams: PubKeyCredParam[];
+  timeout: number;
+  attestation: string;
+  authenticatorSelection: AuthenticatorSelection;
+  extensions: Record<string, unknown>;
 }
 
 export interface AuthMachineContext {
@@ -29,7 +51,7 @@ export interface AuthMachineContext {
   sessionUser?: SessionUser;
   locale: Locale;
   sessionId?: string;
-  CCRPublicKey?: { publicKey: PasskeyRegistrationRequest };
+  CCRPublicKey?: { publicKey: PublicKeyCredentialCreationOptions };
   RCRPublicKey?: { publicKey: PublicKeyCredentialRequestOptions };
   salt?: string;
   error?: string;
@@ -40,6 +62,11 @@ export interface AuthMachineContext {
   };
   googleOtpCode?: string;
   googleUser?: { email: string; nickname: string };
+  authMethods: {
+    password?: boolean;
+    passkey?: boolean;
+    google?: boolean;
+  };
 }
 
 export type AuthMachineEvents =
@@ -64,7 +91,6 @@ export type AuthMachineEvents =
       payload: {
         CCRPublicKey: { publicKey: PasskeyRegistrationRequest };
         withSecurityKey?: boolean;
-        userAgent: string;
       };
     }
   | {

@@ -11,13 +11,19 @@ interface AuthProviderProps {
   machineServices: {};
   locale?: Locale;
   googleId?: string;
+  authMethods: {
+    password?: boolean;
+    passkey?: boolean;
+    google?: boolean;
+  };
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({
   machineServices,
   children,
-  locale = 'en',
+  locale = 'pt',
   googleId,
+  authMethods,
 }) => {
   const [authServiceInstance, setAuthServiceInstance] = useState<ReturnType<
     typeof authService
@@ -28,7 +34,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       const resolvedState = await getResolvedState();
       const auth = authService(
         machineServices,
-        { locale, googleId },
+        { locale, googleId, authMethods },
         resolvedState,
       );
 

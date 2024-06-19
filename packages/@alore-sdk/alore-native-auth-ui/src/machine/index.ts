@@ -8,6 +8,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const initialContext: AuthMachineContext = {
   locale: 'en',
+  authMethods: {
+    google: false,
+    passkey: false,
+    password: false,
+  },
 };
 
 export const authMachine = createMachine(
@@ -22,8 +27,6 @@ export const authMachine = createMachine(
       services: {} as AuthMachineServices,
       events: {} as AuthMachineEvents,
     },
-
-    context: initialContext,
 
     states: {
       inactive: {
@@ -409,24 +412,31 @@ export const authMachine = createMachine(
                       onDone: {
                         target:
                           '#authMachine.active.register.passkeyStep.passkeyResult',
-                        actions: (_context, event) => console.log(event.data),
+                        actions: (_context, event) => {
+                          console.log('DONE');
+                          console.log(event.data);
+                        },
                       },
 
                       onError: {
                         target: '#authMachine.active.register.usernameStep',
-                        actions: (_context, event) =>
-                          assign({
+                        actions: (_context, event) => {
+                          console.log('ERROR');
+                          console.log(event.data);
+
+                          return assign({
                             error:
                               event.data?.error ||
                               event.data?.message ||
                               event.data,
-                          }),
+                          });
+                        },
                       },
                     },
                   },
                   passkeyResult: {},
                 },
-                initial: 'start',
+                initial: 'idle', // TODO: Change to start
               },
             },
 
@@ -510,10 +520,17 @@ export const getResolvedState = async () => {
 
   if (state) {
     const stateDefinition = JSON.parse(state);
-    const previousState = State.create(stateDefinition);
+    const currentTime = Date.now();
+    const threeHoursInMilliseconds = 3 * 60 * 60 * 1000;
 
-    // @ts-ignore
-    resolvedState = authMachine.resolveState(previousState);
+    if (currentTime - stateDefinition.timestamp < threeHoursInMilliseconds) {
+      const previousState = State.create(stateDefinition);
+
+      // @ts-ignore
+      resolvedState = authMachine.resolveState(previousState);
+    } else {
+      await AsyncStorage.removeItem('authState');
+    }
   }
 
   return resolvedState;
@@ -523,8 +540,14 @@ export const authService = (
   services: {},
   context: AuthMachineContext,
   resolvedState?: Awaited<ReturnType<typeof getResolvedState>>,
-) =>
-  interpret(
+) => {
+  const mergedContext = {
+    ...authMachine.context,
+    ...initialContext,
+    ...context,
+  };
+
+  return interpret(
     authMachine.withConfig(
       {
         services,
@@ -534,12 +557,20 @@ export const authService = (
         },
         actions: {},
       },
-      { ...authMachine.context, ...context },
+      mergedContext,
     ),
   )
     .onTransition(async state => {
       if (state.changed && state.matches('inactive')) {
-        await AsyncStorage.setItem('authState', JSON.stringify(state));
+        const stateWithTimestamp = {
+          ...state,
+          timestamp: Date.now(),
+        };
+        await AsyncStorage.setItem(
+          'authState',
+          JSON.stringify(stateWithTimestamp),
+        );
       }
     })
     .start(resolvedState);
+};

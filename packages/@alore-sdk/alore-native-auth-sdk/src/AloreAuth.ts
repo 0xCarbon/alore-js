@@ -1,8 +1,10 @@
 // import { startAuthentication } from '@simplewebauthn/browser';
 // import ethers from 'ethers';
-// import base64url from 'base64url';
+import base64url from "base64url";
 import crypto from "crypto";
 import argon2 from "react-native-argon2";
+import { Passkey, PasskeyRegistrationResult } from "react-native-passkey";
+import { PasskeyRegistrationRequest } from "react-native-passkey/lib/typescript/Passkey";
 // import { jwtDecode } from 'jwt-decode';
 
 export function hashUserInfo(userInfo: string) {
@@ -33,6 +35,38 @@ export async function generateSecureHash(
 }
 
 const DEFAULT_URL = "https://alpha-api.bealore.com/v1";
+
+interface Rp {
+  name: string;
+  id: string;
+}
+
+interface User {
+  id: string;
+  name: string;
+  displayName: string;
+}
+
+interface PubKeyCredParam {
+  type: string;
+  alg: number;
+}
+
+interface AuthenticatorSelection {
+  requireResidentKey: boolean;
+  userVerification: string;
+}
+
+interface PublicKeyCredentialCreationOptions {
+  rp: Rp;
+  user: User;
+  challenge: string;
+  pubKeyCredParams: PubKeyCredParam[];
+  timeout: number;
+  attestation: string;
+  authenticatorSelection: AuthenticatorSelection;
+  extensions: Record<string, unknown>;
+}
 
 export interface AloreAuthConfiguration {
   endpoint?: string;
@@ -100,6 +134,108 @@ export class AloreAuth {
   }
 
   services = {
+    userInputRegisterPasskey: async (
+      _: AuthMachineContext,
+      event: {
+        type: "USER_INPUT_PASSKEY_REGISTER";
+        payload: {
+          CCRPublicKey: { publicKey: PublicKeyCredentialCreationOptions };
+          withSecurityKey?: boolean;
+        };
+      }
+    ) => {
+      const publicKey = event.payload.CCRPublicKey?.publicKey;
+      const withSecurityKey = event.payload.withSecurityKey || false;
+
+      if (!publicKey) {
+        throw new Error("PublicKeyCredentialCreationOptions is undefined");
+      }
+
+      console.log(Passkey.isSupported());
+      console.log(publicKey);
+
+      const result = await Passkey.register(
+        {
+          challenge: base64url.encode(publicKey.challenge),
+          rp: {
+            id: publicKey.rp.id,
+            name: publicKey.rp.name,
+          },
+          user: {
+            id: base64url.encode(publicKey.user.id),
+            name: publicKey.user.name,
+            displayName: publicKey.user.displayName,
+          },
+          pubKeyCredParams: [
+            {
+              type: "public-key",
+              alg: -7,
+            },
+            {
+              type: "public-key",
+              alg: -257,
+            },
+          ],
+          timeout: publicKey.timeout,
+          attestation: publicKey.attestation,
+          authenticatorSelection: {
+            authenticatorAttachment: "platform",
+            requireResidentKey: true,
+          },
+          extensions: {
+            prf: {},
+          },
+        },
+        { withSecurityKey }
+      );
+
+      console.log("result");
+      console.log(result);
+
+      return result;
+    },
+    finishRegisterPasskey: async (
+      context: AuthMachineContext,
+      event: {
+        type: "FINISH_PASSKEY_REGISTER";
+        payload: {
+          passkeyRegistration: {
+            id: string;
+            rawId: string;
+            response: {
+              attestationObject: string;
+              clientDataJSON: string;
+            };
+            type: string;
+          };
+          email: string;
+          nickname: string;
+          device: string;
+        };
+      }
+    ) => {
+      const { email, nickname, device, passkeyRegistration } = event.payload;
+      const response = await this.fetchWithProgressiveBackoff(
+        `/auth/account-registration-passkey-finish`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userEmail: email,
+            userNickname: nickname,
+            userDevice: device,
+            passkeyRegistration,
+            sessionId: context.sessionId,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) return data;
+    },
     completeRegistration: async (
       _: AuthMachineContext,
       event: {
@@ -260,6 +396,8 @@ export class AloreAuth {
     ) => {
       const { email, nickname, device } = event.payload;
 
+      console.log({ email, nickname, device });
+
       const startPasskeyRegistrationResponse =
         await this.fetchWithProgressiveBackoff(
           `/auth/account-registration-passkey`,
@@ -277,6 +415,8 @@ export class AloreAuth {
         );
 
       const ccr = await startPasskeyRegistrationResponse.json();
+      console.log("ccr");
+      console.log(ccr);
 
       return ccr;
     },
