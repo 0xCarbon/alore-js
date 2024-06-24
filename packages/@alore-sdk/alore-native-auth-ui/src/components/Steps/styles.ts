@@ -174,6 +174,24 @@ export const stepStyles = {
       fontSize: 16,
       fontWeight: "600",
     },
+    formRulesContainer: {
+      marginVertical: 4,
+      flexDirection: "column",
+      gap: 8,
+    },
+    formRulesRuleContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
+    formRulesIcon: {
+      height: 12,
+      width: 12,
+    },
+    formRulesRuleText: {
+      fontSize: 11,
+      color: "#6B7280",
+    },
   }),
   usernameStep: StyleSheet.create({
     container: {
