@@ -5,36 +5,43 @@ import { Locale } from "../helpers/get-dictionary";
 import { CheckIcon, XMarkIcon } from "react-native-heroicons/solid";
 import { passwordRules, ruleValidation } from "../helpers";
 import { stepStyles } from "./Steps/styles";
+import { RecursivePartial } from "../types";
 
 interface FormRulesProps {
+  styles: RecursivePartial<typeof stepStyles>;
   locale: Locale;
   passwordValues: { password: string; confirmPassword: string };
   userValues?: { email: string; nickname: string };
   className?: string;
 }
 
-const FormRules = ({ locale, passwordValues, userValues }: FormRulesProps) => {
+const FormRules = ({
+  styles,
+  locale,
+  passwordValues,
+  userValues,
+}: FormRulesProps) => {
   const dictionary = useDictionary(locale);
 
   return (
-    <View style={[stepStyles.passwordStep.formRulesContainer]}>
+    <View style={[styles.passwordStep?.formRulesContainer]}>
       {passwordRules.map((rule) => (
         <View
           key={rule.name}
-          style={stepStyles.passwordStep.formRulesRuleContainer}
+          style={styles.passwordStep?.formRulesRuleContainer}
         >
           {ruleValidation(rule, passwordValues, userValues) ? (
             <CheckIcon
-              style={stepStyles.passwordStep.formRulesIcon}
+              style={styles.passwordStep?.formRulesIcon}
               color="#10B981"
             />
           ) : (
             <XMarkIcon
-              style={stepStyles.passwordStep.formRulesIcon}
+              style={styles.passwordStep?.formRulesIcon}
               color="#EF4444"
             />
           )}
-          <Text style={stepStyles.passwordStep.formRulesRuleText}>
+          <Text style={styles.passwordStep?.formRulesRuleText}>
             {
               dictionary?.passwordRules[
                 rule.key as keyof (typeof dictionary)["passwordRules"]

@@ -376,6 +376,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
             autoComplete="off"
           />
           <FormRules
+            styles={styles}
             locale={locale}
             passwordValues={{ password, confirmPassword }}
             userValues={{ email, nickname: username }}
