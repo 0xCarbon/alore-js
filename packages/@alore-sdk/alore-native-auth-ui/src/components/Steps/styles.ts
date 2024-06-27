@@ -28,7 +28,7 @@ export const stepStyles = {
       fontWeight: '400',
     },
     inputFieldPlaceholderColor: {
-      color: 'white',
+      color: 'rgb(107 114 128)',
     },
     inputErrorMessage: {
       marginTop: 12,
@@ -99,9 +99,9 @@ export const stepStyles = {
   }),
   emailStep: StyleSheet.create({
     container: {
-      flex: 1,
       justifyContent: 'center',
       alignContent: 'center',
+      width: '100%',
     },
     card: {
       width: '100%',
@@ -138,9 +138,9 @@ export const stepStyles = {
   }),
   passwordStep: StyleSheet.create({
     container: {
-      flex: 1,
       justifyContent: 'center',
       alignContent: 'center',
+      width: '100%',
     },
     card: {
       width: '100%',
@@ -174,12 +174,30 @@ export const stepStyles = {
       fontSize: 16,
       fontWeight: '600',
     },
+    formRulesContainer: {
+      marginVertical: 4,
+      flexDirection: 'column',
+      gap: 8,
+    },
+    formRulesRuleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    formRulesIcon: {
+      height: 12,
+      width: 12,
+    },
+    formRulesRuleText: {
+      fontSize: 11,
+      color: '#6B7280',
+    },
   }),
   usernameStep: StyleSheet.create({
     container: {
-      flex: 1,
       justifyContent: 'center',
       alignContent: 'center',
+      width: '100%',
     },
     card: {
       width: '100%',
@@ -196,14 +214,17 @@ export const stepStyles = {
   }),
   verifyEmailStep: StyleSheet.create({
     container: {
-      flex: 1,
       justifyContent: 'center',
+      alignContent: 'center',
+      width: '100%',
     },
     cardContainer: {
       marginLeft: 30,
       marginRight: 30,
     },
     subtitle: {
+      marginTop: 8,
+      marginBottom: 12,
       fontSize: 16,
       color: Colors.gray[900],
     },

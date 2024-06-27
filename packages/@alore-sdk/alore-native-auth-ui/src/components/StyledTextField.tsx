@@ -1,4 +1,3 @@
-import { StyleSheet } from "react-native";
 import { Text, TextField, TextFieldProps, View } from "react-native-ui-lib";
 import { stepStyles } from "./Steps/styles";
 import { RecursivePartial } from "../types";
@@ -25,6 +24,7 @@ const StyledTextField = ({
       <TextField
         {...props}
         style={styles?.common?.inputField}
+        labelStyle={styles?.common?.inputField}
         placeholderTextColor={styles?.common?.inputFieldPlaceholderColor?.color}
       />
       {errorMessage && (

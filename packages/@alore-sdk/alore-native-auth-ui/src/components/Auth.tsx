@@ -1,6 +1,4 @@
-import LoginSteps from './Steps/LoginSteps';
-import { useActor } from '@xstate/react';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import InitialStep from './Steps/InitialStep';
 import { SessionUser } from '../machine/types';
 import RegistrationSteps from './Steps/RegistrationSteps';
@@ -8,10 +6,15 @@ import useAuthServiceInstance from '../hooks/useAuthServiceInstance';
 import { stepStyles } from './Steps/styles';
 import { RecursivePartial } from '../types';
 import { mergeStyles } from '../helpers';
+import { Toast } from 'react-native-ui-lib/src/incubator';
+import useDictionary from '../hooks/useDictionary';
+import { useActor } from '@xstate/react';
+import LoginSteps from './Steps/LoginSteps';
 
 export interface AuthProps {
   styles?: RecursivePartial<typeof stepStyles>;
   onSuccess?: (sessionUser: SessionUser) => void;
+  toast?: boolean;
   cryptoUtils: {
     hashUserInfo: (userInfo: string) => string;
     generateSecureHash: (
@@ -22,10 +25,36 @@ export interface AuthProps {
   };
 }
 
-const Auth = ({ styles, onSuccess, cryptoUtils }: AuthProps) => {
+const Auth = ({ styles, onSuccess, toast, cryptoUtils }: AuthProps) => {
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
-  const { sessionUser } = authState.context;
+  const { sessionUser, error: authError, locale } = authState.context;
+
+  const dictionary = useDictionary(locale);
+
+  const [showToast, setShowToast] = useState(false);
+
+  const mergedStyles = mergeStyles(stepStyles, styles || {});
+
+  const returnErrorMessage = () => {
+    let errorMesage = dictionary?.errors?.somethingWrong;
+
+    if (authError?.includes('Invalid credentials')) {
+      errorMesage = dictionary?.errors?.invalidEmailPassword;
+    } else if (authError?.includes('Wrong')) {
+      errorMesage = dictionary?.errors?.wrongCode;
+    } else {
+      errorMesage = dictionary?.errors?.wrongCode;
+    }
+
+    return errorMesage;
+  };
+
+  useEffect(() => {
+    if (authError) {
+      setShowToast(true);
+    }
+  }, [authError]);
 
   useEffect(() => {
     sendAuth([{ type: 'INITIALIZE' }]);
@@ -36,16 +65,10 @@ const Auth = ({ styles, onSuccess, cryptoUtils }: AuthProps) => {
   }, []);
 
   useEffect(() => {
-    if (
-      (authState.matches('active.login.successfulLogin') ||
-        authState.matches('active.register.userCreated')) &&
-      sessionUser
-    ) {
+    if (authState.matches('active.signedOn') && sessionUser) {
       onSuccess?.(sessionUser);
     }
   }, [sessionUser]);
-
-  const mergedStyles = mergeStyles(stepStyles, styles || {});
 
   return (
     <>
@@ -53,10 +76,28 @@ const Auth = ({ styles, onSuccess, cryptoUtils }: AuthProps) => {
         <InitialStep styles={mergedStyles} />
       )}
       {authState.matches('active.register') && (
-        <RegistrationSteps styles={mergedStyles} cryptoUtils={cryptoUtils} />
+        <RegistrationSteps
+          toast={toast}
+          styles={mergedStyles}
+          cryptoUtils={cryptoUtils}
+        />
       )}
       {authState.matches('active.login') && (
-        <LoginSteps styles={mergedStyles} cryptoUtils={cryptoUtils} />
+        <LoginSteps
+          toast={toast}
+          styles={mergedStyles}
+          cryptoUtils={cryptoUtils}
+        />
+      )}
+      {toast && (
+        <Toast
+          visible={showToast}
+          position={'bottom'}
+          autoDismiss={5000}
+          onDismiss={() => setShowToast(false)}
+          preset="failure"
+          message={returnErrorMessage()}
+        />
       )}
     </>
   );

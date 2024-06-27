@@ -157,7 +157,7 @@ export const authMachine = createMachine(
                   },
 
                   onDone: {
-                    target: '#authMachine.active.login.successfulLogin',
+                    target: '#authMachine.active.signedOn',
                     actions: assign({
                       sessionUser: (_, event) => event.data,
                     }),
@@ -180,15 +180,6 @@ export const authMachine = createMachine(
                 },
                 entry: assign({
                   error: () => undefined,
-                }),
-              },
-
-              successfulLogin: {
-                type: 'final',
-
-                entry: assign({
-                  googleUser: () => undefined,
-                  registerUser: () => undefined,
                 }),
               },
 
@@ -554,6 +545,12 @@ export const authMachine = createMachine(
               passkeyLoginResult: () => undefined,
               sessionId: () => undefined,
             }),
+            on: {
+              LOGOUT: {
+                target: '#authMachine.inactive',
+                actions: ['clearContext'],
+              },
+            },
           },
         },
 
@@ -569,10 +566,6 @@ export const authMachine = createMachine(
 
     on: {
       RESET_CONTEXT: {
-        target: '#authMachine.inactive',
-        actions: ['clearContext'],
-      },
-      LOGOUT: {
         target: '#authMachine.inactive',
         actions: ['clearContext'],
       },
