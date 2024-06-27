@@ -80,7 +80,10 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
       authState.matches('active.register.completingRegistration') ||
       authState.matches('active.register.sendingEmail') ||
       authState.matches('active.register.verifyingEmail') ||
-      authState.matches('active.register.resendingRegistrationEmail'),
+      authState.matches('active.register.resendingRegistrationEmail') ||
+      authState.matches('active.register.passkeyStep.passkeyResult') ||
+      authState.matches('active.register.passkeyStep.userInputSuccess') ||
+      authState.matches('active.register.passkeyStep.start'),
     [authState.value],
   );
   const { CCRPublicKey, passkeyRegistrationResult, error, salt, authMethods } =

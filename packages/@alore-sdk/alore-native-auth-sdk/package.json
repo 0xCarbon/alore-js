@@ -12,8 +12,7 @@
     "react-native": "0.74.1",
     "react-native-argon2": "2.0.1",
     "react-native-base64": "^0.2.1",
-    "react-native-passkey": "2.1.1",
-    "react-native-passkeys": "^0.2.2"
+    "react-native-passkey": "2.1.1"
   },
   "devDependencies": {
     "@types/node": "20.14.1",

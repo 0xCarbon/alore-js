@@ -196,6 +196,7 @@ export class AloreAuth {
         throw new Error("PublicKeyCredentialCreationOptions is undefined");
       }
 
+      // TODO: add support for security key and ios/android blob/prf
       const loginData: PasskeyAuthenticationRequest = {
         ...publicKey,
       };
@@ -203,7 +204,6 @@ export class AloreAuth {
       const result = await Passkey.authenticate(loginData, {
         withSecurityKey,
       });
-      console.log("🚀 ~ AloreAuth ~ result:", result);
 
       return result;
     },
@@ -293,6 +293,7 @@ export class AloreAuth {
         },
       };
 
+      // TODO: add support for security key and ios/android blob/prf
       const result = await Passkey.register(registerData, {
         withSecurityKey,
       });

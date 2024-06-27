@@ -124,7 +124,10 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
       authState.matches('active.login.retrievingSalt') ||
       authState.matches('active.login.verifyingLogin') ||
       authState.matches('active.login.verifyingEmail2fa') ||
-      authState.matches('active.login.resendingEmailCode'),
+      authState.matches('active.login.resendingEmailCode') ||
+      authState.matches('active.login.passkeyStep.passkeyResult') ||
+      authState.matches('active.login.passkeyStep.start') ||
+      authState.matches('active.login.passkeyStep.userInputSuccess'),
     [authState.value],
   );
 
