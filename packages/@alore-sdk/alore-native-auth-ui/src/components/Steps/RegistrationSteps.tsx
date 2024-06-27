@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import { Card, Text, Button } from 'react-native-ui-lib';
 import useDictionary from '../../hooks/useDictionary';
 import { useActor } from '@xstate/react';
@@ -7,7 +7,6 @@ import useAuthServiceInstance from '../../hooks/useAuthServiceInstance';
 import StyledTextField from '../StyledTextField';
 import { EnvelopeIcon, UserIcon } from 'react-native-heroicons/solid';
 import {
-  mergeStyles,
   passwordRules,
   ruleValidation,
   validateEmailPattern,
@@ -56,8 +55,8 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   styles,
   cryptoUtils,
 }) => {
-  const [email, setEmail] = useState('kenny+ooriginal@0xcarbon.org');
-  const [username, setUsername] = useState('kenny');
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [secureCode, setSecureCode] = useState('');
@@ -75,16 +74,12 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   const isLoadingPasswordStep = authState.matches(
     'active.register.completingRegistration',
   );
-  const { CCRPublicKey, RCRPublicKey, googleId, error, salt, authMethods } =
+  const { CCRPublicKey, passkeyRegistrationResult, error, salt, authMethods } =
     authState.context;
   const { generateSecureHash, hashUserInfo } = cryptoUtils;
 
-  console.log(authState.value);
-
   useEffect(() => {
     if (authState.matches('active.register.passkeyStep.idle') && CCRPublicKey) {
-      console.log('event');
-      console.log(CCRPublicKey);
       sendAuth({
         type: 'USER_INPUT_PASSKEY_REGISTER',
         payload: {
@@ -94,6 +89,31 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
       });
     }
   }, [authState.matches('active.register.passkeyStep.idle')]);
+
+  useEffect(() => {
+    const finishPasskeyRegister = async () => {
+      if (
+        authState.matches('active.register.passkeyStep.userInputSuccess') &&
+        passkeyRegistrationResult
+      ) {
+        const userAgent = await DeviceInfo.getUserAgent();
+        const device = hashUserInfo(userAgent);
+        sendAuth({
+          type: 'FINISH_PASSKEY_REGISTER',
+          payload: {
+            passkeyRegistration: {
+              ...passkeyRegistrationResult,
+            },
+            email,
+            nickname: username,
+            device,
+          },
+        });
+      }
+    };
+
+    finishPasskeyRegister();
+  }, [authState.matches('active.register.passkeyStep.userInputSuccess')]);
 
   const isPasswordValid = useMemo(
     () =>
@@ -129,7 +149,8 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
 
   const onRegisterAction = async () => {
     if (authMethods.passkey) {
-      const device = await DeviceInfo.getUserAgent();
+      const userAgent = await DeviceInfo.getUserAgent();
+      const device = hashUserInfo(userAgent);
 
       sendAuth([
         {

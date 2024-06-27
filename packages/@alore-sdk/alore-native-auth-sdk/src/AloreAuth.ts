@@ -1,11 +1,12 @@
-// import { startAuthentication } from '@simplewebauthn/browser';
-// import ethers from 'ethers';
-import base64url from "base64url";
 import crypto from "crypto";
 import argon2 from "react-native-argon2";
-import { Passkey, PasskeyRegistrationResult } from "react-native-passkey";
-import { PasskeyRegistrationRequest } from "react-native-passkey/lib/typescript/Passkey";
-// import { jwtDecode } from 'jwt-decode';
+import {
+  Passkey,
+  PasskeyAuthenticationResult,
+  PasskeyRegistrationResult,
+} from "react-native-passkey";
+import base64url from "base64url";
+import { PasskeyAuthenticationRequest } from "react-native-passkey/lib/typescript/Passkey";
 
 export function hashUserInfo(userInfo: string) {
   const hash = crypto.createHash("sha256");
@@ -68,6 +69,19 @@ interface PublicKeyCredentialCreationOptions {
   extensions: Record<string, unknown>;
 }
 
+interface PublicKeyCredentialRequestOptions {
+  allowCredentials?: Array<{
+    type: string;
+    id: string;
+    transports?: string[];
+  }>;
+  challenge: string;
+  rpId: string;
+  timeout?: number;
+  userVerification?: "required" | "preferred" | "discouraged";
+  extensions?: Record<string, unknown>;
+}
+
 export interface AloreAuthConfiguration {
   endpoint?: string;
   accessToken?: string;
@@ -119,8 +133,6 @@ interface AuthMachineContext {
 
 export class AloreAuth {
   protected readonly endpoint: string;
-  protected readonly accessToken?: string;
-  protected readonly refreshToken?: string;
 
   constructor(
     public readonly apiKey: string,
@@ -129,11 +141,111 @@ export class AloreAuth {
     if (!apiKey) throw new Error("API_KEY is required");
 
     this.endpoint = options?.endpoint || DEFAULT_URL;
-    this.accessToken = options?.accessToken;
-    this.refreshToken = options?.refreshToken;
   }
 
   services = {
+    finishPasskeyAuth: async (
+      context: AuthMachineContext,
+      event: {
+        type: "FINISH_PASSKEY_LOGIN";
+        payload: {
+          passkeyAuth: PasskeyAuthenticationResult;
+        };
+      }
+    ) => {
+      const { passkeyAuth } = event.payload;
+      const response = await this.fetchWithProgressiveBackoff(
+        `/auth/login-passkey-finish`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ passkeyAuth, sessionId: context.sessionId }),
+        }
+      );
+      const data = await response.json();
+      if (response.ok) return data;
+
+      if (!response.ok) {
+        if (response.status === 403) {
+          return { active2fa: data };
+        }
+        if (data?.error?.includes("2FA") || data?.error?.includes("device")) {
+          return { error: data?.error };
+        }
+        throw new Error(data?.message || data?.error || data);
+      } else {
+        return { error: data?.error || data?.message };
+      }
+    },
+    userInputLoginPasskey: async (
+      _: AuthMachineContext,
+      event: {
+        type: "USER_INPUT_PASSKEY_LOGIN";
+        payload: {
+          RCRPublicKey: { publicKey: PublicKeyCredentialRequestOptions };
+          withSecurityKey?: boolean;
+        };
+      }
+    ) => {
+      const publicKey = event.payload.RCRPublicKey?.publicKey;
+      const withSecurityKey = event.payload.withSecurityKey || false;
+
+      if (!publicKey) {
+        throw new Error("PublicKeyCredentialCreationOptions is undefined");
+      }
+
+      const loginData: PasskeyAuthenticationRequest = {
+        ...publicKey,
+      };
+
+      const result = await Passkey.authenticate(loginData, {
+        withSecurityKey,
+      });
+      console.log("🚀 ~ AloreAuth ~ result:", result);
+
+      return result;
+    },
+    startPasskeyAuth: async (
+      _: AuthMachineContext,
+      event: {
+        type: "START_PASSKEY_LOGIN";
+        payload: {
+          email: string;
+        };
+      }
+    ) => {
+      const email = event.payload.email;
+      const startAuthResponse = await this.fetchWithProgressiveBackoff(
+        `/auth/login-passkey`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+          }),
+        }
+      );
+
+      const data = await startAuthResponse.json();
+
+      if (startAuthResponse.ok) return data;
+
+      if (!startAuthResponse.ok) {
+        if (startAuthResponse.status === 403) {
+          return { active2fa: data };
+        }
+        if (data?.error?.includes("2FA") || data?.error?.includes("device")) {
+          return { error: data?.error };
+        }
+        throw new Error(data?.message || data?.error || data);
+      } else {
+        return { error: data?.error || data?.message };
+      }
+    },
     userInputRegisterPasskey: async (
       _: AuthMachineContext,
       event: {
@@ -151,46 +263,39 @@ export class AloreAuth {
         throw new Error("PublicKeyCredentialCreationOptions is undefined");
       }
 
-      console.log(Passkey.isSupported());
-      console.log(publicKey);
-
-      const result = await Passkey.register(
-        {
-          challenge: base64url.encode(publicKey.challenge),
-          rp: {
-            id: publicKey.rp.id,
-            name: publicKey.rp.name,
-          },
-          user: {
-            id: base64url.encode(publicKey.user.id),
-            name: publicKey.user.name,
-            displayName: publicKey.user.displayName,
-          },
-          pubKeyCredParams: [
-            {
-              type: "public-key",
-              alg: -7,
-            },
-            {
-              type: "public-key",
-              alg: -257,
-            },
-          ],
-          timeout: publicKey.timeout,
-          attestation: publicKey.attestation,
-          authenticatorSelection: {
-            authenticatorAttachment: "platform",
-            requireResidentKey: true,
-          },
-          extensions: {
-            prf: {},
-          },
+      const registerData = {
+        challenge: publicKey.challenge,
+        rp: {
+          name: publicKey.rp.name,
+          id: publicKey.rp.id,
         },
-        { withSecurityKey }
-      );
+        user: {
+          id: publicKey.user.id,
+          name: publicKey.user.name,
+          displayName: publicKey.user.displayName,
+        },
+        pubKeyCredParams: [
+          {
+            type: "public-key",
+            alg: -7,
+          },
+          {
+            type: "public-key",
+            alg: -257,
+          },
+        ],
+        authenticatorSelection: {
+          requireResidentKey: true,
+          userVerification: "preferred",
+        },
+        extensions: {
+          prf: { eval: { first: new TextEncoder().encode("Alore") } },
+        },
+      };
 
-      console.log("result");
-      console.log(result);
+      const result = await Passkey.register(registerData, {
+        withSecurityKey,
+      });
 
       return result;
     },
@@ -199,15 +304,7 @@ export class AloreAuth {
       event: {
         type: "FINISH_PASSKEY_REGISTER";
         payload: {
-          passkeyRegistration: {
-            id: string;
-            rawId: string;
-            response: {
-              attestationObject: string;
-              clientDataJSON: string;
-            };
-            type: string;
-          };
+          passkeyRegistration: PasskeyRegistrationResult;
           email: string;
           nickname: string;
           device: string;
@@ -215,6 +312,7 @@ export class AloreAuth {
       }
     ) => {
       const { email, nickname, device, passkeyRegistration } = event.payload;
+
       const response = await this.fetchWithProgressiveBackoff(
         `/auth/account-registration-passkey-finish`,
         {
@@ -226,7 +324,19 @@ export class AloreAuth {
             userEmail: email,
             userNickname: nickname,
             userDevice: device,
-            passkeyRegistration,
+            passkeyRegistration: {
+              id: passkeyRegistration.id,
+              rawId: base64url.fromBase64(passkeyRegistration.rawId),
+              response: {
+                attestationObject: base64url.fromBase64(
+                  passkeyRegistration.response.attestationObject
+                ),
+                clientDataJSON: base64url.fromBase64(
+                  passkeyRegistration.response.clientDataJSON
+                ),
+              },
+              type: passkeyRegistration.type,
+            },
             sessionId: context.sessionId,
           }),
         }
@@ -234,7 +344,16 @@ export class AloreAuth {
 
       const data = await response.json();
 
-      if (response.ok) return data;
+      if (response.ok) {
+        return data;
+      }
+
+      if (response.status === 403) {
+        const resJson = await response.json();
+        throw new Error(resJson);
+      }
+
+      return { error: response?.statusText };
     },
     completeRegistration: async (
       _: AuthMachineContext,
@@ -396,8 +515,6 @@ export class AloreAuth {
     ) => {
       const { email, nickname, device } = event.payload;
 
-      console.log({ email, nickname, device });
-
       const startPasskeyRegistrationResponse =
         await this.fetchWithProgressiveBackoff(
           `/auth/account-registration-passkey`,
@@ -415,8 +532,6 @@ export class AloreAuth {
         );
 
       const ccr = await startPasskeyRegistrationResponse.json();
-      console.log("ccr");
-      console.log(ccr);
 
       return ccr;
     },
@@ -526,24 +641,13 @@ export class AloreAuth {
     let delayValue = initialDelay;
 
     // eslint-disable-next-line no-undef
-    let init: RequestInit = {
+    const init: RequestInit = {
       ...options,
-      credentials: "include",
       headers: {
         ...options?.headers,
         "X-API-KEY": this.apiKey,
       },
     };
-
-    if (this.accessToken) {
-      init = {
-        ...init,
-        headers: {
-          ...init?.headers,
-          Authorization: `Bearer ${this.accessToken}`,
-        },
-      };
-    }
 
     while (attempt < maxAttempts) {
       if (attempt > 0) {
@@ -557,32 +661,9 @@ export class AloreAuth {
         // eslint-disable-next-line no-await-in-loop
         const response = await fetch(`${this.endpoint}${url}`, init);
 
-        if (response.status === 401 && !url.toString().startsWith("/auth")) {
-          // eslint-disable-next-line no-await-in-loop
-          const data = await response.json();
-
-          if (data === "ExpiredSignature") {
-            // eslint-disable-next-line no-await-in-loop
-            const refreshResponse = await fetch(
-              `${this.endpoint}/auth/exchange-jwt-token/${this.refreshToken}`
-            );
-
-            if (!refreshResponse.ok) {
-              console.error("Refresh token failed");
-              return response;
-            }
-
-            throw new Error("ExpiredSignature");
-          } else if (
-            typeof data === "string" &&
-            data.includes("No Authorization header")
-          ) {
-            return response;
-          }
-        }
-
-        if (response.ok || attempt === maxAttempts || response.status !== 500)
+        if (response.ok || attempt === maxAttempts || response.status !== 500) {
           return response;
+        }
       } catch (error) {
         console.error(error);
 
@@ -613,7 +694,14 @@ export class AloreAuth {
 
   private async verifyBackendStatus() {
     try {
-      const res = await fetch(`${this.endpoint}/health-check`);
+      const url = `${this.endpoint}/health-check`;
+      const basePath = url.match(/(https?:\/\/[^\//]+)/);
+
+      if (!basePath || basePath.length < 2) {
+        throw new Error("Failed to fetch");
+      }
+
+      const res = await fetch(`${basePath[1]}/health-check`);
 
       if (!res.ok) {
         throw new Error("Failed to fetch");

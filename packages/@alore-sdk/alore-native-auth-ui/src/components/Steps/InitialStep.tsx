@@ -1,11 +1,11 @@
-import React from "react";
-import { View } from "react-native";
-import useDictionary from "../../hooks/useDictionary";
-import { useActor } from "@xstate/react";
-import useAuthServiceInstance from "../../hooks/useAuthServiceInstance";
-import { Button, Text } from "react-native-ui-lib";
-import { stepStyles } from "./styles";
-import { RecursivePartial } from "../../types";
+import React from 'react';
+import { View } from 'react-native';
+import useDictionary from '../../hooks/useDictionary';
+import { useActor } from '@xstate/react';
+import useAuthServiceInstance from '../../hooks/useAuthServiceInstance';
+import { Button, Text } from 'react-native-ui-lib';
+import { stepStyles } from './styles';
+import { RecursivePartial } from '../../types';
 
 interface InitialStepProps {
   styles: RecursivePartial<typeof stepStyles>;
@@ -17,11 +17,11 @@ export const InitialStep: React.FC<InitialStepProps> = ({ styles }) => {
   const dictionary = useDictionary(authState.context.locale);
 
   const onCreateStep = () => {
-    sendAuth(["REGISTER_STEP"]);
+    sendAuth(['REGISTER_STEP']);
   };
 
   const onLoginStep = async () => {
-    sendAuth(["LOGIN_STEP"]);
+    sendAuth(['LOGIN_STEP']);
   };
 
   return (

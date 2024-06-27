@@ -1,17 +1,17 @@
-import React, { useState } from "react";
-import { View, StyleSheet } from "react-native";
-import { Card, Text, Button } from "react-native-ui-lib";
-import useDictionary from "../../hooks/useDictionary";
-import { useActor } from "@xstate/react";
-import useAuthServiceInstance from "../../hooks/useAuthServiceInstance";
-import StyledTextField from "../StyledTextField";
-import { EnvelopeIcon } from "react-native-heroicons/solid";
-import { validateEmailPattern } from "../../helpers";
-import { Path, Svg } from "react-native-svg";
-import BackButton from "../BackButton";
-import { stepStyles } from "./styles";
-import DeviceInfo from "react-native-device-info";
-import { RecursivePartial } from "../../types";
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet } from 'react-native';
+import { Card, Text, Button } from 'react-native-ui-lib';
+import useDictionary from '../../hooks/useDictionary';
+import { useActor } from '@xstate/react';
+import useAuthServiceInstance from '../../hooks/useAuthServiceInstance';
+import StyledTextField from '../StyledTextField';
+import { EnvelopeIcon } from 'react-native-heroicons/solid';
+import { validateEmailPattern } from '../../helpers';
+import { Path, Svg } from 'react-native-svg';
+import BackButton from '../BackButton';
+import { stepStyles } from './styles';
+import DeviceInfo from 'react-native-device-info';
+import { RecursivePartial } from '../../types';
 
 const GoogleIcon = () => (
   <Svg width="25" height="25" viewBox="0 0 25 25" fill="none">
@@ -41,7 +41,7 @@ interface LoginStepsProps {
     generateSecureHash: (
       data: string,
       salt: string,
-      keyDerivationFunction: "argon2d" | "pbkdf2",
+      keyDerivationFunction: 'argon2d' | 'pbkdf2',
     ) => Promise<string>;
   };
 }
@@ -50,39 +50,92 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
   styles,
   cryptoUtils,
 }) => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [secureCode, setSecureCode] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [secureCode, setSecureCode] = useState('');
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
   const locale = authState.context.locale;
   const dictionary = useDictionary(locale);
   const isEmailValid = validateEmailPattern(email);
   const { generateSecureHash, hashUserInfo } = cryptoUtils;
-  const { googleId, salt, error } = authState.context;
+  const {
+    googleId,
+    salt,
+    error,
+    authMethods,
+    RCRPublicKey,
+    passkeyLoginResult,
+    userEmail,
+  } = authState.context;
   const isLoadingEmailValidationStep =
-    authState.matches("active.login.resendingEmailCode") ||
-    authState.matches("active.login.verifyingEmail2fa");
+    authState.matches('active.login.resendingEmailCode') ||
+    authState.matches('active.login.verifyingEmail2fa');
+
+  useEffect(() => {
+    if (userEmail) {
+      setEmail(userEmail);
+    }
+  }, [userEmail]);
+
+  useEffect(() => {
+    if (authState.matches('active.login.passkeyStep.idle') && RCRPublicKey) {
+      sendAuth({
+        type: 'USER_INPUT_PASSKEY_LOGIN',
+        payload: {
+          RCRPublicKey,
+          withSecurityKey: true,
+        },
+      });
+    }
+  }, [authState.matches('active.login.passkeyStep.idle')]);
+
+  useEffect(() => {
+    const finishPasskeyAuth = async () => {
+      if (
+        authState.matches('active.login.passkeyStep.userInputSuccess') &&
+        passkeyLoginResult
+      ) {
+        sendAuth({
+          type: 'FINISH_PASSKEY_LOGIN',
+          payload: { passkeyAuth: passkeyLoginResult },
+        });
+      }
+    };
+
+    finishPasskeyAuth();
+  }, [authState.matches('active.login.passkeyStep.userInputSuccess')]);
 
   const onBack = () => {
-    sendAuth(["BACK"]);
+    sendAuth(['BACK']);
   };
 
   const onVerifyLogin = async () => {
     if (!salt) return;
 
-    const hashedPassword = await generateSecureHash(password, salt, "argon2d");
+    const hashedPassword = await generateSecureHash(password, salt, 'argon2d');
     const userAgent = await DeviceInfo.getUserAgent();
     const device = hashUserInfo(userAgent);
 
     sendAuth({
-      type: "VERIFY_LOGIN",
+      type: 'VERIFY_LOGIN',
       payload: { email, passwordHash: hashedPassword, locale, device },
     });
   };
 
   const onFetchSalt = () => {
-    sendAuth({ type: "FETCH_SALT", payload: { email } });
+    if (authMethods.passkey) {
+      sendAuth([
+        {
+          type: 'START_PASSKEY_LOGIN',
+          payload: {
+            email,
+          },
+        },
+      ]);
+    } else if (authMethods.password) {
+      sendAuth({ type: 'FETCH_SALT', payload: { email } });
+    }
   };
 
   const onResendEmail = async () => {
@@ -91,12 +144,12 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
     const secureHashArgon2d = await generateSecureHash(
       password,
       salt,
-      "argon2d",
+      'argon2d',
     );
     const device = hashUserInfo(await DeviceInfo.getUserAgent());
 
     sendAuth({
-      type: "RESEND_CODE",
+      type: 'RESEND_CODE',
       payload: {
         email,
         passwordHash: secureHashArgon2d,
@@ -113,11 +166,11 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
     const secureHashArgon2d = await generateSecureHash(
       password,
       salt,
-      "argon2d",
+      'argon2d',
     );
 
     sendAuth({
-      type: "VERIFY_EMAIL_2FA",
+      type: 'VERIFY_EMAIL_2FA',
       payload: {
         email,
         passwordHash: secureHashArgon2d,
@@ -126,7 +179,7 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
     });
   };
 
-  const onGoogleRegister = () => {}; // TODO: implement
+  const onGoogleRegister = () => {}; // TODO: implement google login
 
   const emailStep = () => (
     <View style={styles.emailStep?.container}>
@@ -155,7 +208,9 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
               opacity: isEmailValid ? 1 : 0.5,
             }}
             disabled={
-              !isEmailValid || authState.matches("active.login.retrievingSalt")
+              !isEmailValid ||
+              authState.matches('active.login.retrievingSalt') ||
+              authState.matches('active.login.passkeyStep')
             }
           />
           {googleId && (
@@ -203,7 +258,7 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
             }}
             disabled={
               password.length < 8 ||
-              authState.matches("active.login.verifyingLogin")
+              authState.matches('active.login.verifyingLogin')
             }
           />
         </View>
@@ -214,8 +269,7 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
   const emailValidationStep = () => (
     <View
       style={styles.verifyEmailStep?.container}
-      data-test="register-verify-email-step"
-    >
+      data-test="register-verify-email-step">
       <View style={styles.verifyEmailStep?.cardContainer}>
         <BackButton styles={styles} onClick={onBack} />
         <Text style={styles.common?.stepTitle}>
@@ -235,7 +289,7 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
             autoCorrect={false}
             autoComplete="off"
             errorMessage={
-              error?.includes("code") ? `${dictionary?.wrongCode}` : undefined
+              error?.includes('code') ? `${dictionary?.wrongCode}` : undefined
             }
           />
         </View>
@@ -267,15 +321,16 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
 
   return (
     <>
-      {(authState.matches("active.login.emailStep") ||
-        authState.matches("active.login.retrievingSalt")) &&
+      {(authState.matches('active.login.emailStep') ||
+        authState.matches('active.login.retrievingSalt') ||
+        authState.matches('active.login.passkeyStep')) &&
         emailStep()}
-      {(authState.matches("active.login.passwordStep") ||
-        authState.matches("active.login.verifyingLogin")) &&
+      {(authState.matches('active.login.passwordStep') ||
+        authState.matches('active.login.verifyingLogin')) &&
         passwordStep()}
-      {(authState.matches("active.login.email2fa") ||
-        authState.matches("active.login.verifyingEmail2fa") ||
-        authState.matches("active.login.resendingEmailCode")) &&
+      {(authState.matches('active.login.email2fa') ||
+        authState.matches('active.login.verifyingEmail2fa') ||
+        authState.matches('active.login.resendingEmailCode')) &&
         emailValidationStep()}
     </>
   );

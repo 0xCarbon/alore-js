@@ -1,6 +1,10 @@
 import { Locale } from '../helpers/get-dictionary';
 import { authService } from '.';
-import { PasskeyRegistrationRequest } from 'react-native-passkey/lib/typescript/Passkey';
+import {
+  PasskeyAuthenticationResult,
+  PasskeyRegistrationRequest,
+  PasskeyRegistrationResult,
+} from 'react-native-passkey/lib/typescript/Passkey';
 
 export type SessionUser = {
   created_at: string;
@@ -52,7 +56,9 @@ export interface AuthMachineContext {
   locale: Locale;
   sessionId?: string;
   CCRPublicKey?: { publicKey: PublicKeyCredentialCreationOptions };
+  passkeyRegistrationResult?: PasskeyRegistrationResult;
   RCRPublicKey?: { publicKey: PublicKeyCredentialRequestOptions };
+  passkeyLoginResult?: PasskeyAuthenticationResult;
   salt?: string;
   error?: string;
   registerUser?: {
@@ -67,6 +73,7 @@ export interface AuthMachineContext {
     passkey?: boolean;
     google?: boolean;
   };
+  userEmail?: string;
 }
 
 export type AuthMachineEvents =
@@ -78,6 +85,25 @@ export type AuthMachineEvents =
   | { type: 'LOGIN_STEP' }
   | { type: 'BACK' }
   | { type: 'NEXT' }
+  | {
+      type: 'START_PASSKEY_LOGIN';
+      payload: {
+        email: string;
+      };
+    }
+  | {
+      type: 'USER_INPUT_PASSKEY_LOGIN';
+      payload: {
+        RCRPublicKey: { publicKey: PublicKeyCredentialRequestOptions };
+        withSecurityKey?: boolean;
+      };
+    }
+  | {
+      type: 'FINISH_PASSKEY_LOGIN';
+      payload: {
+        passkeyAuth: PasskeyAuthenticationResult;
+      };
+    }
   | {
       type: 'START_PASSKEY_REGISTER';
       payload: {
@@ -96,15 +122,7 @@ export type AuthMachineEvents =
   | {
       type: 'FINISH_PASSKEY_REGISTER';
       payload: {
-        passkeyRegistration: {
-          id: string;
-          rawId: string;
-          response: {
-            attestationObject: string;
-            clientDataJSON: string;
-          };
-          type: string;
-        };
+        passkeyRegistration: PasskeyRegistrationResult;
         email: string;
         nickname: string;
         device: string;

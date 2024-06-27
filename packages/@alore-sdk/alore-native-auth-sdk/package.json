@@ -10,12 +10,15 @@
     "base64url": "3.0.1",
     "react": "18.2.0",
     "react-native": "0.74.1",
+    "react-native-argon2": "2.0.1",
+    "react-native-base64": "^0.2.1",
     "react-native-passkey": "2.1.1",
-    "react-native-argon2": "2.0.1"
+    "react-native-passkeys": "^0.2.2"
   },
   "devDependencies": {
     "@types/node": "20.14.1",
     "@types/react": "18.2.79",
+    "@types/react-native-base64": "^0.2.2",
     "typescript": "5.3.3"
   }
 }
