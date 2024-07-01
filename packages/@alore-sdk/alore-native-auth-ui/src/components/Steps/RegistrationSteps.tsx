@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Keyboard, View } from 'react-native';
+import { BackHandler, Keyboard, View } from 'react-native';
 import { Card, Text, Button, LoaderScreen } from 'react-native-ui-lib';
 import useDictionary from '../../hooks/useDictionary';
 import { useActor } from '@xstate/react';
@@ -82,17 +82,55 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
       authState.matches('active.register.verifyingEmail') ||
       authState.matches('active.register.resendingRegistrationEmail') ||
       authState.matches('active.register.passkeyStep.passkeyResult') ||
+      authState.matches('active.register.passkeyStep.userInput') ||
       authState.matches('active.register.passkeyStep.userInputSuccess') ||
       authState.matches('active.register.passkeyStep.start'),
     [authState.value],
   );
-  const { CCRPublicKey, passkeyRegistrationResult, error, salt, authMethods } =
-    authState.context;
+  const {
+    CCRPublicKey,
+    passkeyRegistrationResult,
+    error,
+    salt,
+    authMethods,
+    userEmail,
+  } = authState.context;
   const { generateSecureHash, hashUserInfo } = cryptoUtils;
+
+  useEffect(() => {
+    const backAction = () => {
+      sendAuth(['BACK']);
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, []);
 
   const dismissKeyboard = () => {
     Keyboard.dismiss();
   };
+
+  useEffect(() => {
+    if (userEmail) {
+      setEmail(userEmail);
+    }
+  }, [userEmail]);
+
+  useEffect(() => {
+    if (authState.matches('active.register.passkeyStep.success')) {
+      sendAuth({
+        type: 'START_PASSKEY_LOGIN',
+        payload: {
+          email,
+        },
+      });
+    }
+  }, [authState.matches('active.register.passkeyStep.success')]);
 
   useEffect(() => {
     if (authState.matches('active.register.passkeyStep.idle') && CCRPublicKey) {

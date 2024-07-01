@@ -37,17 +37,17 @@ const Auth = ({ styles, onSuccess, toast, cryptoUtils }: AuthProps) => {
   const mergedStyles = mergeStyles(stepStyles, styles || {});
 
   const returnErrorMessage = () => {
-    let errorMesage = dictionary?.errors?.somethingWrong;
+    let errorMessage = dictionary?.errors?.somethingWrong;
 
     if (authError?.includes('Invalid credentials')) {
-      errorMesage = dictionary?.errors?.invalidEmailPassword;
+      errorMessage = dictionary?.errors?.invalidEmailPassword;
     } else if (authError?.includes('Wrong')) {
-      errorMesage = dictionary?.errors?.wrongCode;
+      errorMessage = dictionary?.errors?.wrongCode;
     } else {
-      errorMesage = dictionary?.errors?.wrongCode;
+      errorMessage = dictionary?.errors?.wrongCode;
     }
 
-    return errorMesage;
+    return errorMessage;
   };
 
   useEffect(() => {
@@ -58,10 +58,6 @@ const Auth = ({ styles, onSuccess, toast, cryptoUtils }: AuthProps) => {
 
   useEffect(() => {
     sendAuth([{ type: 'INITIALIZE' }]);
-
-    return () => {
-      sendAuth('RESET');
-    };
   }, []);
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Keyboard, View } from 'react-native';
+import { BackHandler, Keyboard, View } from 'react-native';
 import {
   Card,
   Text,
@@ -86,6 +86,20 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
   } = authState.context;
 
   useEffect(() => {
+    const backAction = () => {
+      sendAuth(['BACK']);
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction,
+    );
+
+    return () => backHandler.remove();
+  }, []);
+
+  useEffect(() => {
     if (userEmail) {
       setEmail(userEmail);
     }
@@ -126,6 +140,7 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
       authState.matches('active.login.verifyingEmail2fa') ||
       authState.matches('active.login.resendingEmailCode') ||
       authState.matches('active.login.passkeyStep.passkeyResult') ||
+      authState.matches('active.login.passkeyStep.userInput') ||
       authState.matches('active.login.passkeyStep.start') ||
       authState.matches('active.login.passkeyStep.userInputSuccess'),
     [authState.value],

@@ -78,7 +78,6 @@ export interface AuthMachineContext {
 
 export type AuthMachineEvents =
   | { type: 'INITIALIZE' }
-  | { type: 'RESET' }
   | { type: 'LOGOUT' }
   | { type: 'RESET_CONTEXT' }
   | { type: 'REGISTER_STEP' }

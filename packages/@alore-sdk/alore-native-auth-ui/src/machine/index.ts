@@ -33,6 +33,23 @@ export const authMachine = createMachine(
         on: {
           INITIALIZE: ['active'],
         },
+        entry: [
+          assign({
+            sessionUser: () => undefined,
+            CCRPublicKey: () => undefined,
+            error: () => undefined,
+            googleOtpCode: () => undefined,
+            googleUser: () => undefined,
+            RCRPublicKey: () => undefined,
+            salt: () => undefined,
+            sessionId: () => undefined,
+            userEmail: () => undefined,
+            passkeyLoginResult: () => undefined,
+            passkeyRegistrationResult: () => undefined,
+            registerUser: () => undefined,
+          }),
+          () => AsyncStorage.removeItem('authState'),
+        ],
       },
 
       active: {
@@ -46,6 +63,20 @@ export const authMachine = createMachine(
                 },
               },
             },
+            entry: assign({
+              sessionUser: () => undefined,
+              CCRPublicKey: () => undefined,
+              error: () => undefined,
+              googleOtpCode: () => undefined,
+              googleUser: () => undefined,
+              RCRPublicKey: () => undefined,
+              salt: () => undefined,
+              sessionId: () => undefined,
+              userEmail: () => undefined,
+              passkeyLoginResult: () => undefined,
+              passkeyRegistrationResult: () => undefined,
+              registerUser: () => undefined,
+            }),
 
             initial: 'idle',
           },
@@ -77,6 +108,7 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.login.passwordStep',
                     actions: assign({
                       salt: (_context, event) => event.data?.salt,
+                      error: () => undefined,
                     }),
                   },
                   onError: {
@@ -114,6 +146,7 @@ export const authMachine = createMachine(
                       target: 'email2fa',
                       actions: assign({
                         sessionId: (_, event) => event.data.sessionId,
+                        error: () => undefined,
                       }),
                     },
                   ],
@@ -160,6 +193,7 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.signedOn',
                     actions: assign({
                       sessionUser: (_, event) => event.data,
+                      error: () => undefined,
                     }),
                   },
                 },
@@ -175,6 +209,7 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.login.email2fa',
                     actions: assign({
                       sessionId: (_, event) => event.data.sessionId,
+                      error: () => undefined,
                     }),
                   },
                 },
@@ -195,6 +230,7 @@ export const authMachine = createMachine(
                           RCRPublicKey: (_context, event) =>
                             event.data.requestChallengeResponse,
                           sessionId: (_, event) => event.data.sessionId,
+                          error: () => undefined,
                         }),
                       },
 
@@ -223,6 +259,7 @@ export const authMachine = createMachine(
                           '#authMachine.active.login.passkeyStep.userInputSuccess',
                         actions: assign({
                           passkeyLoginResult: (_context, event) => event.data,
+                          error: () => undefined,
                         }),
                       },
                       onError: {
@@ -249,6 +286,7 @@ export const authMachine = createMachine(
                         target: '#authMachine.active.signedOn',
                         actions: assign({
                           sessionUser: (_context, event) => event.data,
+                          error: () => undefined,
                         }),
                       },
                       onError: {
@@ -287,9 +325,6 @@ export const authMachine = createMachine(
                   BACK: { target: '#authMachine.active.register.emailStep' },
                   START_PASSKEY_REGISTER: {
                     target: '#authMachine.active.register.passkeyStep',
-                    actions: assign({
-                      userEmail: (_context, event) => event.payload.email,
-                    }),
                   },
                   SEND_REGISTRATION_EMAIL: {
                     target: '#authMachine.active.register.sendingEmail',
@@ -305,6 +340,7 @@ export const authMachine = createMachine(
                     actions: assign({
                       salt: (_context, event) => event.data?.salt,
                       sessionId: (_context, event) => event.data?.sessionId,
+                      error: () => undefined,
                     }),
                   },
                   onError: {
@@ -338,7 +374,13 @@ export const authMachine = createMachine(
               verifyingEmail: {
                 invoke: {
                   src: 'verifyEmail',
-                  onDone: '#authMachine.active.register.passwordStep',
+                  onDone: {
+                    target: '#authMachine.active.register.passwordStep',
+                    actions: assign({
+                      error: () => undefined,
+                    }),
+                  },
+
                   onError: {
                     target: '#authMachine.active.register.emailValidationStep',
                     actions: assign({
@@ -369,6 +411,7 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.signedOn',
                     actions: assign({
                       sessionUser: (_, event) => event.data,
+                      error: () => undefined,
                     }),
                   },
                   onError: {
@@ -392,6 +435,7 @@ export const authMachine = createMachine(
                     actions: assign({
                       salt: (_context, event) => event.data?.salt,
                       sessionId: (_context, event) => event.data?.sessionId,
+                      error: () => undefined,
                     }),
                   },
                   onError: {
@@ -457,6 +501,7 @@ export const authMachine = createMachine(
                         actions: assign({
                           CCRPublicKey: (_context, event) => event.data.ccr,
                           sessionId: (_, event) => event.data.sessionId,
+                          error: () => undefined,
                         }),
                       },
 
@@ -486,6 +531,7 @@ export const authMachine = createMachine(
                         actions: assign({
                           passkeyRegistrationResult: (_context, event) =>
                             event.data,
+                          error: () => undefined,
                         }),
                       },
                       onError: {
@@ -509,7 +555,11 @@ export const authMachine = createMachine(
                     invoke: {
                       src: 'finishRegisterPasskey',
                       onDone: {
-                        target: '#authMachine.active.login.passkeyStep',
+                        target:
+                          '#authMachine.active.register.passkeyStep.success',
+                        actions: assign({
+                          error: () => undefined,
+                        }),
                       },
                       onError: {
                         target: '#authMachine.active.register.usernameStep',
@@ -518,6 +568,17 @@ export const authMachine = createMachine(
                             event.data?.error ||
                             event.data?.message ||
                             event.data,
+                        }),
+                      },
+                    },
+                  },
+                  success: {
+                    type: 'final',
+                    on: {
+                      START_PASSKEY_LOGIN: {
+                        target: '#authMachine.active.login.passkeyStep',
+                        actions: assign({
+                          userEmail: (_context, event) => event.payload.email,
                         }),
                       },
                     },
@@ -548,17 +609,26 @@ export const authMachine = createMachine(
             on: {
               LOGOUT: {
                 target: '#authMachine.inactive',
-                actions: ['clearContext'],
+                actions: assign({
+                  sessionUser: () => undefined,
+                  CCRPublicKey: () => undefined,
+                  error: () => undefined,
+                  googleOtpCode: () => undefined,
+                  googleUser: () => undefined,
+                  RCRPublicKey: () => undefined,
+                  salt: () => undefined,
+                  sessionId: () => undefined,
+                  userEmail: () => undefined,
+                  passkeyLoginResult: () => undefined,
+                  passkeyRegistrationResult: () => undefined,
+                  registerUser: () => undefined,
+                }),
               },
             },
           },
         },
 
         initial: 'initial',
-
-        on: {
-          RESET: { target: 'inactive' },
-        },
       },
     },
 
@@ -567,7 +637,20 @@ export const authMachine = createMachine(
     on: {
       RESET_CONTEXT: {
         target: '#authMachine.inactive',
-        actions: ['clearContext'],
+        actions: assign({
+          sessionUser: () => undefined,
+          CCRPublicKey: () => undefined,
+          error: () => undefined,
+          googleOtpCode: () => undefined,
+          googleUser: () => undefined,
+          RCRPublicKey: () => undefined,
+          salt: () => undefined,
+          sessionId: () => undefined,
+          userEmail: () => undefined,
+          passkeyLoginResult: () => undefined,
+          passkeyRegistrationResult: () => undefined,
+          registerUser: () => undefined,
+        }),
       },
     },
   },
@@ -614,22 +697,7 @@ export const authMachine = createMachine(
       },
     },
     guards: {},
-    actions: {
-      clearContext: assign({
-        sessionUser: undefined,
-        CCRPublicKey: undefined,
-        error: undefined,
-        googleOtpCode: undefined,
-        googleUser: undefined,
-        RCRPublicKey: undefined,
-        salt: undefined,
-        sessionId: undefined,
-        userEmail: undefined,
-        passkeyLoginResult: undefined,
-        passkeyRegistrationResult: undefined,
-        registerUser: undefined,
-      }),
-    },
+    actions: {},
   },
 );
 
@@ -680,10 +748,7 @@ export const authService = (
     ),
   )
     .onTransition(async state => {
-      if (
-        state.changed &&
-        (state.matches('inactive') || state.matches('active.signedOn'))
-      ) {
+      if (state.changed && state.matches('active.signedOn')) {
         const stateWithTimestamp = {
           ...state,
           timestamp: Date.now(),
