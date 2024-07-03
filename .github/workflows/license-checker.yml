@@ -25,7 +25,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ${{ matrix.package }}
+        working-directory: ./${{ matrix.package }}
 
     steps:
       - name: Checkout
@@ -44,7 +44,6 @@ jobs:
           cache-dependency-path: ${{ github.workspace }}/packages/react/${{ matrix.package }}/pnpm-lock.yaml
 
       - name: Setup NPM_TOKEN
-        if: matrix.package == 'alore-crypto-sdk'
         run: echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
 
       - name: Install dependencies
