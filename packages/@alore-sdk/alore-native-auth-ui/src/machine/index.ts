@@ -99,6 +99,9 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.login.passkeyStep',
                   },
                 },
+                exit: assign({
+                  error: () => undefined,
+                }),
               },
 
               retrievingSalt: {
@@ -136,6 +139,9 @@ export const authMachine = createMachine(
 
                   VERIFY_LOGIN: '#authMachine.active.login.verifyingLogin',
                 },
+                exit: assign({
+                  error: () => undefined,
+                }),
               },
 
               verifyingLogin: {
@@ -175,6 +181,9 @@ export const authMachine = createMachine(
                     }),
                   },
                 },
+                exit: assign({
+                  error: () => undefined,
+                }),
               },
 
               verifyingEmail2fa: {
@@ -301,6 +310,13 @@ export const authMachine = createMachine(
                     },
                   },
                 },
+                exit: assign({
+                  error: () => undefined,
+                  CCRPublicKey: () => undefined,
+                  passkeyLoginResult: () => undefined,
+                  passkeyRegistrationResult: () => undefined,
+                  RCRPublicKey: () => undefined,
+                }),
                 initial: 'start',
               },
             },
@@ -318,6 +334,9 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.register.googleRegister',
                   },
                 },
+                exit: assign({
+                  error: () => undefined,
+                }),
               },
 
               usernameStep: {
@@ -330,6 +349,9 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.register.sendingEmail',
                   },
                 },
+                exit: assign({
+                  error: () => undefined,
+                }),
               },
 
               sendingEmail: {
@@ -369,6 +391,9 @@ export const authMachine = createMachine(
                   RESEND_CODE:
                     '#authMachine.active.register.resendingRegistrationEmail',
                 },
+                exit: assign({
+                  error: () => undefined,
+                }),
               },
 
               verifyingEmail: {
@@ -402,6 +427,9 @@ export const authMachine = createMachine(
                   COMPLETE_REGISTRATION:
                     '#authMachine.active.register.completingRegistration',
                 },
+                exit: assign({
+                  error: () => undefined,
+                }),
               },
 
               completingRegistration: {
@@ -584,6 +612,13 @@ export const authMachine = createMachine(
                     },
                   },
                 },
+                exit: assign({
+                  error: () => undefined,
+                  CCRPublicKey: () => undefined,
+                  passkeyLoginResult: () => undefined,
+                  passkeyRegistrationResult: () => undefined,
+                  RCRPublicKey: () => undefined,
+                }),
                 initial: 'start',
               },
             },

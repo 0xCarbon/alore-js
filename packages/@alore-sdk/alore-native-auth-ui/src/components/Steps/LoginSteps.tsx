@@ -254,7 +254,6 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
             onChangeText={setEmail}
             Icon={EnvelopeIcon}
             maxLength={320}
-            keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
             autoComplete="off"
@@ -303,7 +302,6 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
             value={password}
             onChangeText={setPassword}
             maxLength={320}
-            keyboardType="default"
             autoCapitalize="none"
             autoCorrect={false}
             autoComplete="off"
@@ -349,9 +347,6 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
             autoCapitalize="none"
             autoCorrect={false}
             autoComplete="off"
-            errorMessage={
-              error?.includes('code') ? `${dictionary?.wrongCode}` : undefined
-            }
           />
         </View>
         <Button

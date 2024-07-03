@@ -277,7 +277,6 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
             onChangeText={setEmail}
             Icon={EnvelopeIcon}
             maxLength={320}
-            keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
             autoComplete="off"

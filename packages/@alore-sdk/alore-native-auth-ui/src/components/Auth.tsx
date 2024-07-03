@@ -25,7 +25,7 @@ export interface AuthProps {
   };
 }
 
-const Auth = ({ styles, onSuccess, toast, cryptoUtils }: AuthProps) => {
+const Auth = ({ styles, onSuccess, toast = true, cryptoUtils }: AuthProps) => {
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
   const { sessionUser, error: authError, locale } = authState.context;
@@ -42,8 +42,6 @@ const Auth = ({ styles, onSuccess, toast, cryptoUtils }: AuthProps) => {
     if (authError?.includes('Invalid credentials')) {
       errorMessage = dictionary?.errors?.invalidEmailPassword;
     } else if (authError?.includes('Wrong')) {
-      errorMessage = dictionary?.errors?.wrongCode;
-    } else {
       errorMessage = dictionary?.errors?.wrongCode;
     }
 

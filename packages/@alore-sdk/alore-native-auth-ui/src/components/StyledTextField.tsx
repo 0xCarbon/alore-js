@@ -1,6 +1,6 @@
-import { Text, TextField, TextFieldProps, View } from "react-native-ui-lib";
-import { stepStyles } from "./Steps/styles";
-import { RecursivePartial } from "../types";
+import { Text, TextField, TextFieldProps, View } from 'react-native-ui-lib';
+import { stepStyles } from './Steps/styles';
+import { RecursivePartial } from '../types';
 
 interface StyledTextField {
   Icon?: React.ComponentType<{ color?: string; size?: number; style?: any }>;

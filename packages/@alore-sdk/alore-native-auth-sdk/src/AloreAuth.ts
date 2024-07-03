@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto, { randomBytes } from "crypto";
 import argon2 from "react-native-argon2";
 import {
   Passkey,
@@ -196,9 +196,17 @@ export class AloreAuth {
         throw new Error("PublicKeyCredentialCreationOptions is undefined");
       }
 
+      const blob = new Uint8Array(randomBytes(32));
+
       // TODO: add support for security key and ios/android blob/prf
       const loginData: PasskeyAuthenticationRequest = {
         ...publicKey,
+        extensions: {
+          largeBlob: {
+            write: blob,
+          },
+          prf: { eval: { first: new TextEncoder().encode("Alore") } },
+        },
       };
 
       const result = await Passkey.authenticate(loginData, {
@@ -289,7 +297,10 @@ export class AloreAuth {
           userVerification: "preferred",
         },
         extensions: {
-          prf: { eval: { first: new TextEncoder().encode("Alore") } },
+          prf: {},
+          largeBlob: {
+            support: "required",
+          },
         },
       };
 
