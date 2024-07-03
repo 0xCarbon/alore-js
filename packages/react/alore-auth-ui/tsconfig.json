@@ -3,7 +3,7 @@
     "baseUrl": "src",
     "rootDir": "./src",
     "lib": ["DOM", "ESNext"],
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
     "jsx": "react",
     "declaration": true,
     "sourceMap": true,

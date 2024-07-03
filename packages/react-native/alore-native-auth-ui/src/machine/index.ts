@@ -342,9 +342,6 @@ export const authMachine = createMachine(
               usernameStep: {
                 on: {
                   BACK: { target: '#authMachine.active.register.emailStep' },
-                  START_PASSKEY_REGISTER: {
-                    target: '#authMachine.active.register.passkeyStep',
-                  },
                   SEND_REGISTRATION_EMAIL: {
                     target: '#authMachine.active.register.sendingEmail',
                   },
@@ -399,12 +396,21 @@ export const authMachine = createMachine(
               verifyingEmail: {
                 invoke: {
                   src: 'verifyEmail',
-                  onDone: {
-                    target: '#authMachine.active.register.passwordStep',
-                    actions: assign({
-                      error: () => undefined,
-                    }),
-                  },
+                  onDone: [
+                    {
+                      target: '#authMachine.active.register.passkeyStep.idle',
+                      actions: assign({
+                        error: () => undefined,
+                      }),
+                      cond: 'isPasskeyMethod',
+                    },
+                    {
+                      target: '#authMachine.active.register.passwordStep',
+                      actions: assign({
+                        error: () => undefined,
+                      }),
+                    },
+                  ],
 
                   onError: {
                     target: '#authMachine.active.register.emailValidationStep',
@@ -422,7 +428,7 @@ export const authMachine = createMachine(
               passwordStep: {
                 on: {
                   BACK: {
-                    target: '#authMachine.active.register.emailValidationStep',
+                    target: '#authMachine.active.register.usernameStep',
                   },
                   COMPLETE_REGISTRATION:
                     '#authMachine.active.register.completingRegistration',
@@ -548,6 +554,10 @@ export const authMachine = createMachine(
                     on: {
                       USER_INPUT_PASSKEY_REGISTER:
                         '#authMachine.active.register.passkeyStep.userInput',
+                      START_PASSKEY_REGISTER: {
+                        target:
+                          '#authMachine.active.register.passkeyStep.start',
+                      },
                     },
                   },
                   userInput: {
@@ -776,6 +786,8 @@ export const authService = (
         guards: {
           // @ts-ignore
           isNewUser: (_, event) => !!event.data.isNewUser,
+          // @ts-ignore
+          isPasskeyMethod: (context, _) => !!context.authMethods.passkey,
         },
         actions: {},
       },

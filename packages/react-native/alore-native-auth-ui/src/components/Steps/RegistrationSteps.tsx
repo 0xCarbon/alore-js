@@ -97,6 +97,8 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   } = authState.context;
   const { generateSecureHash, hashUserInfo } = cryptoUtils;
 
+  console.log(authState.value);
+
   useEffect(() => {
     const backAction = () => {
       sendAuth(['BACK']);
@@ -141,6 +143,27 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
           withSecurityKey: true,
         },
       });
+    } else if (
+      authState.matches('active.register.passkeyStep.idle') &&
+      !CCRPublicKey
+    ) {
+      const fetchUserAgentAndSendAuth = async () => {
+        const userAgent = await DeviceInfo.getUserAgent();
+        const device = hashUserInfo(userAgent);
+
+        sendAuth([
+          {
+            type: 'START_PASSKEY_REGISTER',
+            payload: {
+              device,
+              email,
+              nickname: username,
+            },
+          },
+        ]);
+      };
+
+      fetchUserAgentAndSendAuth();
     }
   }, [authState.matches('active.register.passkeyStep.idle')]);
 
@@ -216,31 +239,16 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   const onGoogleRegister = () => {}; // TODO: implement
 
   const onRegisterAction = async () => {
-    if (authMethods.passkey) {
-      const userAgent = await DeviceInfo.getUserAgent();
-      const device = hashUserInfo(userAgent);
-
-      sendAuth([
-        {
-          type: 'START_PASSKEY_REGISTER',
-          payload: {
-            device,
-            email,
-            nickname: username,
-          },
-        },
-      ]);
-    } else if (authMethods.password) {
-      sendAuth({
-        type: 'SEND_REGISTRATION_EMAIL',
-        payload: { email, nickname: username, locale },
-      });
-    }
+    sendAuth({
+      type: 'SEND_REGISTRATION_EMAIL',
+      payload: { email, nickname: username, locale },
+    });
     dismissKeyboard();
   };
 
   const onClickSecureCodeSubmit = () => {
     sendAuth({ type: 'VERIFY_EMAIL', payload: { secureCode } });
+    setSecureCode('');
     dismissKeyboard();
   };
 
