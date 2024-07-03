@@ -4,12 +4,12 @@ on:
   push:
     branches: [main]
     paths:
-      - '**/pnpm-lock.yaml'
-      - '**/package.json'
+      - "**/pnpm-lock.yaml"
+      - "**/package.json"
   pull_request:
     paths:
-      - '**/pnpm-lock.yaml'
-      - '**/package.json'
+      - "**/pnpm-lock.yaml"
+      - "**/package.json"
   workflow_dispatch:
 
 jobs:
@@ -25,7 +25,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: packages/react/${{ matrix.package }}
+        working-directory: ${{ matrix.package }}
 
     steps:
       - name: Checkout
@@ -40,7 +40,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
+          cache: "pnpm"
           cache-dependency-path: ${{ github.workspace }}/packages/react/${{ matrix.package }}/pnpm-lock.yaml
 
       - name: Setup NPM_TOKEN
