@@ -4,12 +4,12 @@ on:
   push:
     branches: [main]
     paths:
-      - "**/pnpm-lock.yaml"
-      - "**/package.json"
+      - '**/pnpm-lock.yaml'
+      - '**/package.json'
   pull_request:
     paths:
-      - "**/pnpm-lock.yaml"
-      - "**/package.json"
+      - '**/pnpm-lock.yaml'
+      - '**/package.json'
   workflow_dispatch:
 
 jobs:
@@ -21,6 +21,8 @@ jobs:
           - packages/react/alore-auth-ui
           - packages/react/alore-crypto-sdk
           - packages/react/alore-auth-sdk
+          - packages/react-native/alore-native-auth-sdk
+          - packages/react-native/alore-native-auth-ui
         node-version: [20.x]
 
     defaults:
@@ -40,7 +42,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "pnpm"
+          cache: 'pnpm'
           cache-dependency-path: ${{ github.workspace }}/${{ matrix.package }}/pnpm-lock.yaml
 
       - name: Setup NPM_TOKEN
