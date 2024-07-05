@@ -6,8 +6,8 @@ export const i18n = {
 export type Locale = (typeof i18n)['locales'][number];
 
 export const dictionaries = {
-  en: () => import('../dictionaries/en.json').then((module) => module.default),
-  pt: () => import('../dictionaries/pt.json').then((module) => module.default),
+  en: () => import('../dictionaries/en.json').then(module => module.default),
+  pt: () => import('../dictionaries/pt.json').then(module => module.default),
 };
 
 export const getDictionary = async (locale: Locale) =>

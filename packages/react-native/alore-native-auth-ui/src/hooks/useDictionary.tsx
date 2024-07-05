@@ -5,7 +5,7 @@ const useDictionary = (locale: Locale) => {
   const [dictionary, setDictionary] = useState<Dictionary>();
 
   useEffect(() => {
-    getDictionary(locale).then((localeDictionary) => {
+    getDictionary(locale).then(localeDictionary => {
       setDictionary(localeDictionary);
     });
   }, []);

@@ -1,41 +1,41 @@
-import crypto, { randomBytes } from "crypto";
-import argon2 from "react-native-argon2";
+import crypto, { randomBytes } from 'crypto';
+import argon2 from 'react-native-argon2';
 import {
   Passkey,
   PasskeyAuthenticationResult,
   PasskeyRegistrationResult,
-} from "react-native-passkey";
-import base64url from "base64url";
-import { PasskeyAuthenticationRequest } from "react-native-passkey/lib/typescript/Passkey";
+} from 'react-native-passkey';
+import base64url from 'base64url';
+import { PasskeyAuthenticationRequest } from 'react-native-passkey/lib/typescript/Passkey';
 
 export function hashUserInfo(userInfo: string) {
-  const hash = crypto.createHash("sha256");
+  const hash = crypto.createHash('sha256');
   hash.update(userInfo);
-  return hash.digest("hex");
+  return hash.digest('hex');
 }
 
-type KeyDerivationFunction = "argon2d" | "pbkdf2";
+type KeyDerivationFunction = 'argon2d' | 'pbkdf2';
 
 export async function generateSecureHash(
   password: string,
   salt: string,
-  keyDerivationFunction: KeyDerivationFunction = "argon2d"
+  keyDerivationFunction: KeyDerivationFunction = 'argon2d'
 ): Promise<string> {
-  if (keyDerivationFunction === "argon2d") {
+  if (keyDerivationFunction === 'argon2d') {
     const result = await argon2(password, salt, {
       hashLength: 32,
       memory: 32768,
       iterations: 3,
       parallelism: 2,
-      mode: "argon2d",
+      mode: 'argon2d',
     });
 
     return result.encodedHash;
   }
-  throw new Error("Unsupported key derivation function");
+  throw new Error('Unsupported key derivation function');
 }
 
-const DEFAULT_URL = "https://alpha-api.bealore.com/v1";
+const DEFAULT_URL = 'https://alpha-api.bealore.com/v1';
 
 interface Rp {
   name: string;
@@ -78,7 +78,7 @@ interface PublicKeyCredentialRequestOptions {
   challenge: string;
   rpId: string;
   timeout?: number;
-  userVerification?: "required" | "preferred" | "discouraged";
+  userVerification?: 'required' | 'preferred' | 'discouraged';
   extensions?: Record<string, unknown>;
 }
 
@@ -138,7 +138,7 @@ export class AloreAuth {
     public readonly apiKey: string,
     options?: AloreAuthConfiguration
   ) {
-    if (!apiKey) throw new Error("API_KEY is required");
+    if (!apiKey) throw new Error('API_KEY is required');
 
     this.endpoint = options?.endpoint || DEFAULT_URL;
   }
@@ -147,7 +147,7 @@ export class AloreAuth {
     finishPasskeyAuth: async (
       context: AuthMachineContext,
       event: {
-        type: "FINISH_PASSKEY_LOGIN";
+        type: 'FINISH_PASSKEY_LOGIN';
         payload: {
           passkeyAuth: PasskeyAuthenticationResult;
         };
@@ -157,9 +157,9 @@ export class AloreAuth {
       const response = await this.fetchWithProgressiveBackoff(
         `/auth/login-passkey-finish`,
         {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({ passkeyAuth, sessionId: context.sessionId }),
         }
@@ -171,7 +171,7 @@ export class AloreAuth {
         if (response.status === 403) {
           return { active2fa: data };
         }
-        if (data?.error?.includes("2FA") || data?.error?.includes("device")) {
+        if (data?.error?.includes('2FA') || data?.error?.includes('device')) {
           return { error: data?.error };
         }
         throw new Error(data?.message || data?.error || data);
@@ -182,7 +182,7 @@ export class AloreAuth {
     userInputLoginPasskey: async (
       _: AuthMachineContext,
       event: {
-        type: "USER_INPUT_PASSKEY_LOGIN";
+        type: 'USER_INPUT_PASSKEY_LOGIN';
         payload: {
           RCRPublicKey: { publicKey: PublicKeyCredentialRequestOptions };
           withSecurityKey?: boolean;
@@ -193,7 +193,7 @@ export class AloreAuth {
       const withSecurityKey = event.payload.withSecurityKey || false;
 
       if (!publicKey) {
-        throw new Error("PublicKeyCredentialCreationOptions is undefined");
+        throw new Error('PublicKeyCredentialCreationOptions is undefined');
       }
 
       const blob = new Uint8Array(randomBytes(32));
@@ -205,7 +205,7 @@ export class AloreAuth {
           largeBlob: {
             write: blob,
           },
-          prf: { eval: { first: new TextEncoder().encode("Alore") } },
+          prf: { eval: { first: new TextEncoder().encode('Alore') } },
         },
       };
 
@@ -218,7 +218,7 @@ export class AloreAuth {
     startPasskeyAuth: async (
       _: AuthMachineContext,
       event: {
-        type: "START_PASSKEY_LOGIN";
+        type: 'START_PASSKEY_LOGIN';
         payload: {
           email: string;
         };
@@ -228,9 +228,9 @@ export class AloreAuth {
       const startAuthResponse = await this.fetchWithProgressiveBackoff(
         `/auth/login-passkey`,
         {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             email,
@@ -246,7 +246,7 @@ export class AloreAuth {
         if (startAuthResponse.status === 403) {
           return { active2fa: data };
         }
-        if (data?.error?.includes("2FA") || data?.error?.includes("device")) {
+        if (data?.error?.includes('2FA') || data?.error?.includes('device')) {
           return { error: data?.error };
         }
         throw new Error(data?.message || data?.error || data);
@@ -257,7 +257,7 @@ export class AloreAuth {
     userInputRegisterPasskey: async (
       _: AuthMachineContext,
       event: {
-        type: "USER_INPUT_PASSKEY_REGISTER";
+        type: 'USER_INPUT_PASSKEY_REGISTER';
         payload: {
           CCRPublicKey: { publicKey: PublicKeyCredentialCreationOptions };
           withSecurityKey?: boolean;
@@ -268,7 +268,7 @@ export class AloreAuth {
       const withSecurityKey = event.payload.withSecurityKey || false;
 
       if (!publicKey) {
-        throw new Error("PublicKeyCredentialCreationOptions is undefined");
+        throw new Error('PublicKeyCredentialCreationOptions is undefined');
       }
 
       const registerData = {
@@ -284,22 +284,22 @@ export class AloreAuth {
         },
         pubKeyCredParams: [
           {
-            type: "public-key",
+            type: 'public-key',
             alg: -7,
           },
           {
-            type: "public-key",
+            type: 'public-key',
             alg: -257,
           },
         ],
         authenticatorSelection: {
           requireResidentKey: true,
-          userVerification: "preferred",
+          userVerification: 'preferred',
         },
         extensions: {
           prf: {},
           largeBlob: {
-            support: "required",
+            support: 'required',
           },
         },
       };
@@ -314,7 +314,7 @@ export class AloreAuth {
     finishRegisterPasskey: async (
       context: AuthMachineContext,
       event: {
-        type: "FINISH_PASSKEY_REGISTER";
+        type: 'FINISH_PASSKEY_REGISTER';
         payload: {
           passkeyRegistration: PasskeyRegistrationResult;
           email: string;
@@ -328,9 +328,9 @@ export class AloreAuth {
       const response = await this.fetchWithProgressiveBackoff(
         `/auth/account-registration-passkey-finish`,
         {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             userEmail: email,
@@ -370,7 +370,7 @@ export class AloreAuth {
     completeRegistration: async (
       _: AuthMachineContext,
       event: {
-        type: "COMPLETE_REGISTRATION";
+        type: 'COMPLETE_REGISTRATION';
         payload: {
           email: string;
           nickname: string;
@@ -384,9 +384,9 @@ export class AloreAuth {
       const response = await this.fetchWithProgressiveBackoff(
         `/auth/account-registration`,
         {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             email,
@@ -401,13 +401,13 @@ export class AloreAuth {
 
       if (response.ok) return data;
 
-      throw new Error(data.message || data.error || "Authentication failed");
+      throw new Error(data.message || data.error || 'Authentication failed');
     },
     sendConfirmationEmail: async (
       _: AuthMachineContext,
       event:
         | {
-            type: "RESEND_CODE";
+            type: 'RESEND_CODE';
             payload: {
               email: string;
               nickname?: string | undefined;
@@ -418,7 +418,7 @@ export class AloreAuth {
             };
           }
         | {
-            type: "SEND_REGISTRATION_EMAIL";
+            type: 'SEND_REGISTRATION_EMAIL';
             payload: {
               email: string;
               nickname: string;
@@ -432,9 +432,9 @@ export class AloreAuth {
       const response = await this.fetchWithProgressiveBackoff(
         `/auth/confirmation-email`,
         {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             email,
@@ -460,7 +460,7 @@ export class AloreAuth {
     verifyEmail: async (
       context: AuthMachineContext,
       event: {
-        type: "VERIFY_EMAIL";
+        type: 'VERIFY_EMAIL';
         payload: {
           secureCode: string;
         };
@@ -470,9 +470,9 @@ export class AloreAuth {
       const response = await this.fetchWithProgressiveBackoff(
         `/auth/registration-code-verification`,
         {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             emailCode: secureCode,
@@ -491,7 +491,7 @@ export class AloreAuth {
     retrieveSalt: async (
       _: AuthMachineContext,
       event: {
-        type: "NEXT";
+        type: 'NEXT';
         payload: {
           email: string;
         };
@@ -502,7 +502,7 @@ export class AloreAuth {
         `/auth/salt/${email}`,
         {
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
         }
       );
@@ -517,7 +517,7 @@ export class AloreAuth {
     startRegisterPasskey: async (
       _context: AuthMachineContext,
       event: {
-        type: "START_PASSKEY_REGISTER";
+        type: 'START_PASSKEY_REGISTER';
         payload: {
           device: string;
           email: string;
@@ -531,9 +531,9 @@ export class AloreAuth {
         await this.fetchWithProgressiveBackoff(
           `/auth/account-registration-passkey`,
           {
-            method: "POST",
+            method: 'POST',
             headers: {
-              "Content-Type": "application/json",
+              'Content-Type': 'application/json',
             },
             body: JSON.stringify({
               userEmail: email,
@@ -551,7 +551,7 @@ export class AloreAuth {
       _: AuthMachineContext,
       event:
         | {
-            type: "VERIFY_LOGIN";
+            type: 'VERIFY_LOGIN';
             payload: {
               email: string;
               device: string;
@@ -561,7 +561,7 @@ export class AloreAuth {
             };
           }
         | {
-            type: "RESEND_CODE";
+            type: 'RESEND_CODE';
             payload: {
               email: string;
               nickname?: string | undefined;
@@ -577,9 +577,9 @@ export class AloreAuth {
       const response = await this.fetchWithProgressiveBackoff(
         `/auth/login-verification`,
         {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             email,
@@ -595,7 +595,7 @@ export class AloreAuth {
         if (response.status === 403) {
           return { active2fa: data };
         }
-        if (data?.error?.includes("2FA") || data?.error?.includes("device")) {
+        if (data?.error?.includes('2FA') || data?.error?.includes('device')) {
           return { error: data?.error };
         }
         throw new Error(data?.message || data?.error || data);
@@ -606,7 +606,7 @@ export class AloreAuth {
     verifyEmail2fa: async (
       context: AuthMachineContext,
       event: {
-        type: "VERIFY_EMAIL_2FA";
+        type: 'VERIFY_EMAIL_2FA';
         payload: {
           email: string;
           secureCode: string;
@@ -619,7 +619,7 @@ export class AloreAuth {
       const response = await this.fetchWithProgressiveBackoff(
         `/auth/email-2fa-verification`,
         {
-          method: "POST",
+          method: 'POST',
           body: JSON.stringify({
             email,
             passwordHash,
@@ -627,7 +627,7 @@ export class AloreAuth {
             sessionId: context.sessionId,
           }),
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
           },
         }
       );
@@ -636,7 +636,7 @@ export class AloreAuth {
 
       if (response.ok) return data;
 
-      throw new Error(data.message || data.error || "Authentication failed");
+      throw new Error(data.message || data.error || 'Authentication failed');
     },
   };
 
@@ -657,7 +657,7 @@ export class AloreAuth {
       ...options,
       headers: {
         ...options?.headers,
-        "X-API-KEY": this.apiKey,
+        'X-API-KEY': this.apiKey,
       },
     };
 
@@ -681,11 +681,11 @@ export class AloreAuth {
 
         if (
           error instanceof TypeError &&
-          error.message === "Failed to fetch" &&
+          error.message === 'Failed to fetch' &&
           attempt >= maxAttempts
         ) {
           console.error(
-            "Connection refused, the backend is probably not running."
+            'Connection refused, the backend is probably not running.'
           );
           this.verifyBackendStatus();
         } else if (attempt < maxAttempts) {
@@ -710,16 +710,16 @@ export class AloreAuth {
       const basePath = url.match(/(https?:\/\/[^\//]+)/);
 
       if (!basePath || basePath.length < 2) {
-        throw new Error("Failed to fetch");
+        throw new Error('Failed to fetch');
       }
 
       const res = await fetch(`${basePath[1]}/health-check`);
 
       if (!res.ok) {
-        throw new Error("Failed to fetch");
+        throw new Error('Failed to fetch');
       }
     } catch {
-      throw new Error("Server down");
+      throw new Error('Server down');
     }
   }
 }
