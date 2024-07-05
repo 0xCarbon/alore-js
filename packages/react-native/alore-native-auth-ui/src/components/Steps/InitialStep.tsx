@@ -17,11 +17,11 @@ export const InitialStep: React.FC<InitialStepProps> = ({ styles }) => {
   const dictionary = useDictionary(authState.context.locale);
 
   const onCreateStep = () => {
-    sendAuth(['REGISTER_STEP']);
+    sendAuth('REGISTER_STEP');
   };
 
   const onLoginStep = async () => {
-    sendAuth(['LOGIN_STEP']);
+    sendAuth('LOGIN_STEP');
   };
 
   return (

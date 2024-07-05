@@ -55,7 +55,7 @@ const Auth = ({ styles, onSuccess, toast = true, cryptoUtils }: AuthProps) => {
   }, [authError]);
 
   useEffect(() => {
-    sendAuth([{ type: 'INITIALIZE' }]);
+    sendAuth({ type: 'INITIALIZE' });
   }, []);
 
   useEffect(() => {
