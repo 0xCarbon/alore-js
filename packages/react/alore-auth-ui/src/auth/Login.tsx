@@ -12,7 +12,6 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { NewDeviceInfo, verifyEmptyValues } from '../helpers';
 import useDictionary from '../hooks/useDictionary';
 import { AuthInstance } from '../machine/types';
-import googleLogo from 'public/assets/google.svg';
 import { KeyIcon, LockOpenIcon } from '@heroicons/react/24/outline';
 import {
   aloreLogoBlack,
@@ -30,7 +29,7 @@ const InputForm = React.lazy(() => import('../components/InputForm'));
 const InputOTP = React.lazy(() => import('../components/InputOTP'));
 const BackButton = React.lazy(() => import('../components/BackButton'));
 
-const envelopIcon = () => <EnvelopeIcon className='h-4 w-4 text-gray-500' />;
+const envelopIcon = () => <EnvelopeIcon className="h-4 w-4 text-gray-500" />;
 
 const HARDWARE = 1;
 const SOFTWARE = 2;
@@ -598,20 +597,20 @@ export const Login = ({
     () => (
       <>
         {authError ? (
-          <div className='flex flex-col items-center justify-center gap-5'>
-            <img src={authErrorImage} alt='alore logo' width={70} />
+          <div className="flex flex-col items-center justify-center gap-5">
+            <img src={authErrorImage} alt="alore logo" width={70} />
             {authError?.includes('beta') ? (
-              <span className='text-center font-poppins text-xl font-bold text-alr-red'>
+              <span className="text-center font-poppins text-xl font-bold text-alr-red">
                 {authError}
               </span>
             ) : (
               <>
-                <span className='text-center font-poppins text-xl font-bold text-alr-red'>
+                <span className="text-center font-poppins text-xl font-bold text-alr-red">
                   {authError?.includes('Invalid credentials')
                     ? loginDictionary?.invalidEmailPassword
                     : loginDictionary?.somethingWrong}
                 </span>
-                <span className='text-center font-medium text-alr-grey'>
+                <span className="text-center font-medium text-alr-grey">
                   {authError?.includes('Invalid credentials')
                     ? loginDictionary?.invalidEmailPasswordDescription
                     : loginDictionary?.defaultError}
@@ -620,23 +619,23 @@ export const Login = ({
             )}
           </div>
         ) : (
-          <h1 className='text-center font-inter text-lg font-bold text-gray-700'>
+          <h1 className="text-center font-inter text-lg font-bold text-gray-700">
             {forgeId
               ? loginDictionary?.forgeLogin
               : loginDictionary?.loginAccount}
           </h1>
         )}
         <form
-          className='flex flex-col gap-y-5'
+          className="flex flex-col gap-y-5"
           onSubmit={handleSubmitEmail((data) => onSubmitEmail(data))}
         >
           <InputForm
-            className='my-1'
+            className="my-1"
             control={emailControl}
             errors={emailErrors}
-            name='email'
+            name="email"
             placeholder={loginDictionary?.enterEmail}
-            data-test='login-email'
+            data-test="login-email"
             icon={envelopIcon}
           />
 
@@ -648,40 +647,40 @@ export const Login = ({
             Forgot your password?
           </Link> */}
           <Button
-            type='submit'
-            data-test='login-button'
+            type="submit"
+            data-test="login-button"
             disabled={verifyEmptyValues(getValuesEmail('email'))}
-            className='group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700'
+            className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700"
           >
             {isLoading && (
-              <Spinner className='mr-3 !h-5 w-full !fill-gray-300' />
+              <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />
             )}
             {loginDictionary?.login}
           </Button>
-          <div className='h-[0.5px] w-full bg-gray-300' />
-          <Button color='light' onClick={handleGoogleLogin} outline>
-            <div className='flex flex-row items-center justify-center gap-2'>
-              <img src={google} alt='google logo' width={16} />
+          <div className="h-[0.5px] w-full bg-gray-300" />
+          <Button color="light" onClick={handleGoogleLogin} outline>
+            <div className="flex flex-row items-center justify-center gap-2">
+              <img src={google} alt="google logo" width={16} />
               {dictionary?.auth.continueGoogle}
             </div>
           </Button>
           {forgeId && (
             <Button
-              color='light'
+              color="light"
               onClick={() => sendAuth('LOGIN_WITH_WEB3CONNECTOR')}
               outline
             >
-              <div className='flex flex-row items-center justify-center gap-2'>
-                <div className='relative flex flex-row'>
+              <div className="flex flex-row items-center justify-center gap-2">
+                <div className="relative flex flex-row">
                   <img
                     src={metamaskLogo}
-                    alt='metamask logo'
+                    alt="metamask logo"
                     width={20}
-                    className='absolute right-3'
+                    className="absolute right-3"
                   />
                   <img
                     src={walletConnectLogo}
-                    alt='walletconnect logo'
+                    alt="walletconnect logo"
                     width={20}
                   />
                 </div>
@@ -689,10 +688,10 @@ export const Login = ({
               </div>
             </Button>
           )}
-          <span className='text-center text-sm font-medium'>
+          <span className="text-center text-sm font-medium">
             {loginDictionary?.dontHaveAccount}
             <div
-              className='cursor-pointer text-alr-red'
+              className="cursor-pointer text-alr-red"
               onClick={() => {
                 sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
               }}
@@ -717,29 +716,29 @@ export const Login = ({
       <div>
         <BackButton disabled={isLoading} onClick={() => sendAuth('BACK')} />
         <div
-          className='flex w-full flex-col items-center'
-          data-test='login-method-selection-step'
+          className="flex w-full flex-col items-center"
+          data-test="login-method-selection-step"
         >
-          {isLoading && <Spinner className='mr-3 !h-5 w-full !fill-gray-300' />}
-          <span className='mb-6 font-poppins text-2xl font-bold text-alr-grey md:text-[1.75rem]'>
+          {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
+          <span className="mb-6 font-poppins text-2xl font-bold text-alr-grey md:text-[1.75rem]">
             {loginDictionary?.selectMethodTitle}
           </span>
-          <span className='mb-6 w-full text-center font-medium text-alr-grey'>
+          <span className="mb-6 w-full text-center font-medium text-alr-grey">
             {loginDictionary?.selectMethodDescription}
           </span>
-          <div className='flex flex-col gap-5'>
-            <div className='flex w-full gap-2'>
+          <div className="flex flex-col gap-5">
+            <div className="flex w-full gap-2">
               <Button
-                data-test='login-method-selection-password'
+                data-test="login-method-selection-password"
                 onClick={() => setLoginMethod('password')}
-                color='light'
+                color="light"
                 className={`${
                   loginMethod === 'password'
                     ? '!border-alr-red'
                     : '!border-gray-500'
                 } w-full cursor-pointer items-start border focus:ring-0 child:h-full`}
               >
-                <div className='flex flex-col items-start justify-center gap-2'>
+                <div className="flex flex-col items-start justify-center gap-2">
                   <LockOpenIcon
                     className={`${
                       loginMethod === 'password'
@@ -747,26 +746,26 @@ export const Login = ({
                         : 'text-gray-500'
                     } h-7 w-7`}
                   />
-                  <span className='font-semibold text-gray-900'>
+                  <span className="font-semibold text-gray-900">
                     {loginDictionary?.password}
                   </span>
-                  <span className='text-start text-xs font-normal text-gray-600'>
+                  <span className="text-start text-xs font-normal text-gray-600">
                     {loginDictionary?.selectMethodPassword}
                   </span>
                 </div>
               </Button>
               <Button
-                data-test='login-method-selection-passkey'
+                data-test="login-method-selection-passkey"
                 disabled
                 onClick={() => setLoginMethod('passkey')}
-                color='light'
+                color="light"
                 className={`${
                   loginMethod === 'passkey'
                     ? '!border-alr-red'
                     : '!border-gray-500'
                 } w-full cursor-pointer items-start border focus:ring-0 child:h-full`}
               >
-                <div className='flex flex-col items-start justify-center gap-2'>
+                <div className="flex flex-col items-start justify-center gap-2">
                   <KeyIcon
                     className={`${
                       loginMethod === 'passkey'
@@ -774,19 +773,19 @@ export const Login = ({
                         : 'text-gray-500'
                     } h-7 w-7`}
                   />
-                  <span className='font-semibold text-gray-900'>
+                  <span className="font-semibold text-gray-900">
                     {loginDictionary?.passkey}
                   </span>
-                  <span className='text-start text-xs font-normal text-gray-600'>
+                  <span className="text-start text-xs font-normal text-gray-600">
                     {loginDictionary?.selectMethodPasskey}
                   </span>
                 </div>
               </Button>
             </div>
             <Button
-              data-test='login-method-selection-submit'
+              data-test="login-method-selection-submit"
               onClick={() => selectLoginMethod()}
-              className='mb-6 flex w-full cursor-pointer items-center bg-alr-red text-alr-white'
+              className="mb-6 flex w-full cursor-pointer items-center bg-alr-red text-alr-white"
             >
               {loginDictionary?.continue}
             </Button>
@@ -800,19 +799,19 @@ export const Login = ({
   const PasswordInputStep = useMemo(
     () => (
       <>
-        <BackButton className='mb-2.5' onClick={() => sendAuth('BACK')}>
+        <BackButton className="mb-2.5" onClick={() => sendAuth('BACK')}>
           {getValuesEmail('email') || googleUser?.email}
         </BackButton>
 
         {authError && (
-          <div className='flex flex-col items-center justify-center gap-5'>
-            <img src={authErrorImage} alt='alore logo' width={70} />
-            <span className='text-center font-poppins text-xl font-bold text-alr-red'>
+          <div className="flex flex-col items-center justify-center gap-5">
+            <img src={authErrorImage} alt="alore logo" width={70} />
+            <span className="text-center font-poppins text-xl font-bold text-alr-red">
               {authError?.includes('Invalid credentials')
                 ? loginDictionary?.invalidEmailPassword
                 : loginDictionary?.somethingWrong}
             </span>
-            <span className='text-center font-medium text-alr-grey'>
+            <span className="text-center font-medium text-alr-grey">
               {authError?.includes('Invalid credentials')
                 ? loginDictionary?.invalidEmailPasswordDescription
                 : loginDictionary?.defaultError}
@@ -821,17 +820,17 @@ export const Login = ({
         )}
         <form
           onSubmit={handleSubmitPassword((data) => onSubmitLogin(data))}
-          className='flex flex-col gap-y-5'
-          data-test='login-password-step'
+          className="flex flex-col gap-y-5"
+          data-test="login-password-step"
         >
           <InputForm
             control={passwordControl}
             errors={passwordErrors}
-            name='password'
+            name="password"
             placeholder={loginDictionary?.enterPassword}
-            type='password'
+            type="password"
             label={dictionary?.password}
-            data-test='login-password'
+            data-test="login-password"
           />
 
           {/* <Link // TODO removed from beta
@@ -842,20 +841,20 @@ export const Login = ({
             Forgot your password?
           </Link> */}
           <Button
-            type='submit'
-            data-test='login-submit'
+            type="submit"
+            data-test="login-submit"
             disabled={verifyEmptyValues(getValuesPassword('password'))}
-            className='group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700'
+            className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700"
           >
             {isLoading && (
-              <Spinner className='mr-3 !h-5 w-full !fill-gray-300' />
+              <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />
             )}
             {loginDictionary?.login}
           </Button>
-          <span className='text-sm font-medium'>
+          <span className="text-sm font-medium">
             {loginDictionary?.dontHaveAccount}
             <div
-              className='cursor-pointer text-alr-red'
+              className="cursor-pointer text-alr-red"
               onClick={() => {
                 sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
               }}
@@ -877,27 +876,27 @@ export const Login = ({
 
   const VerifyEmail = useMemo(
     () => (
-      <div className='pb-10 pt-4'>
+      <div className="pb-10 pt-4">
         <BackButton disabled={isLoading} onClick={() => sendAuth('BACK')} />
 
         <div
-          className='flex w-full flex-col items-center'
-          data-test='login-verify-email-step'
+          className="flex w-full flex-col items-center"
+          data-test="login-verify-email-step"
         >
-          <span className='mb-10 mt-[4.5rem] font-poppins text-[1.75rem] font-bold text-alr-grey'>
+          <span className="mb-10 mt-[4.5rem] font-poppins text-[1.75rem] font-bold text-alr-grey">
             {loginDictionary?.verifyEmail}
           </span>
-          <span className='mb-12 w-[23.75rem] text-center font-medium text-alr-grey'>
+          <span className="mb-12 w-[23.75rem] text-center font-medium text-alr-grey">
             {loginDictionary?.verifyEmailDescription}
           </span>
 
-          <div className='mb-6 flex'>
+          <div className="mb-6 flex">
             <InputOTP
-              className='child:gap-x-3 md:child:gap-x-5 [&>div>input]:!h-9 [&>div>input]:!w-9'
+              className="child:gap-x-3 md:child:gap-x-5 [&>div>input]:!h-9 [&>div>input]:!w-9"
               value={secureCode2FA}
               onChange={(value) => setSecure2FACode(value)}
               inputLength={6}
-              data-test='secure-code'
+              data-test="secure-code"
               errorMessage={
                 authError?.includes('wrong')
                   ? loginDictionary?.wrongCode
@@ -907,13 +906,13 @@ export const Login = ({
             />
           </div>
           <Button
-            data-test='secure-code-submit'
+            data-test="secure-code-submit"
             onClick={() => onClickSecureCodeSubmit()}
-            className='group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700 mb-6 w-full'
+            className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700 mb-6 w-full"
             disabled={secureCode2FA.length !== 6 || isLoading}
           >
             {isLoading && (
-              <Spinner className='mr-3 !h-5 w-full !fill-gray-300' />
+              <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />
             )}
             {loginDictionary?.confirmCode}
           </Button>
@@ -942,13 +941,13 @@ export const Login = ({
         <BackButton onClick={() => sendAuth('BACK')} />
 
         {authError?.includes('Failed authenticating with hardware key') ? (
-          <div className='mt-6 flex w-full flex-col items-center gap-6'>
-            <img alt='fingerprint error' src={fingerprintError} />
-            <span className='text-center font-poppins text-[1.3rem] font-bold text-alr-red'>
+          <div className="mt-6 flex w-full flex-col items-center gap-6">
+            <img alt="fingerprint error" src={fingerprintError} />
+            <span className="text-center font-poppins text-[1.3rem] font-bold text-alr-red">
               {loginDictionary?.cantVerify2fa}
             </span>
             <Button
-              className='group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700 w-full'
+              className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700 w-full"
               onClick={() => startHwAuth(0)}
             >
               {loginDictionary?.tryAgain}
@@ -957,40 +956,40 @@ export const Login = ({
               <>
                 <span>{loginDictionary?.tryHardware}</span>
                 <div
-                  className='flex cursor-pointer items-center gap-x-1 text-base font-semibold text-alr-red'
+                  className="flex cursor-pointer items-center gap-x-1 text-base font-semibold text-alr-red"
                   onClick={() => startHwAuth(1)}
                 >
                   {loginDictionary?.useAnotherHardware}
-                  <ArrowRightIcon className='h-5 w-5' />
+                  <ArrowRightIcon className="h-5 w-5" />
                 </div>
               </>
             )}
             {activeSw2fa && (
               <div
-                className='flex cursor-pointer items-center gap-x-1 text-base font-semibold text-alr-red'
+                className="flex cursor-pointer items-center gap-x-1 text-base font-semibold text-alr-red"
                 onClick={() => sendAuth('USE_SOFTWARE_2FA')}
               >
                 {loginDictionary?.useSw2fa}
-                <ArrowRightIcon className='h-5 w-5' />
+                <ArrowRightIcon className="h-5 w-5" />
               </div>
             )}
           </div>
         ) : (
-          <div className='flex w-full flex-col items-center'>
-            <span className='mb-10 mt-[3rem] text-center font-poppins text-[1.3rem] font-bold text-alr-grey'>
+          <div className="flex w-full flex-col items-center">
+            <span className="mb-10 mt-[3rem] text-center font-poppins text-[1.3rem] font-bold text-alr-grey">
               {loginDictionary?.touchHardware}
             </span>
-            <span className='mb-10 w-[15rem] text-sm font-normal text-alr-grey'>
+            <span className="mb-10 w-[15rem] text-sm font-normal text-alr-grey">
               {loginDictionary?.touchHardwareDescription}
             </span>
-            <img alt='usb indicator' src={fingerprint} />
+            <img alt="usb indicator" src={fingerprint} />
             {activeSw2fa && (
               <div
-                className='mt-9 flex cursor-pointer items-center gap-x-1 text-base font-semibold text-alr-red'
+                className="mt-9 flex cursor-pointer items-center gap-x-1 text-base font-semibold text-alr-red"
                 onClick={() => sendAuth('USE_SOFTWARE_2FA')}
               >
                 {loginDictionary?.useSw2fa}
-                <ArrowRightIcon className='h-5 w-5' />
+                <ArrowRightIcon className="h-5 w-5" />
               </div>
             )}
           </div>
@@ -1005,17 +1004,17 @@ export const Login = ({
       <div>
         <BackButton onClick={() => sendAuth('BACK')} />
 
-        <div className='flex w-full flex-col items-center'>
-          <span className='mb-10 mt-[3rem] text-center font-poppins text-[1.3rem] font-bold text-alr-grey'>
+        <div className="flex w-full flex-col items-center">
+          <span className="mb-10 mt-[3rem] text-center font-poppins text-[1.3rem] font-bold text-alr-grey">
             {loginDictionary?.inform2FACode}
           </span>
 
-          <div className='mb-6 flex'>
+          <div className="mb-6 flex">
             <InputOTP
-              className='child:gap-x-3 md:child:gap-x-5 [&>div>input]:!h-9 [&>div>input]:!w-9'
+              className="child:gap-x-3 md:child:gap-x-5 [&>div>input]:!h-9 [&>div>input]:!w-9"
               value={secureCode2FA}
               onChange={(value) => setSecure2FACode(value)}
-              data-test='secure-code-2FA'
+              data-test="secure-code-2FA"
               inputLength={6}
               errorMessage={
                 authError?.includes('Invalid 2FA code')
@@ -1025,23 +1024,23 @@ export const Login = ({
             />
           </div>
           <Button
-            data-test='secure-code-2FA-submit'
+            data-test="secure-code-2FA-submit"
             onClick={() => onSubmitSecureCode2FA()}
-            className='group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700 mb-6 w-full'
+            className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700 mb-6 w-full"
             disabled={secureCode2FA.length !== 6}
           >
             {isLoading && (
-              <Spinner className='mr-3 !h-5 w-full !fill-gray-300' />
+              <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />
             )}
             {loginDictionary?.confirmCode}
           </Button>
           {active2fa?.find((item) => item.twoFaTypeId === HARDWARE) && (
             <div
-              className='mt-9 flex cursor-pointer items-center gap-x-1 text-base font-semibold text-alr-red'
+              className="mt-9 flex cursor-pointer items-center gap-x-1 text-base font-semibold text-alr-red"
               onClick={() => sendAuth('USE_HARDWARE_2FA')}
             >
               {loginDictionary?.useHw2fa}
-              <ArrowRightIcon className='h-5 w-5' />
+              <ArrowRightIcon className="h-5 w-5" />
             </div>
           )}
         </div>
@@ -1053,15 +1052,15 @@ export const Login = ({
   const NewDeviceStep = useMemo(
     () => (
       <div>
-        <div className='flex w-full flex-col items-center'>
-          <span className='mb-5 mt-14 font-poppins text-[1.75rem] font-bold text-alr-grey'>
+        <div className="flex w-full flex-col items-center">
+          <span className="mb-5 mt-14 font-poppins text-[1.75rem] font-bold text-alr-grey">
             {loginDictionary?.newDevice}
           </span>
-          <span className='mb-3 w-[23.75rem] text-center font-medium text-alr-grey'>
+          <span className="mb-3 w-[23.75rem] text-center font-medium text-alr-grey">
             {loginDictionary?.verifyEmailDescription}
           </span>
-          <span className='mb-5 font-bold'>{getValuesEmail('email')}</span>
-          <div className='mb-5 h-44 w-full'>
+          <span className="mb-5 font-bold">{getValuesEmail('email')}</span>
+          <div className="mb-5 h-44 w-full">
             {/* {newDeviceInfo?.coordinates && (
               <Map
                 coordinates={
@@ -1070,12 +1069,12 @@ export const Login = ({
               />
             )} */}
           </div>
-          <div className='mb-6 flex'>
+          <div className="mb-6 flex">
             <InputOTP
-              className='child:gap-x-3 md:child:gap-x-5 [&>div>input]:!h-9 [&>div>input]:!w-9'
+              className="child:gap-x-3 md:child:gap-x-5 [&>div>input]:!h-9 [&>div>input]:!w-9"
               value={secureCodeEmail}
               onChange={(value) => setSecureCodeEmail(value)}
-              data-test='secure-code-email'
+              data-test="secure-code-email"
               inputLength={6}
               errorMessage={
                 authError?.includes('Wrong code')
@@ -1085,13 +1084,13 @@ export const Login = ({
             />
           </div>
           <Button
-            data-test='secure-code-email-submit'
+            data-test="secure-code-email-submit"
             onClick={() => onSubmitSecureCodeEmail()}
-            className='group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700 mb-6 w-full'
+            className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700 mb-6 w-full"
             disabled={secureCodeEmail.length !== 6}
           >
             {isLoading && (
-              <Spinner className='mr-3 !h-5 w-full !fill-gray-300' />
+              <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />
             )}
             {loginDictionary?.confirmCode}
           </Button>
@@ -1116,26 +1115,26 @@ export const Login = ({
 
   return (
     <div
-      className='flex h-full min-h-screen w-full flex-col items-center justify-center gap-y-2 sm:gap-y-7'
-      data-test='login-page'
+      className="flex h-full min-h-screen w-full flex-col items-center justify-center gap-y-2 sm:gap-y-7"
+      data-test="login-page"
     >
       {forgeId ? (
-        <div className='flex flex-col'>
-          <span className='text-center font-poppins text-2xl font-black text-alr-grey'>
+        <div className="flex flex-col">
+          <span className="text-center font-poppins text-2xl font-black text-alr-grey">
             Tardezinha com Thiaguinho
           </span>
-          <div className='flex w-full flex-row items-center justify-center gap-2'>
-            <span className='font-inter text-sm font-medium text-gray-900'>
+          <div className="flex w-full flex-row items-center justify-center gap-2">
+            <span className="font-inter text-sm font-medium text-gray-900">
               {dictionary?.auth.poweredBy}
             </span>
-            <img src={aloreLogoBlack} alt='alore logo' width='60' />
+            <img src={aloreLogoBlack} alt="alore logo" width="60" />
           </div>
         </div>
       ) : (
         logoImage || (
           <img
             src={aloreLogoBlack}
-            alt='alore logo'
+            alt="alore logo"
             width={authState.matches('active.login.newDevice') ? 153 : 201}
           />
         )
@@ -1177,13 +1176,13 @@ export const Login = ({
           authState.matches('active.login.resendingConfirmationEmail')) &&
           NewDeviceStep}
         {authState.matches('active.login.successfulLogin') && (
-          <div className='flex flex-col justify-center items-center gap-4'>
-            <div className='flex flex-row gap-2 justify-center items-center'>
+          <div className="flex flex-col justify-center items-center gap-4">
+            <div className="flex flex-row gap-2 justify-center items-center">
               <span>Login complete for</span>
-              <span className='font-semibold'>{sessionUser?.nickname}</span>
+              <span className="font-semibold">{sessionUser?.nickname}</span>
             </div>
             <Button
-              className='group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700'
+              className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700"
               onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
             >
               LOGOUT
