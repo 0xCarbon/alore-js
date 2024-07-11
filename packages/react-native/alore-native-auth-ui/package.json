@@ -1,0 +1,35 @@
+{
+  "name": "@0xcarbon/alore-native-auth-ui",
+  "version": "1.0.0-alpha",
+  "repository": "https://github.com/0xCarbon/alore-js",
+  "description": "React Native UI for Alore Auth",
+  "main": "./src/index.ts",
+  "author": "0xCarbon",
+  "license": "LGPL-2.1-only",
+  "dependencies": {
+    "@hookform/resolvers": "3.6.0",
+    "@react-native-async-storage/async-storage": "1.23.1",
+    "@react-native-community/blur": "4.4.0",
+    "@react-native-community/datetimepicker": "8.0.1",
+    "@react-native-community/netinfo": "11.3.2",
+    "@react-native-picker/picker": "2.7.6",
+    "@react-navigation/native": "6.1.17",
+    "@xstate/react": "3.2.2",
+    "react": "18.2.0",
+    "react-hook-form": "7.51.5",
+    "react-native": "0.73.6",
+    "react-native-argon2": "2.0.1",
+    "react-native-device-info": "11.1.0",
+    "react-native-gesture-handler": "^2.16.2",
+    "react-native-heroicons": "4.0.0",
+    "react-native-passkey": "2.1.1",
+    "react-native-svg": "^15.3.0",
+    "react-native-ui-lib": "^7.22.0",
+    "xstate": "4.38.2",
+    "yup": "1.4.0"
+  },
+  "devDependencies": {
+    "@types/react": "18.2.6",
+    "typescript": "5.0.4"
+  }
+}

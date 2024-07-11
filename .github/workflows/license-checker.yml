@@ -13,19 +13,15 @@ on:
   workflow_dispatch:
 
 jobs:
-  license-checker:
+  alore-auth-ui-license-checker:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package:
-          - alore-auth-ui
-          - alore-crypto-sdk
-          - alore-auth-sdk
         node-version: [20.x]
 
     defaults:
       run:
-        working-directory: packages/react/${{ matrix.package }}
+        working-directory: packages/react/alore-auth-ui
 
     steps:
       - name: Checkout
@@ -41,10 +37,51 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
-          cache-dependency-path: ${{ github.workspace }}/packages/react/${{ matrix.package }}/pnpm-lock.yaml
+          cache-dependency-path: ${{ github.workspace }}/packages/react/alore-auth-ui/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - uses: daynin/nodejs-license-checker@v0.2.0
+        with:
+          exclude-private-packages: true
+          paths: ./packages/react/alore-auth-ui
+          allow-only: |
+            MIT
+            LGPL-2.0-only
+            LGPL-2.1-only
+            LGPL-3.0-only
+            Apache-1.0
+            Apache-1.1
+            Apache-2.0
+
+  alore-crypto-sdk-license-checker:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    defaults:
+      run:
+        working-directory: packages/react/alore-crypto-sdk
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+          cache-dependency-path: ${{ github.workspace }}/packages/react/alore-crypto-sdk/pnpm-lock.yaml
 
       - name: Setup NPM_TOKEN
-        if: matrix.package == 'alore-crypto-sdk'
         run: echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
 
       - name: Install dependencies
@@ -53,7 +90,142 @@ jobs:
       - uses: daynin/nodejs-license-checker@v0.2.0
         with:
           exclude-private-packages: true
-          paths: ./${{ matrix.package }}
+          paths: ./packages/react/alore-crypto-sdk
+          allow-only: |
+            MIT
+            LGPL-2.0-only
+            LGPL-2.1-only
+            LGPL-3.0-only
+            Apache-1.0
+            Apache-1.1
+            Apache-2.0
+
+  alore-auth-sdk-license-checker:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    defaults:
+      run:
+        working-directory: packages/react/alore-auth-sdk
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+          cache-dependency-path: ${{ github.workspace }}/packages/react/alore-auth-sdk/pnpm-lock.yaml
+
+      - name: Setup NPM_TOKEN
+        run: echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - uses: daynin/nodejs-license-checker@v0.2.0
+        with:
+          exclude-private-packages: true
+          paths: ./packages/react/alore-auth-sdk
+          allow-only: |
+            MIT
+            LGPL-2.0-only
+            LGPL-2.1-only
+            LGPL-3.0-only
+            Apache-1.0
+            Apache-1.1
+            Apache-2.0
+
+  alore-native-auth-sdk-license-checker:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    defaults:
+      run:
+        working-directory: packages/react-native/alore-native-auth-sdk
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+          cache-dependency-path: ${{ github.workspace }}/packages/react-native/alore-native-auth-sdk/pnpm-lock.yaml
+
+      - name: Setup NPM_TOKEN
+        run: echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - uses: daynin/nodejs-license-checker@v0.2.0
+        with:
+          exclude-private-packages: true
+          paths: ./packages/react-native/alore-native-auth-sdk
+          allow-only: |
+            MIT
+            LGPL-2.0-only
+            LGPL-2.1-only
+            LGPL-3.0-only
+            Apache-1.0
+            Apache-1.1
+            Apache-2.0
+
+  alore-native-auth-ui-license-checker:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    defaults:
+      run:
+        working-directory: packages/react-native/alore-native-auth-ui
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+          cache-dependency-path: ${{ github.workspace }}/packages/react-native/alore-native-auth-ui/pnpm-lock.yaml
+
+      - name: Setup NPM_TOKEN
+        run: echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - uses: daynin/nodejs-license-checker@v0.2.0
+        with:
+          exclude-private-packages: true
+          paths: ./packages/react-native/alore-native-auth-ui
           allow-only: |
             MIT
             LGPL-2.0-only
