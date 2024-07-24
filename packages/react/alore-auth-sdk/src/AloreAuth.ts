@@ -239,13 +239,13 @@ export class AloreAuth {
     retrieveSalt: async (
       context: AuthMachineContext,
       event: {
-        type: 'NEXT';
+        type: 'SELECT_PASSWORD';
         payload: {
           email: string;
         };
       }
     ) => {
-      const { email } = event.payload;
+      const { credentialEmail: email } = context;
       const response = await this.fetchWithProgressiveBackoff(
         `/auth/salt/${email}`,
         {
@@ -414,9 +414,6 @@ export class AloreAuth {
       if (response.ok) return data;
 
       if (!response.ok) {
-        if (response.status === 403) {
-          return { active2fa: data };
-        }
         if (data?.error?.includes('2FA') || data?.error?.includes('device')) {
           return { error: data?.error };
         }
@@ -426,7 +423,7 @@ export class AloreAuth {
       }
     },
     startPasskeyAuth: async (
-      context: AuthMachineContext,
+      _: AuthMachineContext,
       event: {
         type: 'START_PASSKEY_LOGIN';
         payload: {
@@ -435,20 +432,16 @@ export class AloreAuth {
       }
     ) => {
       const email =
-        (event.type === 'START_PASSKEY_LOGIN' && event.payload?.email) ||
-        context?.credentialEmail;
-      const startAuthResponse = await this.fetchWithProgressiveBackoff(
-        `/auth/login-passkey`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email,
-          }),
-        }
-      );
+        event.type === 'START_PASSKEY_LOGIN' ? event.payload?.email : undefined;
+      const url = `/auth/login-passkey${
+        email ? `?email=${encodeURIComponent(email)}` : ''
+      }`;
+      const startAuthResponse = await this.fetchWithProgressiveBackoff(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
       const data = await startAuthResponse.json();
 

@@ -4,7 +4,6 @@ import {
   AuthMachineEvents,
   AuthMachineServices,
 } from './types';
-import Cookies from 'js-cookie';
 
 const initialContext: AuthMachineContext = {
   salt: undefined,
@@ -138,20 +137,83 @@ export const authMachine = createMachine(
           login: {
             states: {
               idle: {
+                states: {
+                  localPasskeySign: {
+                    on: {
+                      FINISH_PASSKEY_LOGIN:
+                        '#authMachine.active.login.verifyingRegisterPublicKeyCredential',
+                      BACK: '#authMachine.active.login.idle.error',
+                      PASSKEY_NOT_SUPPORTED: {
+                        target: '#authMachine.active.login.idle.authScreen',
+                        actions: assign({
+                          error: (_, event) => event.payload.error,
+                        }),
+                      },
+                    },
+                  },
+                  signWithPasskey: {
+                    on: {
+                      FINISH_PASSKEY_LOGIN:
+                        '#authMachine.active.login.verifyingRegisterPublicKeyCredential',
+                      BACK: '#authMachine.active.login.idle.error',
+                      PASSKEY_NOT_SUPPORTED: {
+                        target: '#authMachine.active.login.idle.authScreen',
+                        actions: assign({
+                          error: (_, event) => event.payload.error,
+                        }),
+                      },
+                    },
+                  },
+                  authScreen: {
+                    on: {
+                      SET_CONDITIONAL_UI_PASSKEY: {
+                        target:
+                          '#authMachine.active.login.idle.localPasskeySign',
+                      },
+                      FINISH_PASSKEY_LOGIN:
+                        '#authMachine.active.login.verifyingRegisterPublicKeyCredential',
+                      PASSKEY_NOT_SUPPORTED: {
+                        target: '#authMachine.active.login.idle.authScreen',
+                        actions: assign({
+                          error: (_, event) => event.payload.error,
+                        }),
+                      },
+                    },
+                  },
+                  error: {
+                    on: {
+                      FINISH_PASSKEY_LOGIN:
+                        '#authMachine.active.login.verifyingRegisterPublicKeyCredential',
+                      PASSKEY_NOT_SUPPORTED: {
+                        target: '#authMachine.active.login.idle.authScreen',
+                        actions: assign({
+                          error: (_, event) => event.payload.error,
+                        }),
+                      },
+                    },
+                  },
+                },
+                initial: 'authScreen',
+
                 on: {
                   NEXT: {
-                    target: 'retrievingSalt',
+                    target: '#authMachine.active.login.loginMethodSelection',
                     actions: assign({
                       googleOtpCode: () => undefined,
                       googleUser: () => undefined,
                       registerUser: () => undefined,
                       sessionId: () => undefined,
+                      CCRPublicKey: () => undefined,
+                      RCRPublicKey: () => undefined,
+                      credentialEmail: (_, event) => event.payload.email,
                     }),
                   },
 
                   LOGIN_WITH_WEB3CONNECTOR: '#authMachine.active.web3Connector',
                   GOOGLE_LOGIN: 'googleLogin',
                   ADVANCE_TO_PASSWORD: 'inputPassword',
+                  SIGN_IN_WITH_PASSKEY:
+                    '#authMachine.active.login.idle.signWithPasskey',
                 },
 
                 exit: assign({
@@ -159,17 +221,33 @@ export const authMachine = createMachine(
                 }),
               },
 
+              loginMethodSelection: {
+                on: {
+                  SELECT_PASSWORD: 'retrievingSalt',
+                  START_PASSKEY_LOGIN:
+                    '#authMachine.active.login.retrievingCredentialRCR',
+                  BACK: {
+                    target: '#authMachine.active.login',
+                    actions: assign({
+                      googleUser: () => undefined,
+                      registerUser: () => undefined,
+                      error: () => undefined,
+                    }),
+                  },
+                },
+              },
+
               retrievingSalt: {
                 invoke: {
                   src: 'retrieveSalt',
                   onDone: {
-                    target: 'loginMethodSelection',
+                    target: '#authMachine.active.login.inputPassword',
                     actions: assign({
                       salt: (_context, event) => event.data?.salt,
                     }),
                   },
                   onError: {
-                    target: 'idle',
+                    target: '#authMachine.active.login',
                     actions: assign({
                       error: (_context, event) => event.data?.error,
                     }),
@@ -183,7 +261,7 @@ export const authMachine = createMachine(
               inputPassword: {
                 on: {
                   BACK: {
-                    target: 'idle',
+                    target: '#authMachine.active.login.loginMethodSelection',
                     actions: assign({
                       googleUser: () => undefined,
                       registerUser: () => undefined,
@@ -224,7 +302,7 @@ export const authMachine = createMachine(
                     },
                   ],
                   onError: {
-                    target: 'idle',
+                    target: '#authMachine.active.login.inputPassword',
                     actions: assign({
                       error: (_context, event) =>
                         event.data?.error || event.data?.message,
@@ -484,6 +562,45 @@ export const authMachine = createMachine(
                 }),
               },
 
+              retrievingCredentialRCR: {
+                entry: assign({
+                  error: () => undefined,
+                }),
+
+                invoke: {
+                  src: 'startPasskeyAuth',
+                  onDone: {
+                    target: '#authMachine.active.login.signingCredentialRCR',
+                    actions: assign({
+                      RCRPublicKey: (_context, event) =>
+                        event.data.requestChallengeResponse,
+                      sessionId: (_, event) => event.data.sessionId,
+                    }),
+                  },
+                  onError: {
+                    target: '#authMachine.active.login.retrievingSalt',
+                    actions: assign({
+                      error: (_context, event) =>
+                        event.data?.error || event.data?.message || event.data,
+                    }),
+                  },
+                },
+              },
+
+              signingCredentialRCR: {
+                on: {
+                  FINISH_PASSKEY_LOGIN:
+                    '#authMachine.active.login.verifyingRegisterPublicKeyCredential',
+                  BACK: '#authMachine.active.login.loginMethodSelection',
+                  PASSKEY_NOT_SUPPORTED: {
+                    target: '#authMachine.active.login.loginMethodSelection',
+                    actions: assign({
+                      error: (_, event) => event.payload.error,
+                    }),
+                  },
+                },
+              },
+
               retrievingRCR: {
                 entry: assign({
                   error: () => undefined,
@@ -492,7 +609,7 @@ export const authMachine = createMachine(
                 invoke: {
                   src: 'startPasskeyAuth',
                   onDone: {
-                    target: 'localSignCredential',
+                    target: '#authMachine.active.login.idle.authScreen',
                     actions: assign({
                       RCRPublicKey: (_context, event) =>
                         event.data.requestChallengeResponse,
@@ -504,18 +621,6 @@ export const authMachine = createMachine(
                     actions: assign({
                       error: (_context, event) =>
                         event.data?.error || event.data?.message || event.data,
-                    }),
-                  },
-                },
-              },
-
-              localSignCredential: {
-                on: {
-                  FINISH_PASSKEY_LOGIN: 'verifyingRegisterPublicKeyCredential',
-                  BACK: {
-                    target: 'loginMethodSelection',
-                    actions: assign({
-                      error: () => undefined,
                     }),
                   },
                 },
@@ -543,33 +648,43 @@ export const authMachine = createMachine(
                     },
                     { target: 'successfulLogin', actions: 'setSessionUser' },
                   ],
-                  onError: {
-                    target: 'idle',
-                    actions: assign({
-                      error: (_context, event) =>
-                        event.data?.error || event.data?.message || event.data,
-                    }),
-                  },
+                  onError: [
+                    {
+                      target: '#authMachine.active.login.loginMethodSelection',
+                      actions: assign({
+                        error: (_context, event) =>
+                          event.data?.error ||
+                          event.data?.message ||
+                          event.data,
+                      }),
+                      cond: (context) => !!context.credentialEmail,
+                    },
+                    {
+                      target: '#authMachine.active.login.idle.authScreen',
+                      actions: assign({
+                        error: (_context, event) =>
+                          event.data?.error ||
+                          event.data?.message ||
+                          event.data,
+                      }),
+                      cond: (context) => !context.credentialEmail,
+                    },
+                  ],
                 },
               },
 
-              loginMethodSelection: {
-                on: {
-                  SELECT_PASSWORD: 'inputPassword',
-                  START_PASSKEY_LOGIN: 'retrievingRCR',
-                  BACK: {
-                    target: 'idle',
-                    actions: assign({
-                      googleUser: () => undefined,
-                      registerUser: () => undefined,
-                      error: () => undefined,
-                    }),
+              passkeyGuard: {
+                after: {
+                  0: {
+                    target: '#authMachine.active.login.idle.authScreen',
+                    cond: (context) => !!context.RCRPublicKey,
                   },
+                  100: { target: 'retrievingRCR' },
                 },
               },
             },
 
-            initial: 'idle',
+            initial: 'passkeyGuard',
 
             on: {
               SETUP_REGISTER_USER: {
@@ -579,6 +694,12 @@ export const authMachine = createMachine(
             },
             entry: assign({
               error: () => undefined,
+            }),
+
+            exit: assign({
+              RCRPublicKey: () => undefined,
+              CCRPublicKey: () => undefined,
+              sessionId: () => undefined,
             }),
           },
 
@@ -778,11 +899,15 @@ export const authMachine = createMachine(
               },
 
               retrievingCCR: {
+                entry: assign({
+                  error: () => undefined,
+                  CCRPublicKey: () => undefined,
+                }),
                 invoke: {
                   src: 'startRegisterPasskey',
 
                   onDone: {
-                    target: 'localSigningPasskeyRegister',
+                    target: '#authMachine.active.register.localCCRSign',
                     actions: assign({
                       CCRPublicKey: (_context, event) => event.data.ccr,
                       sessionId: (_, event) => event.data.sessionId,
@@ -791,48 +916,70 @@ export const authMachine = createMachine(
 
                   onError: {
                     target: 'registerMethodSelection',
-                    actions: (_context, event) =>
-                      assign({
-                        error:
-                          event.data?.error ||
-                          event.data?.message ||
-                          event.data,
-                      }),
+                    actions: assign({
+                      error: (_context, event) =>
+                        event.data?.error || event.data?.message || event.data,
+                    }),
                   },
                 },
               },
 
-              localSigningPasskeyRegister: {
+              localCCRSign: {
                 on: {
-                  FINISH_PASSKEY_REGISTER: {
-                    target: 'sendingPublicCredential',
+                  FINISH_PASSKEY_REGISTER:
+                    '#authMachine.active.register.sendingPublicCredential',
+                  PASSKEY_NOT_SUPPORTED: {
+                    target:
+                      '#authMachine.active.register.registerMethodSelection',
                     actions: assign({
-                      credentialEmail: (_, event) => event.payload.email,
+                      error: (_, event) => event.payload.error,
                     }),
                   },
-
                   BACK: {
-                    target: 'registerMethodSelection',
+                    target:
+                      '#authMachine.active.register.registerMethodSelection',
+                  },
+                },
+              },
+
+              localRCRSign: {
+                on: {
+                  FINISH_PASSKEY_AUTH:
+                    '#authMachine.active.register.sendingAuthPublicCredential',
+                  BACK_TO_IDLE: '#authMachine.active.register.idle',
+                  PASSKEY_NOT_SUPPORTED: {
+                    target: '#authMachine.active.register.idle',
                     actions: assign({
-                      error: () => undefined,
+                      error: (_, event) => event.payload.error,
                     }),
                   },
+                },
+              },
+
+              waitingForRCR: {
+                on: {
+                  START_PASSKEY_LOGIN:
+                    '#authMachine.active.register.retrievingRCR',
                 },
               },
 
               sendingPublicCredential: {
                 invoke: {
                   src: 'finishRegisterPasskey',
-                  onDone: 'retrievingRCR',
+                  onDone: {
+                    target: '#authMachine.active.register.waitingForRCR',
+                    actions: assign({
+                      RCRPublicKey: () => undefined,
+                      sessionId: () => undefined,
+                    }),
+                  },
                   onError: {
-                    target: 'localSigningPasskeyRegister',
-                    actions: (_context, event) =>
-                      assign({
-                        error:
-                          event.data?.error ||
-                          event.data?.message ||
-                          event.data,
-                      }),
+                    target:
+                      '#authMachine.active.register.registerMethodSelection',
+                    actions: assign({
+                      error: (_context, event) =>
+                        event.data?.error || event.data?.message || event.data,
+                    }),
                   },
                 },
               },
@@ -856,7 +1003,7 @@ export const authMachine = createMachine(
                 invoke: {
                   src: 'startPasskeyAuth',
                   onDone: {
-                    target: 'localSigningPasskeyAuth',
+                    target: '#authMachine.active.register.localRCRSign',
                     actions: assign({
                       RCRPublicKey: (_context, event) =>
                         event.data.requestChallengeResponse,
@@ -864,23 +1011,10 @@ export const authMachine = createMachine(
                     }),
                   },
                   onError: {
-                    target: 'idle',
+                    target: 'registerMethodSelection',
                     actions: assign({
                       error: (_context, event) =>
                         event.data?.error || event.data?.message || event.data,
-                    }),
-                  },
-                },
-              },
-
-              localSigningPasskeyAuth: {
-                on: {
-                  FINISH_PASSKEY_AUTH: 'sendingAuthPublicCredential',
-                  FORCE_PASSWORD_METHOD: 'createPassword',
-                  BACK: {
-                    target: 'registerMethodSelection',
-                    actions: assign({
-                      error: () => undefined,
                     }),
                   },
                 },
@@ -896,7 +1030,8 @@ export const authMachine = createMachine(
                   },
 
                   onError: {
-                    target: 'localSigningPasskeyAuth',
+                    target:
+                      '#authMachine.active.register.registerMethodSelection',
                     actions: (_context, event) =>
                       assign({
                         error:
@@ -1114,6 +1249,8 @@ export const authMachine = createMachine(
         googleUser: () => undefined,
         sessionUser: () => undefined,
         forgeData: () => undefined,
+        CCRPublicKey: () => undefined,
+        RCRPublicKey: () => undefined,
       }),
     },
   }
@@ -1207,6 +1344,8 @@ export const authService = (services: {}) =>
             sessionUser: () => undefined,
             forgeData: () => undefined,
             sessionId: () => undefined,
+            CCRPublicKey: () => undefined,
+            RCRPublicKey: () => undefined,
           }),
         },
       },
@@ -1214,7 +1353,15 @@ export const authService = (services: {}) =>
     )
   )
     .onTransition((state) => {
-      if (state.changed && typeof window !== 'undefined') {
+      const shouldUpdate =
+        state.changed &&
+        (state.matches('inactive') ||
+          state.matches('active.register.userCreated') ||
+          state.matches('active.login.successfulLogin') ||
+          state.matches('active.web3Connector.emailConfirmed') ||
+          state.matches('active.forgotPassword.passwordSaved'));
+
+      if (shouldUpdate && typeof window !== 'undefined') {
         localStorage.setItem('authState', JSON.stringify(state));
       }
     })
