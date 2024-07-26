@@ -86,7 +86,7 @@ export type AuthMachineEvents =
   | { type: 'NEXT' }
   | {
       type: 'START_PASSKEY_LOGIN';
-      payload: {
+      payload?: {
         email: string;
       };
     }

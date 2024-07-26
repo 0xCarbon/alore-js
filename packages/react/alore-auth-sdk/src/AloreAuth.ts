@@ -412,15 +412,6 @@ export class AloreAuth {
       );
       const data = await response.json();
       if (response.ok) return data;
-
-      if (!response.ok) {
-        if (data?.error?.includes('2FA') || data?.error?.includes('device')) {
-          return { error: data?.error };
-        }
-        throw new Error(data?.message || data?.error || data);
-      } else {
-        return { error: data?.error || data?.message };
-      }
     },
     startPasskeyAuth: async (
       _: AuthMachineContext,
@@ -446,18 +437,6 @@ export class AloreAuth {
       const data = await startAuthResponse.json();
 
       if (startAuthResponse.ok) return data;
-
-      if (!startAuthResponse.ok) {
-        if (startAuthResponse.status === 403) {
-          return { active2fa: data };
-        }
-        if (data?.error?.includes('2FA') || data?.error?.includes('device')) {
-          return { error: data?.error };
-        }
-        throw new Error(data?.message || data?.error || data);
-      } else {
-        return { error: data?.error || data?.message };
-      }
     },
     verifyLogin: async (
       _: AuthMachineContext,

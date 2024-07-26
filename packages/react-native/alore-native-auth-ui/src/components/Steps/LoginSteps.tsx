@@ -57,7 +57,6 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
   const {
     googleId,
     salt,
-    error,
     authMethods,
     RCRPublicKey,
     passkeyLoginResult,

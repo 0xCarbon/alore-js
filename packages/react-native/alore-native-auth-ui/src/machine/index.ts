@@ -60,6 +60,9 @@ export const authMachine = createMachine(
                 on: {
                   REGISTER_STEP: '#authMachine.active.register',
                   LOGIN_STEP: '#authMachine.active.login',
+                  START_PASSKEY_LOGIN: {
+                    target: '#authMachine.active.login.passkeyStep',
+                  },
                 },
               },
             },
@@ -275,8 +278,8 @@ export const authMachine = createMachine(
                         target: '#authMachine.active.login.emailStep',
                         actions: assign({
                           error: (_context, event) =>
-                            event.data?.error ||
                             event.data?.message ||
+                            event.data?.error ||
                             event.data,
                         }),
                       },
@@ -616,7 +619,10 @@ export const authMachine = createMachine(
                       START_PASSKEY_LOGIN: {
                         target: '#authMachine.active.login.passkeyStep',
                         actions: assign({
-                          userEmail: (_context, event) => event.payload.email,
+                          userEmail: (context, event) =>
+                            event.payload
+                              ? event.payload.email
+                              : context.userEmail,
                         }),
                       },
                     },
@@ -752,17 +758,9 @@ export const getResolvedState = async () => {
 
   if (state) {
     const stateDefinition = JSON.parse(state);
-    const currentTime = Date.now();
-    const threeHoursInMilliseconds = 3 * 60 * 60 * 1000;
-
-    if (currentTime - stateDefinition.timestamp < threeHoursInMilliseconds) {
-      const previousState = State.create(stateDefinition);
-
-      // @ts-ignore
-      resolvedState = authMachine.resolveState(previousState);
-    } else {
-      await AsyncStorage.removeItem('authState');
-    }
+    const previousState = State.create(stateDefinition);
+    // @ts-ignore
+    resolvedState = authMachine.resolveState(previousState);
   }
 
   return resolvedState;
@@ -796,14 +794,7 @@ export const authService = (
   )
     .onTransition(async state => {
       if (state.changed && state.matches('active.signedOn')) {
-        const stateWithTimestamp = {
-          ...state,
-          timestamp: Date.now(),
-        };
-        await AsyncStorage.setItem(
-          'authState',
-          JSON.stringify(stateWithTimestamp),
-        );
+        await AsyncStorage.setItem('authState', JSON.stringify(state));
       }
     })
     .start(resolvedState);

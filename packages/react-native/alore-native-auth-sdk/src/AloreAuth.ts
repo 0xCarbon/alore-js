@@ -219,24 +219,23 @@ export class AloreAuth {
       _: AuthMachineContext,
       event: {
         type: 'START_PASSKEY_LOGIN';
-        payload: {
+        payload?: {
           email: string;
         };
       }
     ) => {
-      const email = event.payload.email;
-      const startAuthResponse = await this.fetchWithProgressiveBackoff(
-        `/auth/login-passkey`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email,
-          }),
-        }
-      );
+      let url = `/auth/login-passkey`;
+
+      if (event.payload?.email) {
+        url += `?email=${event.payload.email}`;
+      }
+
+      const startAuthResponse = await this.fetchWithProgressiveBackoff(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
       const data = await startAuthResponse.json();
 
@@ -282,16 +281,7 @@ export class AloreAuth {
           name: publicKey.user.name,
           displayName: publicKey.user.displayName,
         },
-        pubKeyCredParams: [
-          {
-            type: 'public-key',
-            alg: -7,
-          },
-          {
-            type: 'public-key',
-            alg: -257,
-          },
-        ],
+        pubKeyCredParams: publicKey.pubKeyCredParams,
         authenticatorSelection: {
           requireResidentKey: true,
           userVerification: 'preferred',
@@ -299,7 +289,7 @@ export class AloreAuth {
         extensions: {
           prf: {},
           largeBlob: {
-            support: 'required',
+            support: 'preferred',
           },
         },
       };
