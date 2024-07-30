@@ -76,8 +76,6 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   } = authState.context;
   const { generateSecureHash, hashUserInfo } = cryptoUtils;
 
-  console.log(JSON.stringify(authState.value));
-
   useEffect(() => {
     const backAction = () => {
       sendAuth('BACK');

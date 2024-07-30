@@ -194,12 +194,7 @@ export class AloreAuth {
         url += `?email=${event.payload.email}`;
       }
 
-      const startAuthResponse = await this.fetchWithProgressiveBackoff(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const startAuthResponse = await this.fetchWithProgressiveBackoff(url);
 
       const data = await startAuthResponse.json();
 
@@ -312,7 +307,6 @@ export class AloreAuth {
       }
     ) => {
       const { email, nickname, device, passkeyRegistration } = event.payload;
-      console.log('🚀 ~ AloreAuth ~ passkeyRegistration:', passkeyRegistration);
 
       const response = await this.fetchWithProgressiveBackoff(
         `/auth/account-registration-passkey-finish`,

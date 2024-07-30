@@ -427,12 +427,7 @@ export class AloreAuth {
       const url = `/auth/login-passkey${
         email ? `?email=${encodeURIComponent(email)}` : ''
       }`;
-      const startAuthResponse = await this.fetchWithProgressiveBackoff(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const startAuthResponse = await this.fetchWithProgressiveBackoff(url);
 
       const data = await startAuthResponse.json();
 
