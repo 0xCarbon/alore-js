@@ -76,6 +76,8 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   } = authState.context;
   const { generateSecureHash, hashUserInfo } = cryptoUtils;
 
+  console.log(JSON.stringify(authState.value));
+
   useEffect(() => {
     const backAction = () => {
       sendAuth('BACK');
@@ -117,7 +119,8 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
         type: 'USER_INPUT_PASSKEY_REGISTER',
         payload: {
           CCRPublicKey,
-          withSecurityKey: true,
+          email,
+          nickname: username,
         },
       });
     } else if (
@@ -153,9 +156,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
         sendAuth({
           type: 'FINISH_PASSKEY_REGISTER',
           payload: {
-            passkeyRegistration: {
-              ...passkeyRegistrationResult,
-            },
+            passkeyRegistration: passkeyRegistrationResult,
             email,
             nickname: username,
             device,

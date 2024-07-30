@@ -43,6 +43,8 @@ const Auth = ({ styles, onSuccess, toast = true, cryptoUtils }: AuthProps) => {
       errorMessage = dictionary?.errors?.invalidEmailPassword;
     } else if (authError?.includes('Wrong')) {
       errorMessage = dictionary?.errors?.wrongCode;
+    } else if (authError?.includes('PASSKEY_NOT_SUPPORTED')) {
+      errorMessage = dictionary?.errors?.passkeyNotSupported;
     }
 
     return errorMessage;

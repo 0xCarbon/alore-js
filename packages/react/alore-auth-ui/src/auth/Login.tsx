@@ -102,8 +102,6 @@ export const Login = ({
   });
   const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-  console.log(JSON.stringify(authState.value));
-
   const handleGoogleLogin = () => googleLogin();
 
   const hasPasskeySupportWithPRFOrLargeBlob = () => {

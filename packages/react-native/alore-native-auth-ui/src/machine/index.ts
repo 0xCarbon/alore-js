@@ -5,6 +5,7 @@ import {
   AuthMachineServices,
 } from './types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Passkey } from 'react-native-passkey';
 
 const initialContext: AuthMachineContext = {
   locale: 'en',
@@ -69,7 +70,6 @@ export const authMachine = createMachine(
             entry: assign({
               sessionUser: () => undefined,
               CCRPublicKey: () => undefined,
-              error: () => undefined,
               googleOtpCode: () => undefined,
               googleUser: () => undefined,
               RCRPublicKey: () => undefined,
@@ -247,7 +247,7 @@ export const authMachine = createMachine(
                       },
 
                       onError: {
-                        target: '#authMachine.active.login.emailStep',
+                        target: '#authMachine.active.initial',
                         actions: assign({
                           error: (_context, event) =>
                             event.data?.error ||
@@ -275,11 +275,11 @@ export const authMachine = createMachine(
                         }),
                       },
                       onError: {
-                        target: '#authMachine.active.login.emailStep',
+                        target: '#authMachine.active.initial',
                         actions: assign({
                           error: (_context, event) =>
-                            event.data?.message ||
                             event.data?.error ||
+                            event.data?.message ||
                             event.data,
                         }),
                       },
@@ -302,7 +302,7 @@ export const authMachine = createMachine(
                         }),
                       },
                       onError: {
-                        target: '#authMachine.active.login.emailStep',
+                        target: '#authMachine.active.initial',
                         actions: assign({
                           error: (_context, event) =>
                             event.data?.error ||
@@ -314,7 +314,6 @@ export const authMachine = createMachine(
                   },
                 },
                 exit: assign({
-                  error: () => undefined,
                   CCRPublicKey: () => undefined,
                   passkeyLoginResult: () => undefined,
                   passkeyRegistrationResult: () => undefined,
@@ -623,6 +622,7 @@ export const authMachine = createMachine(
                             event.payload
                               ? event.payload.email
                               : context.userEmail,
+                          isFirstLogin: () => true,
                         }),
                       },
                     },
@@ -785,7 +785,8 @@ export const authService = (
           // @ts-ignore
           isNewUser: (_, event) => !!event.data.isNewUser,
           // @ts-ignore
-          isPasskeyMethod: (context, _) => !!context.authMethods.passkey,
+          isPasskeyMethod: (context, _) =>
+            !!context.authMethods.passkey && Passkey.isSupported(),
         },
         actions: {},
       },

@@ -1,12 +1,13 @@
+import base64url from 'base64url';
 import crypto, { randomBytes } from 'crypto';
 import argon2 from 'react-native-argon2';
+import { Passkey } from 'react-native-passkey';
 import {
-  Passkey,
+  PasskeyAuthenticationRequest,
   PasskeyAuthenticationResult,
+  PasskeyRegistrationRequest,
   PasskeyRegistrationResult,
-} from 'react-native-passkey';
-import base64url from 'base64url';
-import { PasskeyAuthenticationRequest } from 'react-native-passkey/lib/typescript/Passkey';
+} from 'react-native-passkey/lib/typescript/PasskeyTypes';
 
 export function hashUserInfo(userInfo: string) {
   const hash = crypto.createHash('sha256');
@@ -36,51 +37,6 @@ export async function generateSecureHash(
 }
 
 const DEFAULT_URL = 'https://alpha-api.bealore.com/v1';
-
-interface Rp {
-  name: string;
-  id: string;
-}
-
-interface User {
-  id: string;
-  name: string;
-  displayName: string;
-}
-
-interface PubKeyCredParam {
-  type: string;
-  alg: number;
-}
-
-interface AuthenticatorSelection {
-  requireResidentKey: boolean;
-  userVerification: string;
-}
-
-interface PublicKeyCredentialCreationOptions {
-  rp: Rp;
-  user: User;
-  challenge: string;
-  pubKeyCredParams: PubKeyCredParam[];
-  timeout: number;
-  attestation: string;
-  authenticatorSelection: AuthenticatorSelection;
-  extensions: Record<string, unknown>;
-}
-
-interface PublicKeyCredentialRequestOptions {
-  allowCredentials?: Array<{
-    type: string;
-    id: string;
-    transports?: string[];
-  }>;
-  challenge: string;
-  rpId: string;
-  timeout?: number;
-  userVerification?: 'required' | 'preferred' | 'discouraged';
-  extensions?: Record<string, unknown>;
-}
 
 export interface AloreAuthConfiguration {
   endpoint?: string;
@@ -126,9 +82,10 @@ interface AuthMachineContext {
   googleOtpCode?: string;
   googleUser?: { email: string; nickname: string };
   sessionUser?: SessionUser;
-  CCRPublicKey?: { publicKey: PublicKeyCredentialCreationOptions };
-  RCRPublicKey?: { publicKey: PublicKeyCredentialRequestOptions };
+  CCRPublicKey?: { publicKey: PasskeyRegistrationRequest };
+  RCRPublicKey?: { publicKey: PasskeyAuthenticationRequest };
   credentialEmail?: string;
+  isFirstLogin?: boolean;
 }
 
 export class AloreAuth {
@@ -165,32 +122,20 @@ export class AloreAuth {
         }
       );
       const data = await response.json();
-      if (response.ok) return data;
 
-      if (!response.ok) {
-        if (response.status === 403) {
-          return { active2fa: data };
-        }
-        if (data?.error?.includes('2FA') || data?.error?.includes('device')) {
-          return { error: data?.error };
-        }
-        throw new Error(data?.message || data?.error || data);
-      } else {
-        return { error: data?.error || data?.message };
-      }
+      if (response.ok) return data;
     },
     userInputLoginPasskey: async (
-      _: AuthMachineContext,
+      context: AuthMachineContext,
       event: {
         type: 'USER_INPUT_PASSKEY_LOGIN';
         payload: {
-          RCRPublicKey: { publicKey: PublicKeyCredentialRequestOptions };
-          withSecurityKey?: boolean;
+          RCRPublicKey: { publicKey: PasskeyAuthenticationRequest };
         };
       }
     ) => {
       const publicKey = event.payload.RCRPublicKey?.publicKey;
-      const withSecurityKey = event.payload.withSecurityKey || false;
+      const { isFirstLogin } = context;
 
       if (!publicKey) {
         throw new Error('PublicKeyCredentialCreationOptions is undefined');
@@ -198,22 +143,41 @@ export class AloreAuth {
 
       const blob = new Uint8Array(randomBytes(32));
 
-      // TODO: add support for security key and ios/android blob/prf
       const loginData: PasskeyAuthenticationRequest = {
         ...publicKey,
         extensions: {
-          largeBlob: {
-            write: blob,
-          },
+          largeBlob: isFirstLogin
+            ? {
+                write: blob,
+              }
+            : { read: true },
           prf: { eval: { first: new TextEncoder().encode('Alore') } },
         },
       };
+      const result = await Passkey.get(loginData);
+      // @ts-ignore
+      const resultJson = JSON.parse(result);
 
-      const result = await Passkey.authenticate(loginData, {
-        withSecurityKey,
-      });
+      // @ts-ignore
+      const clientExtensionResults = resultJson?.clientExtensionResults;
+      // @ts-ignore
+      const prfWritten = !!clientExtensionResults?.prf?.results;
+      // @ts-ignore
+      const blobWritten = !!clientExtensionResults?.largeBlob?.written;
+      let secretFromCredential;
 
-      return result;
+      if (prfWritten) {
+        // @ts-ignore
+        secretFromCredential = clientExtensionResults?.prf?.results?.first;
+      }
+      // TODO: add dkls
+      // TODO: Continue for largeblob on ios
+
+      if (!secretFromCredential) {
+        throw new Error('PASSKEY_NOT_SUPPORTED');
+      }
+
+      return resultJson;
     },
     startPasskeyAuth: async (
       _: AuthMachineContext,
@@ -240,66 +204,100 @@ export class AloreAuth {
       const data = await startAuthResponse.json();
 
       if (startAuthResponse.ok) return data;
-
-      if (!startAuthResponse.ok) {
-        if (startAuthResponse.status === 403) {
-          return { active2fa: data };
-        }
-        if (data?.error?.includes('2FA') || data?.error?.includes('device')) {
-          return { error: data?.error };
-        }
-        throw new Error(data?.message || data?.error || data);
-      } else {
-        return { error: data?.error || data?.message };
-      }
     },
     userInputRegisterPasskey: async (
       _: AuthMachineContext,
       event: {
         type: 'USER_INPUT_PASSKEY_REGISTER';
         payload: {
-          CCRPublicKey: { publicKey: PublicKeyCredentialCreationOptions };
-          withSecurityKey?: boolean;
+          CCRPublicKey: { publicKey: PasskeyRegistrationRequest };
+          email: string;
+          nickname: string;
         };
       }
     ) => {
-      const publicKey = event.payload.CCRPublicKey?.publicKey;
-      const withSecurityKey = event.payload.withSecurityKey || false;
+      const { CCRPublicKey, email, nickname } = event.payload;
+      const publicKey = CCRPublicKey?.publicKey;
 
       if (!publicKey) {
         throw new Error('PublicKeyCredentialCreationOptions is undefined');
       }
 
-      const registerData = {
-        challenge: publicKey.challenge,
+      const result = await Passkey.create({
+        ...publicKey,
         rp: {
-          name: publicKey.rp.name,
-          id: publicKey.rp.id,
+          ...publicKey.rp,
+          id: publicKey.rp.id!,
         },
         user: {
-          id: publicKey.user.id,
-          name: publicKey.user.name,
-          displayName: publicKey.user.displayName,
-        },
-        pubKeyCredParams: publicKey.pubKeyCredParams,
-        authenticatorSelection: {
-          requireResidentKey: true,
-          userVerification: 'preferred',
+          ...publicKey.user,
+          name: email,
+          displayName: nickname,
         },
         extensions: {
-          prf: {},
+          prf: {
+            eval: {
+              first: new TextEncoder().encode('Alore'),
+            },
+          },
           largeBlob: {
             support: 'preferred',
           },
         },
-      };
-
-      // TODO: add support for security key and ios/android blob/prf
-      const result = await Passkey.register(registerData, {
-        withSecurityKey,
+        authenticatorSelection: {
+          requireResidentKey: true,
+          residentKey: 'required',
+          userVerification: 'required',
+        },
       });
+      // @ts-ignore
+      const resultJson: PasskeyRegistrationResult = JSON.parse(result);
 
-      return result;
+      // @ts-ignore
+      const clientExtensionResults = resultJson?.clientExtensionResults;
+      // @ts-ignore
+      const prfSupported = !!clientExtensionResults?.prf?.enabled;
+      // @ts-ignore
+      const largeBlobSupported = !!extensionResults?.largeBlob?.supported;
+
+      if (!prfSupported && !largeBlobSupported) {
+        throw new Error('PASSKEY_NOT_SUPPORTED');
+      }
+
+      return resultJson;
+    },
+    startRegisterPasskey: async (
+      _context: AuthMachineContext,
+      event: {
+        type: 'START_PASSKEY_REGISTER';
+        payload: {
+          device: string;
+          email: string;
+          nickname: string;
+        };
+      }
+    ) => {
+      const { email, nickname, device } = event.payload;
+
+      const startPasskeyRegistrationResponse =
+        await this.fetchWithProgressiveBackoff(
+          `/auth/account-registration-passkey`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userEmail: email,
+              userNickname: nickname,
+              userDevice: device,
+            }),
+          }
+        );
+
+      const ccr = await startPasskeyRegistrationResponse.json();
+
+      return ccr;
     },
     finishRegisterPasskey: async (
       context: AuthMachineContext,
@@ -314,6 +312,7 @@ export class AloreAuth {
       }
     ) => {
       const { email, nickname, device, passkeyRegistration } = event.payload;
+      console.log('🚀 ~ AloreAuth ~ passkeyRegistration:', passkeyRegistration);
 
       const response = await this.fetchWithProgressiveBackoff(
         `/auth/account-registration-passkey-finish`,
@@ -349,13 +348,6 @@ export class AloreAuth {
       if (response.ok) {
         return data;
       }
-
-      if (response.status === 403) {
-        const resJson = await response.json();
-        throw new Error(resJson);
-      }
-
-      return { error: response?.statusText };
     },
     completeRegistration: async (
       _: AuthMachineContext,
@@ -503,39 +495,6 @@ export class AloreAuth {
       }
 
       return { error: response?.statusText };
-    },
-    startRegisterPasskey: async (
-      _context: AuthMachineContext,
-      event: {
-        type: 'START_PASSKEY_REGISTER';
-        payload: {
-          device: string;
-          email: string;
-          nickname?: string;
-        };
-      }
-    ) => {
-      const { email, nickname, device } = event.payload;
-
-      const startPasskeyRegistrationResponse =
-        await this.fetchWithProgressiveBackoff(
-          `/auth/account-registration-passkey`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              userEmail: email,
-              userNickname: nickname,
-              userDevice: device,
-            }),
-          }
-        );
-
-      const ccr = await startPasskeyRegistrationResponse.json();
-
-      return ccr;
     },
     verifyLogin: async (
       _: AuthMachineContext,

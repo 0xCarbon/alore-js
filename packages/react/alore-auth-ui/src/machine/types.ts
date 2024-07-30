@@ -28,12 +28,9 @@ export interface AuthMachineContext {
   googleOtpCode?: string;
   googleUser?: { email: string; nickname: string };
   sessionUser?: SessionUser;
-  // eslint-disable-next-line no-undef
   CCRPublicKey?: { publicKey: PublicKeyCredentialCreationOptions };
   RCRPublicKey?: {
-    // eslint-disable-next-line no-undef
     publicKey: PublicKeyCredentialRequestOptions;
-    // eslint-disable-next-line no-undef
     mediation?: CredentialMediationRequirement;
   };
   credentialEmail?: string;

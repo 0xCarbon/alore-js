@@ -22,7 +22,7 @@
     "react-native-device-info": "11.1.0",
     "react-native-gesture-handler": "^2.16.2",
     "react-native-heroicons": "4.0.0",
-    "react-native-passkey": "2.1.1",
+    "react-native-passkey": "3.0.0-beta",
     "react-native-svg": "^15.3.0",
     "react-native-ui-lib": "^7.22.0",
     "xstate": "4.38.2",

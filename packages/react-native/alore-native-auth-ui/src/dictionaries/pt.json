@@ -55,6 +55,7 @@
     "invalidEmailPassword": "E-mail ou senha inválida",
     "somethingWrong": "Algo deu errado",
     "defaultError": "Não foi possível processar seu login neste momento. ",
-    "wrongCode": "Código inválido. "
+    "wrongCode": "Código inválido.",
+    "passkeyNotSupported": "Passkey não suportada"
   }
 }

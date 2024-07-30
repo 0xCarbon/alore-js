@@ -56,6 +56,7 @@
     "somethingWrong": "Something went wrong",
     "invalidEmailPasswordDescription": "The combination of e-mail and password you wrote is incorrect or not valid.",
     "defaultError": "We could not process your login at this moment. Try again in a few seconds.",
-    "wrongCode": "You’ve sent the wrong code. Try again."
+    "wrongCode": "You’ve sent the wrong code. Try again.",
+    "passkeyNotSupported": "Passkey not supported"
   }
 }

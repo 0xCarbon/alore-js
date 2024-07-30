@@ -19,6 +19,7 @@ import { stepStyles } from './styles';
 import DeviceInfo from 'react-native-device-info';
 import { RecursivePartial } from '../../types';
 import { GoogleIcon } from '../GoogleIcon';
+import { Passkey } from 'react-native-passkey';
 
 interface LoginStepsProps {
   toast?: boolean;
@@ -89,7 +90,6 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
         type: 'USER_INPUT_PASSKEY_LOGIN',
         payload: {
           RCRPublicKey,
-          withSecurityKey: true,
         },
       });
     }
@@ -149,7 +149,7 @@ export const LoginSteps: React.FC<LoginStepsProps> = ({
   };
 
   const onFetchSalt = () => {
-    if (authMethods.passkey) {
+    if (authMethods.passkey && Passkey.isSupported()) {
       sendAuth({
         type: 'START_PASSKEY_LOGIN',
         payload: {
