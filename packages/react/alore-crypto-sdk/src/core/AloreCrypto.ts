@@ -470,20 +470,28 @@ export class AloreCrypto {
   }
 
   public async decryptKeyshare(ciphertext: ArrayBuffer, iv: ArrayBuffer) {
-    const userDerivedKey = await this.getDerivedKey();
+    try {
+      const userDerivedKey = await this.getDerivedKey();
 
-    const encodedPlaintext = await self.crypto.subtle.decrypt(
-      {
-        name: 'AES-GCM',
-        iv,
-      },
-      userDerivedKey as CryptoKey,
-      ciphertext
-    );
-    const plaintextJsonString = new TextDecoder().decode(encodedPlaintext);
-    const plaintext = JSON.parse(plaintextJsonString);
+      if (!userDerivedKey) {
+        throw new Error('Failed to retrieve derived key');
+      }
 
-    return plaintext;
+      const encodedPlaintext = await self.crypto.subtle.decrypt(
+        {
+          name: 'AES-GCM',
+          iv,
+        },
+        userDerivedKey as CryptoKey,
+        ciphertext
+      );
+      const plaintextJsonString = new TextDecoder().decode(encodedPlaintext);
+      const plaintext = JSON.parse(plaintextJsonString);
+
+      return plaintext;
+    } catch (error) {
+      throw new Error('Decryption failed');
+    }
   }
 
   public async derivePassword(credentials: SimpleCredential) {
@@ -636,37 +644,40 @@ export class AloreCrypto {
       ).then((res) => res.json());
 
       if (encryptedShares.length !== 0) {
-        encryptedShares.map(
-          async (encrypted_share: {
-            encrypted_key_share: Uint8Array;
-            encryption_iv: Uint8Array;
-            wallet_id?: string;
-            api_key_id?: string;
-            account_id?: string;
-          }) => {
-            const {
-              encrypted_key_share,
-              encryption_iv,
-              wallet_id,
-              api_key_id,
-              account_id,
-            } = encrypted_share;
+        await Promise.all(
+          encryptedShares.map(
+            async (encrypted_share: {
+              encrypted_key_share: Uint8Array;
+              encryption_iv: Uint8Array;
+              wallet_id?: string;
+              api_key_id?: string;
+              account_id?: string;
+            }) => {
+              const {
+                encrypted_key_share,
+                encryption_iv,
+                wallet_id,
+                api_key_id,
+                account_id,
+              } = encrypted_share;
 
-            const ciphertextBuffer = Buffer.from(encrypted_key_share);
-            const ivBuffer = byteArraytoArrayBuffer(encryption_iv);
+              const ciphertextBuffer = Buffer.from(encrypted_key_share);
+              const ivBuffer = byteArraytoArrayBuffer(encryption_iv);
 
-            const plaintext = await this.decryptKeyshare(
-              ciphertextBuffer,
-              ivBuffer
-            );
+              const plaintext = await this.decryptKeyshare(
+                ciphertextBuffer,
+                ivBuffer
+              );
 
-            let localStorageNameObj;
-            if (wallet_id) localStorageNameObj = { walletId: wallet_id };
-            else if (api_key_id) localStorageNameObj = { apiKeyId: api_key_id };
-            else localStorageNameObj = { accountId: account_id };
+              let localStorageNameObj;
+              if (wallet_id) localStorageNameObj = { walletId: wallet_id };
+              else if (api_key_id)
+                localStorageNameObj = { apiKeyId: api_key_id };
+              else localStorageNameObj = { accountId: account_id };
 
-            this.saveKeyshare(plaintext, localStorageNameObj);
-          }
+              await this.saveKeyshare(plaintext, localStorageNameObj);
+            }
+          )
         );
       }
 

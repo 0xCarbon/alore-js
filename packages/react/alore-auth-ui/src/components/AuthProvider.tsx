@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useMemo } from 'react';
 import { authService } from '../machine';
 
 export const AuthContext = createContext<ReturnType<typeof authService> | null>(

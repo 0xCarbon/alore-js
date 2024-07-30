@@ -21,7 +21,11 @@ export const InitialStep: React.FC<InitialStepProps> = ({ styles }) => {
   };
 
   const onLoginStep = async () => {
-    sendAuth('LOGIN_STEP');
+    if (authState.context.authMethods.passkey) {
+      sendAuth('START_PASSKEY_LOGIN');
+    } else {
+      sendAuth('LOGIN_STEP');
+    }
   };
 
   return (

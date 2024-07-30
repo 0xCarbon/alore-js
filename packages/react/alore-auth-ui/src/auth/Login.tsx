@@ -34,6 +34,8 @@ const envelopIcon = () => <EnvelopeIcon className="h-4 w-4 text-gray-500" />;
 const HARDWARE = 1;
 const SOFTWARE = 2;
 
+const ABORT_CONDITIONAL_UI = 'abort-conditional-ui';
+
 export interface LoginProps {
   locale?: Locale;
   authServiceInstance: AuthInstance;
@@ -78,15 +80,16 @@ export const Login = ({
   const [currentDevice, setCurrentDevice] = useState('');
   const [loading, setLoading] = useState(false);
   const [sendEmailCooldown, setSendEmailCooldown] = useState(0);
-  const [isPasskeyEnabled, setIsPasskeyEnabled] = useState(false);
   const [cooldownMultiplier, setCooldownMultiplier] = useState(1);
   const [newDeviceInfo, setNewDeviceInfo] = useState<NewDeviceInfo>();
   const [loginMethod, setLoginMethod] = useState<'password' | 'passkey'>(
     'password'
   );
-  const [credentialExtensionsOnGet, setCredentialExtensionsOnGet] = useState(
-    {}
-  );
+  const [isConditionalMediationAvailable, setIsConditionalMediationAvailable] =
+    useState(false);
+  const [authAbortController, setAuthAbortController] = useState<
+    AbortController | undefined
+  >(undefined);
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
   const googleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => {
@@ -97,52 +100,23 @@ export const Login = ({
       });
     },
   });
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
   const handleGoogleLogin = () => googleLogin();
 
-  const isIphone = (userAgent: string) => {
-    if (userAgent.toLowerCase().match(/iphone/i)) {
-      setCredentialExtensionsOnGet({
-        largeBlob: {
-          read: true,
-        },
-      });
-      return true;
-    }
-    return false;
-  };
-
-  const isAndroid = (userAgent: string) => {
-    if (userAgent.toLowerCase().match(/android/i)) {
-      setCredentialExtensionsOnGet({
-        prf: { eval: { first: new TextEncoder().encode('Alore') } },
-      });
-      return true;
-    }
-    return false;
-  };
-
   const hasPasskeySupportWithPRFOrLargeBlob = () => {
-    const { userAgent } = window.navigator;
     if (
       window.PublicKeyCredential &&
-      // eslint-disable-next-line no-undef
-      PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable &&
       // eslint-disable-next-line no-undef
       PublicKeyCredential.isConditionalMediationAvailable
     ) {
       Promise.all([
         // eslint-disable-next-line no-undef
-        PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable(),
-        // eslint-disable-next-line no-undef
         PublicKeyCredential.isConditionalMediationAvailable(),
-      ]).then((results) => {
-        if (
-          results.every((r) => r === true) &&
-          (isIphone(userAgent) || isAndroid(userAgent))
-        ) {
-          setIsPasskeyEnabled(true);
-        }
+      ]).then(([isConditionalMediationAvailableCheck]) => {
+        setIsConditionalMediationAvailable(
+          isConditionalMediationAvailableCheck
+        );
       });
     }
   };
@@ -151,7 +125,7 @@ export const Login = ({
     if (loginMethod === 'password') {
       sendAuth('SELECT_PASSWORD');
     } else {
-      const { email } = getValuesEmail();
+      const { username: email } = getValuesEmail();
 
       sendAuth({
         type: 'START_PASSKEY_LOGIN',
@@ -162,78 +136,190 @@ export const Login = ({
     }
   };
 
+  const cancelConditionalCredentialRequest = () => {
+    authAbortController?.abort(ABORT_CONDITIONAL_UI);
+    setAuthAbortController(undefined);
+  };
+
+  // eslint-disable-next-line no-undef
+  const sendSignedCredential = async (credential: PublicKeyCredential) => {
+    const extensionResults = credential.getClientExtensionResults();
+    let secretFromCredential;
+    // @ts-ignore
+    const hasPrf = !!extensionResults?.prf?.results?.first;
+    // @ts-ignore
+    const hasLargeBlob = !!extensionResults?.largeBlob?.blob;
+
+    if (hasPrf) {
+      // @ts-ignore
+      secretFromCredential = extensionResults?.prf?.results?.first;
+    } else if (hasLargeBlob) {
+      // @ts-ignore
+      secretFromCredential = extensionResults?.largeBlob?.blob;
+    }
+
+    if (hasLargeBlob && isSafari) {
+      // @ts-ignore
+      secretFromCredential = extensionResults?.largeBlob?.blob;
+    }
+
+    if (!secretFromCredential) {
+      sendAuth({
+        type: 'PASSKEY_NOT_SUPPORTED',
+        payload: { error: loginDictionary?.passkeyNotSupported! },
+      });
+
+      return;
+    }
+
+    sendAuth({
+      type: 'FINISH_PASSKEY_LOGIN',
+      payload: {
+        passkeyAuth: {
+          id: credential.id,
+          rawId: Buffer.from(credential.rawId).toString('base64'),
+          response: {
+            authenticatorData: Buffer.from(
+              // eslint-disable-next-line no-undef
+              (credential.response as AuthenticatorAssertionResponse)
+                .authenticatorData
+            ).toString('base64'),
+            clientDataJSON: Buffer.from(
+              credential.response.clientDataJSON
+            ).toString('base64'),
+            signature: Buffer.from(
+              // eslint-disable-next-line no-undef
+              (credential.response as AuthenticatorAssertionResponse).signature
+            ).toString('base64'),
+            userHandle: Buffer.from(
+              // @ts-ignore
+              credential.response.userHandle || [0]
+            ).toString('base64'),
+          },
+          type: 'public-key',
+        },
+      },
+    });
+
+    if (keyshareWorker) {
+      keyshareWorker.postMessage({
+        method: 'derive-password',
+        payload: {
+          password: new TextDecoder().decode(secretFromCredential),
+          email: credential.id,
+        },
+      });
+    }
+  };
+
   const finishPasskeyAuth = async () => {
-    if (authState.matches('active.login.localSignCredential')) {
-      const publicKey = RCRPublicKey?.publicKey;
+    if (!RCRPublicKey || !navigator?.credentials) {
+      sendAuth('BACK');
+      return;
+    }
 
-      if (publicKey) {
-        const credential = (await navigator.credentials
-          .get({
-            publicKey: {
-              challenge: Buffer.from(publicKey.challenge, 'base64'),
-              rpId: publicKey.rpId,
-              extensions: credentialExtensionsOnGet,
-            },
-          })
-          .catch(() => {
-            sendAuth('BACK');
-            // eslint-disable-next-line no-undef
-          })) as PublicKeyCredential;
+    cancelConditionalCredentialRequest();
 
-        if (credential) {
-          sendAuth({
-            type: 'FINISH_PASSKEY_LOGIN',
-            payload: {
-              passkeyAuth: {
-                id: credential.id,
-                rawId: Buffer.from(credential.rawId).toString('base64'),
-                response: {
-                  authenticatorData: Buffer.from(
-                    // eslint-disable-next-line no-undef
-                    (credential.response as AuthenticatorAssertionResponse)
-                      .authenticatorData
-                  ).toString('base64'),
-                  clientDataJSON: Buffer.from(
-                    credential.response.clientDataJSON
-                  ).toString('base64'),
-                  signature: Buffer.from(
-                    // eslint-disable-next-line no-undef
-                    (credential.response as AuthenticatorAssertionResponse)
-                      .signature
-                  ).toString('base64'),
-                  userHandle: Buffer.from(
-                    // @ts-ignore
-                    credential.response.userHandle || [0]
-                  ).toString('base64'),
-                },
-                type: 'public-key',
-              },
-            },
-          });
-          if (keyshareWorker) {
-            const secretFromCredential = // @ts-ignore
-              credential.getClientExtensionResults().prf
-                ? // @ts-ignore
-                  credential.getClientExtensionResults().prf.results.first
-                : // @ts-ignore
-                  credential.getClientExtensionResults().largeBlob.blob;
+    const { publicKey } = RCRPublicKey;
 
-            // eslint-disable-next-line react/destructuring-assignment
-            keyshareWorker.postMessage({
-              method: 'derive-password',
-              payload: {
-                password: new TextDecoder().decode(secretFromCredential),
-                email: getValuesEmail().email,
-              },
-            });
-          }
-        }
+    const extensions: {
+      prf?: { eval: { first: Uint8Array } };
+      largeBlob?: { read: boolean };
+    } = {
+      prf: { eval: { first: new TextEncoder().encode('Alore') } },
+      largeBlob: {
+        read: true,
+      },
+    };
+
+    // eslint-disable-next-line no-undef
+    const credentialOptions: CredentialRequestOptions = {
+      publicKey: {
+        ...publicKey,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        allowCredentials: publicKey.allowCredentials?.map((cred: any) => ({
+          ...cred,
+          id: Buffer.from(cred.id, 'base64'),
+        })),
+        timeout: 10000,
+        // @ts-ignore
+        challenge: Buffer.from(publicKey.challenge, 'base64'),
+        rpId: publicKey.rpId,
+        extensions: {
+          ...publicKey.extensions,
+          // @ts-ignore
+          ...extensions,
+        },
+      },
+    };
+
+    try {
+      if (
+        authState.matches('active.login.signingCredentialRCR') ||
+        authState.matches('active.login.idle.signWithPasskey') ||
+        authState.matches('active.login.idle.authScreen')
+      ) {
+        const cred = await navigator.credentials.get(credentialOptions);
+
+        // eslint-disable-next-line no-undef
+        const credential = cred as PublicKeyCredential;
+        sendSignedCredential(credential);
+      }
+
+      if (
+        isConditionalMediationAvailable &&
+        authState.matches('active.login.idle.localPasskeySign')
+      ) {
+        const abortController = new AbortController();
+
+        setAuthAbortController(abortController);
+        const cred = await navigator.credentials.get({
+          ...credentialOptions,
+          mediation: 'conditional',
+          signal: abortController.signal,
+        });
+        // eslint-disable-next-line no-undef
+        const credential = cred as PublicKeyCredential;
+        sendSignedCredential(credential);
+        abortController?.abort();
+        setAuthAbortController(undefined);
+      }
+    } catch (error) {
+      if (error !== ABORT_CONDITIONAL_UI) {
+        authAbortController?.abort();
+        setAuthAbortController(undefined);
+        sendAuth('BACK');
       }
     }
   };
+
   useEffect(() => {
-    finishPasskeyAuth();
-  }, [authState.matches('active.login.localSignCredential')]);
+    cancelConditionalCredentialRequest();
+  }, [authState.matches('active.login.loginMethodSelection')]);
+
+  useEffect(() => {
+    if (
+      authState.matches('active.login.idle.localPasskeySign') ||
+      authState.matches('active.login.idle.signWithPasskey') ||
+      authState.matches('active.login.signingCredentialRCR')
+    ) {
+      finishPasskeyAuth();
+    }
+  }, [
+    authState.matches('active.login.idle.localPasskeySign'),
+    authState.matches('active.login.idle.signWithPasskey'),
+    authState.matches('active.login.signingCredentialRCR'),
+  ]);
+
+  useEffect(() => {
+    if (authState.matches('active.login.idle.authScreen') && !isSafari) {
+      sendAuth('SET_CONDITIONAL_UI_PASSKEY');
+    }
+  }, [authState.matches('active.login.idle.authScreen')]);
+
+  const handlePasskeyButton = () => {
+    sendAuth('SIGN_IN_WITH_PASSKEY');
+  };
 
   const isLoading = useMemo(
     () =>
@@ -249,7 +335,8 @@ export const Login = ({
       authState.matches('active.login.verifyingGoogleLogin') ||
       authState.matches('active.login.retrievingRCR') ||
       authState.matches('active.login.verifyingRegisterPublicKeyCredential') ||
-      authState.matches('active.login.localSignCredential') ||
+      authState.matches('active.login.retrievingCredentialRCR') ||
+      authState.matches('active.login.signingCredentialRCR') ||
       authState.matches('active.login.resendingConfirmationEmail') ||
       authState.matches('active.web3Connector.verifyingClaimNftEmail2fa') ||
       authState.matches('active.web3Connector.verifyingEmailEligibility'),
@@ -260,11 +347,15 @@ export const Login = ({
     if (typeof window !== 'undefined') {
       hasPasskeySupportWithPRFOrLargeBlob();
     }
+
+    return () => {
+      cancelConditionalCredentialRequest();
+    };
   }, []);
 
   const emailFormSchema = yup
     .object({
-      email: yup
+      username: yup
         .string()
         .required(dictionary?.formValidation.required)
         .email(dictionary?.formValidation.invalidEmail),
@@ -290,7 +381,7 @@ export const Login = ({
   );
 
   const emailDefaultValues: FieldValues = {
-    email: '',
+    username: '',
   };
 
   const {
@@ -303,7 +394,7 @@ export const Login = ({
     resolver: yupResolver(emailFormSchema),
     defaultValues: emailDefaultValues,
   });
-  useWatch({ control: emailControl, name: ['email'] });
+  useWatch({ control: emailControl, name: ['username'] });
 
   const passwordDefaultValues: FieldValues = {
     password: '',
@@ -367,7 +458,7 @@ export const Login = ({
 
   const startHwAuth = async (index: number) => {
     setLoading(true);
-    const { email } = getValuesEmail();
+    const { username: email } = getValuesEmail();
     const { password } = getValuesPassword();
     if (salt && active2fa) {
       const secureHashArgon2d = await generateSecureHash(
@@ -395,7 +486,7 @@ export const Login = ({
   const onSubmitEmail = async (data: typeof emailDefaultValues) => {
     setLoading(true);
 
-    const { email } = data;
+    const { username: email } = data;
 
     // await signOut({ redirect: false });
     sendAuth({ type: 'NEXT', payload: { email } });
@@ -417,7 +508,7 @@ export const Login = ({
   const onSubmitLogin = async (data: typeof passwordDefaultValues) => {
     setLoading(true);
     const { password } = data;
-    const email = getValuesEmail('email') || googleUser?.email;
+    const email = getValuesEmail('username') || googleUser?.email;
 
     if (salt && email) {
       derivePasswordAndGetKeyshares(password, email);
@@ -463,7 +554,7 @@ export const Login = ({
 
   const onSubmitSecureCode2FA = async () => {
     setLoading(true);
-    const { email } = getValuesEmail();
+    const { username: email } = getValuesEmail();
     const { password } = getValuesPassword();
     if (salt) {
       derivePasswordAndGetKeyshares(password, email);
@@ -491,7 +582,7 @@ export const Login = ({
   const onClickSecureCodeSubmit = async () => {
     setLoading(true);
     const { password } = getValuesPassword();
-    const { email } = getValuesEmail();
+    const { username: email } = getValuesEmail();
 
     if (salt) {
       derivePasswordAndGetKeyshares(password, email);
@@ -512,7 +603,7 @@ export const Login = ({
         sendAuth({
           type: 'VERIFY_EMAIL_2FA',
           payload: {
-            email: getValuesEmail('email'),
+            email: getValuesEmail('username'),
             secureCode: secureCode2FA,
             passwordHash: secureHashArgon2d,
           },
@@ -526,7 +617,7 @@ export const Login = ({
 
   const resendSecureCode = async () => {
     setLoading(true);
-    const { email } = getValuesEmail();
+    const { username: email } = getValuesEmail();
     const { password } = getValuesPassword();
     if (salt) {
       derivePasswordAndGetKeyshares(password, email);
@@ -561,7 +652,7 @@ export const Login = ({
 
   const onSubmitSecureCodeEmail = async () => {
     setLoading(true);
-    const { email } = getValuesEmail();
+    const { username: email } = getValuesEmail();
     const { password } = getValuesPassword();
     if (salt) {
       derivePasswordAndGetKeyshares(password, email);
@@ -593,8 +684,24 @@ export const Login = ({
     ]
   );
 
-  const EmailInputStep = useMemo(
-    () => (
+  const getAuthError = () => {
+    let authErrorTitle = loginDictionary?.somethingWrong;
+    let authErrorDescription = loginDictionary?.defaultError;
+
+    if (authError?.includes('Invalid credentials')) {
+      authErrorTitle = loginDictionary?.invalidEmailPassword;
+      authErrorDescription = loginDictionary?.invalidEmailPasswordDescription;
+    } else if (authError?.includes('Passkey')) {
+      authErrorTitle = loginDictionary?.passkeyNotSupported;
+      authErrorDescription = loginDictionary?.passkeyNotSupportedDescription;
+    }
+
+    return { authErrorTitle, authErrorDescription };
+  };
+
+  const EmailInputStep = useMemo(() => {
+    const { authErrorTitle, authErrorDescription } = getAuthError();
+    return (
       <>
         {authError ? (
           <div className="flex flex-col items-center justify-center gap-5">
@@ -606,14 +713,10 @@ export const Login = ({
             ) : (
               <>
                 <span className="text-center font-poppins text-xl font-bold text-alr-red">
-                  {authError?.includes('Invalid credentials')
-                    ? loginDictionary?.invalidEmailPassword
-                    : loginDictionary?.somethingWrong}
+                  {authErrorTitle}
                 </span>
                 <span className="text-center font-medium text-alr-grey">
-                  {authError?.includes('Invalid credentials')
-                    ? loginDictionary?.invalidEmailPasswordDescription
-                    : loginDictionary?.defaultError}
+                  {authErrorDescription}
                 </span>
               </>
             )}
@@ -633,10 +736,17 @@ export const Login = ({
             className="my-1"
             control={emailControl}
             errors={emailErrors}
-            name="email"
+            name="username"
+            type="text"
             placeholder={loginDictionary?.enterEmail}
             data-test="login-email"
             icon={envelopIcon}
+            autoComplete={
+              authAbortController && isConditionalMediationAvailable
+                ? 'username webauthn'
+                : undefined
+            }
+            autoFocus
           />
 
           {/* <Link // TODO removed from beta
@@ -649,7 +759,7 @@ export const Login = ({
           <Button
             type="submit"
             data-test="login-button"
-            disabled={verifyEmptyValues(getValuesEmail('email'))}
+            disabled={verifyEmptyValues(getValuesEmail('username'))}
             className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700"
           >
             {isLoading && (
@@ -658,6 +768,9 @@ export const Login = ({
             {loginDictionary?.login}
           </Button>
           <div className="h-[0.5px] w-full bg-gray-300" />
+          <Button color="light" onClick={handlePasskeyButton} outline>
+            {dictionary?.auth.signWithPasskey}
+          </Button>
           <Button color="light" onClick={handleGoogleLogin} outline>
             <div className="flex flex-row items-center justify-center gap-2">
               <img src={google} alt="google logo" width={16} />
@@ -696,31 +809,42 @@ export const Login = ({
                 sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
               }}
             >
-              {loginDictionary?.singUp}
+              {loginDictionary?.signUp}
             </div>
           </span>
         </form>
       </>
-    ),
-    [
-      getValuesEmail(),
-      isLoginSubmitDisabled,
-      emailErrors,
-      emailControl,
-      isLoading,
-    ]
-  );
+    );
+  }, [
+    getValuesEmail(),
+    isLoginSubmitDisabled,
+    emailErrors,
+    emailControl,
+    isLoading,
+  ]);
 
-  const SelectLoginMethod = useMemo(
-    () => (
+  const SelectLoginMethod = useMemo(() => {
+    const { authErrorTitle, authErrorDescription } = getAuthError();
+
+    return (
       <div>
         <BackButton disabled={isLoading} onClick={() => sendAuth('BACK')} />
+        {authError ? (
+          <div className="my-4 flex flex-col items-center justify-center gap-2">
+            <span className="text-center font-poppins text-xl font-bold text-alr-red">
+              {authErrorTitle}
+            </span>
+            <span className="text-center font-medium text-alr-grey">
+              {authErrorDescription}
+            </span>
+          </div>
+        ) : undefined}
         <div
-          className="flex w-full flex-col items-center"
+          className="mt-2 flex w-full flex-col items-center"
           data-test="login-method-selection-step"
         >
           {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
-          <span className="mb-6 font-poppins text-2xl font-bold text-alr-grey md:text-[1.75rem]">
+          <span className="mb-6 text-center font-poppins text-2xl font-bold text-alr-grey md:text-[1.75rem]">
             {loginDictionary?.selectMethodTitle}
           </span>
           <span className="mb-6 w-full text-center font-medium text-alr-grey">
@@ -756,7 +880,6 @@ export const Login = ({
               </Button>
               <Button
                 data-test="login-method-selection-passkey"
-                disabled
                 onClick={() => setLoginMethod('passkey')}
                 color="light"
                 className={`${
@@ -792,15 +915,14 @@ export const Login = ({
           </div>
         </div>
       </div>
-    ),
-    [isLoading, loginMethod]
-  );
+    );
+  }, [isLoading, loginMethod]);
 
   const PasswordInputStep = useMemo(
     () => (
       <>
         <BackButton className="mb-2.5" onClick={() => sendAuth('BACK')}>
-          {getValuesEmail('email') || googleUser?.email}
+          {getValuesEmail('username') || googleUser?.email}
         </BackButton>
 
         {authError && (
@@ -859,7 +981,7 @@ export const Login = ({
                 sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
               }}
             >
-              {loginDictionary?.singUp}
+              {loginDictionary?.signUp}
             </div>
           </span>
         </form>
@@ -1059,7 +1181,7 @@ export const Login = ({
           <span className="mb-3 w-[23.75rem] text-center font-medium text-alr-grey">
             {loginDictionary?.verifyEmailDescription}
           </span>
-          <span className="mb-5 font-bold">{getValuesEmail('email')}</span>
+          <span className="mb-5 font-bold">{getValuesEmail('username')}</span>
           <div className="mb-5 h-44 w-full">
             {/* {newDeviceInfo?.coordinates && (
               <Map
@@ -1146,16 +1268,18 @@ export const Login = ({
         )}
       >
         {forgeId && authState.matches('active.web3Connector') && 'TODO'}
-        {(authState.matches('active.login.idle') ||
+        {(authState.matches('active.login.passkeyGuard') ||
+          authState.matches('active.login.idle') ||
           authState.matches('active.login.googleLogin') ||
-          authState.matches('active.login.retrievingSalt')) &&
-          EmailInputStep}
-        {(authState.matches('active.login.loginMethodSelection') ||
-          authState.matches('active.login.localSignCredential') ||
+          authState.matches('active.login.retrievingSalt') ||
           authState.matches(
             'active.login.verifyingRegisterPublicKeyCredential'
           ) ||
           authState.matches('active.login.retrievingRCR')) &&
+          EmailInputStep}
+        {(authState.matches('active.login.loginMethodSelection') ||
+          authState.matches('active.login.signingCredentialRCR') ||
+          authState.matches('active.login.retrievingCredentialRCR')) &&
           SelectLoginMethod}
         {(authState.matches('active.login.inputPassword') ||
           authState.matches('active.login.verifyingGoogleLogin') ||

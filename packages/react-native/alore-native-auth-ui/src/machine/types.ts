@@ -1,10 +1,11 @@
 import { Locale } from '../helpers/get-dictionary';
 import { authService } from '.';
 import {
+  PasskeyAuthenticationRequest,
   PasskeyAuthenticationResult,
   PasskeyRegistrationRequest,
   PasskeyRegistrationResult,
-} from 'react-native-passkey/lib/typescript/Passkey';
+} from 'react-native-passkey/lib/typescript/PasskeyTypes';
 
 export type SessionUser = {
   created_at: string;
@@ -18,46 +19,14 @@ export type SessionUser = {
   status: string;
 };
 
-interface Rp {
-  name: string;
-  id: string;
-}
-
-interface User {
-  id: string;
-  name: string;
-  displayName: string;
-}
-
-interface PubKeyCredParam {
-  type: string;
-  alg: number;
-}
-
-interface AuthenticatorSelection {
-  requireResidentKey: boolean;
-  userVerification: string;
-}
-
-interface PublicKeyCredentialCreationOptions {
-  rp: Rp;
-  user: User;
-  challenge: string;
-  pubKeyCredParams: PubKeyCredParam[];
-  timeout: number;
-  attestation: string;
-  authenticatorSelection: AuthenticatorSelection;
-  extensions: Record<string, unknown>;
-}
-
 export interface AuthMachineContext {
   googleId?: string;
   sessionUser?: SessionUser;
   locale: Locale;
   sessionId?: string;
-  CCRPublicKey?: { publicKey: PublicKeyCredentialCreationOptions };
+  CCRPublicKey?: { publicKey: PasskeyRegistrationRequest };
   passkeyRegistrationResult?: PasskeyRegistrationResult;
-  RCRPublicKey?: { publicKey: PublicKeyCredentialRequestOptions };
+  RCRPublicKey?: { publicKey: PasskeyAuthenticationRequest };
   passkeyLoginResult?: PasskeyAuthenticationResult;
   salt?: string;
   error?: string;
@@ -74,6 +43,7 @@ export interface AuthMachineContext {
     google?: boolean;
   };
   userEmail?: string;
+  isFirstLogin?: boolean;
 }
 
 export type AuthMachineEvents =
@@ -86,15 +56,14 @@ export type AuthMachineEvents =
   | { type: 'NEXT' }
   | {
       type: 'START_PASSKEY_LOGIN';
-      payload: {
+      payload?: {
         email: string;
       };
     }
   | {
       type: 'USER_INPUT_PASSKEY_LOGIN';
       payload: {
-        RCRPublicKey: { publicKey: PublicKeyCredentialRequestOptions };
-        withSecurityKey?: boolean;
+        RCRPublicKey: { publicKey: PasskeyAuthenticationRequest };
       };
     }
   | {
@@ -108,14 +77,15 @@ export type AuthMachineEvents =
       payload: {
         device: string;
         email: string;
-        nickname?: string;
+        nickname: string;
       };
     }
   | {
       type: 'USER_INPUT_PASSKEY_REGISTER';
       payload: {
         CCRPublicKey: { publicKey: PasskeyRegistrationRequest };
-        withSecurityKey?: boolean;
+        email: string;
+        nickname: string;
       };
     }
   | {

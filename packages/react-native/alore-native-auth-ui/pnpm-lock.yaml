@@ -51,8 +51,8 @@ dependencies:
     specifier: 4.0.0
     version: 4.0.0(react-native-svg@15.3.0)(react@18.2.0)
   react-native-passkey:
-    specifier: 2.1.1
-    version: 2.1.1(react-native@0.73.6)(react@18.2.0)
+    specifier: 3.0.0-beta
+    version: 3.0.0-beta(react-native@0.73.6)(react@18.2.0)
   react-native-svg:
     specifier: ^15.3.0
     version: 15.3.0(react-native@0.73.6)(react@18.2.0)
@@ -4449,8 +4449,8 @@ packages:
       react-native-svg: 15.3.0(react-native@0.73.6)(react@18.2.0)
     dev: false
 
-  /react-native-passkey@2.1.1(react-native@0.73.6)(react@18.2.0):
-    resolution: {integrity: sha512-/SBlL+8aJOiAAyO4jmRhJAxo1LklMpjQijLyl1jZlt9bKtRnh4Uz94z7AYouBR2anTB+DaEycLIhunG7h8Xbwg==}
+  /react-native-passkey@3.0.0-beta(react-native@0.73.6)(react@18.2.0):
+    resolution: {integrity: sha512-RU7sYaHu44ZN3zdGZA8P9hhilrMCWvMl8vDZR93D2xdRGPIV9BzjD3HXc7jIrLfNHFg5sbkPuisyVBkz9qroPA==}
     peerDependencies:
       react: '*'
       react-native: '*'

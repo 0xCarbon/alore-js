@@ -5,6 +5,7 @@ import {
   AuthMachineServices,
 } from './types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Passkey } from 'react-native-passkey';
 
 const initialContext: AuthMachineContext = {
   locale: 'en',
@@ -60,13 +61,15 @@ export const authMachine = createMachine(
                 on: {
                   REGISTER_STEP: '#authMachine.active.register',
                   LOGIN_STEP: '#authMachine.active.login',
+                  START_PASSKEY_LOGIN: {
+                    target: '#authMachine.active.login.passkeyStep',
+                  },
                 },
               },
             },
             entry: assign({
               sessionUser: () => undefined,
               CCRPublicKey: () => undefined,
-              error: () => undefined,
               googleOtpCode: () => undefined,
               googleUser: () => undefined,
               RCRPublicKey: () => undefined,
@@ -244,7 +247,7 @@ export const authMachine = createMachine(
                       },
 
                       onError: {
-                        target: '#authMachine.active.login.emailStep',
+                        target: '#authMachine.active.initial',
                         actions: assign({
                           error: (_context, event) =>
                             event.data?.error ||
@@ -272,7 +275,7 @@ export const authMachine = createMachine(
                         }),
                       },
                       onError: {
-                        target: '#authMachine.active.login.emailStep',
+                        target: '#authMachine.active.initial',
                         actions: assign({
                           error: (_context, event) =>
                             event.data?.error ||
@@ -299,7 +302,7 @@ export const authMachine = createMachine(
                         }),
                       },
                       onError: {
-                        target: '#authMachine.active.login.emailStep',
+                        target: '#authMachine.active.initial',
                         actions: assign({
                           error: (_context, event) =>
                             event.data?.error ||
@@ -311,7 +314,6 @@ export const authMachine = createMachine(
                   },
                 },
                 exit: assign({
-                  error: () => undefined,
                   CCRPublicKey: () => undefined,
                   passkeyLoginResult: () => undefined,
                   passkeyRegistrationResult: () => undefined,
@@ -616,7 +618,11 @@ export const authMachine = createMachine(
                       START_PASSKEY_LOGIN: {
                         target: '#authMachine.active.login.passkeyStep',
                         actions: assign({
-                          userEmail: (_context, event) => event.payload.email,
+                          userEmail: (context, event) =>
+                            event.payload
+                              ? event.payload.email
+                              : context.userEmail,
+                          isFirstLogin: () => true,
                         }),
                       },
                     },
@@ -752,17 +758,9 @@ export const getResolvedState = async () => {
 
   if (state) {
     const stateDefinition = JSON.parse(state);
-    const currentTime = Date.now();
-    const threeHoursInMilliseconds = 3 * 60 * 60 * 1000;
-
-    if (currentTime - stateDefinition.timestamp < threeHoursInMilliseconds) {
-      const previousState = State.create(stateDefinition);
-
-      // @ts-ignore
-      resolvedState = authMachine.resolveState(previousState);
-    } else {
-      await AsyncStorage.removeItem('authState');
-    }
+    const previousState = State.create(stateDefinition);
+    // @ts-ignore
+    resolvedState = authMachine.resolveState(previousState);
   }
 
   return resolvedState;
@@ -787,7 +785,8 @@ export const authService = (
           // @ts-ignore
           isNewUser: (_, event) => !!event.data.isNewUser,
           // @ts-ignore
-          isPasskeyMethod: (context, _) => !!context.authMethods.passkey,
+          isPasskeyMethod: (context, _) =>
+            !!context.authMethods.passkey && Passkey.isSupported(),
         },
         actions: {},
       },
@@ -796,14 +795,7 @@ export const authService = (
   )
     .onTransition(async state => {
       if (state.changed && state.matches('active.signedOn')) {
-        const stateWithTimestamp = {
-          ...state,
-          timestamp: Date.now(),
-        };
-        await AsyncStorage.setItem(
-          'authState',
-          JSON.stringify(stateWithTimestamp),
-        );
+        await AsyncStorage.setItem('authState', JSON.stringify(state));
       }
     })
     .start(resolvedState);

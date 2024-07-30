@@ -21,6 +21,7 @@
     "continueWith": "Or continue with:",
     "selectAnOption": "Select an option",
     "continueGoogle": "Continue with Google",
+    "signWithPasskey": "Sign in with a passkey",
     "continueApple": "Continue with Apple",
     "layout": {
       "default": {
@@ -51,7 +52,7 @@
       "enterEmail": "Enter your email",
       "dontHaveAccount": "Don’t have an account yet? ",
       "createAccount": "Create an account",
-      "singUp": "Sign up",
+      "signUp": "Sign up",
       "enterPassword": "Enter your password",
       "verifyEmail": "Verify your e-mail",
       "verifyEmailDescription": "Please, inform the code we sent to your e-mail. Don’t forget to check your spam box.",
@@ -71,11 +72,14 @@
       "selectMethodTitle": "Login to your account",
       "selectMethodDescription": "Select the method to create your account",
       "selectMethodPassword": "Login using a password",
-      "selectMethodPasskey": "Login using a passkey"
+      "selectMethodPasskey": "Login using a passkey",
+      "passkeyNotSupported": "Passkey not supported",
+      "passkeyNotSupportedDescription": "Selected passkey is not supported in your browser."
     },
     "register": {
       "password": "Password",
       "passkey": "Passkey",
+      "passkeyNotSupported": "Passkey not supported",
       "continue": "Continue",
       "title": "Let’s get started!",
       "forgeTitle": "Create an account and claim your NFT",

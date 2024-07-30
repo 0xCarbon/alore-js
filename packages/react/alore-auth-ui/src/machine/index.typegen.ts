@@ -68,15 +68,20 @@ export interface Typegen0 {
       data: unknown;
       __tip: 'See the XState TS docs to learn how to strongly type this.';
     };
-    'done.invoke.authMachine.active.register.sendingPublicCredential:invocation[0]': {
-      type: 'done.invoke.authMachine.active.register.sendingPublicCredential:invocation[0]';
-      data: unknown;
-      __tip: 'See the XState TS docs to learn how to strongly type this.';
-    };
     'done.invoke.authMachine.active.web3Connector.verifyingEmailEligibility:invocation[0]': {
       type: 'done.invoke.authMachine.active.web3Connector.verifyingEmailEligibility:invocation[0]';
       data: unknown;
       __tip: 'See the XState TS docs to learn how to strongly type this.';
+    };
+    'error.platform.authMachine.active.login.retrievingCredentialRCR:invocation[0]': {
+      type: 'error.platform.authMachine.active.login.retrievingCredentialRCR:invocation[0]';
+      data: unknown;
+    };
+    'xstate.after(0)#authMachine.active.login.passkeyGuard': {
+      type: 'xstate.after(0)#authMachine.active.login.passkeyGuard';
+    };
+    'xstate.after(100)#authMachine.active.login.passkeyGuard': {
+      type: 'xstate.after(100)#authMachine.active.login.passkeyGuard';
     };
     'xstate.init': { type: 'xstate.init' };
   };
@@ -98,6 +103,7 @@ export interface Typegen0 {
       | 'done.invoke.authMachine.active.register.resendingRegistrationEmail:invocation[0]'
       | 'done.invoke.authMachine.active.register.sendingEmail:invocation[0]';
     startPasskeyAuth:
+      | 'done.invoke.authMachine.active.login.retrievingCredentialRCR:invocation[0]'
       | 'done.invoke.authMachine.active.login.retrievingRCR:invocation[0]'
       | 'done.invoke.authMachine.active.register.retrievingRCR:invocation[0]';
     startRegisterPasskey: 'done.invoke.authMachine.active.register.retrievingCCR:invocation[0]';
@@ -164,12 +170,14 @@ export interface Typegen0 {
     finishPasskeyAuth: 'FINISH_PASSKEY_AUTH' | 'FINISH_PASSKEY_LOGIN';
     finishRegisterPasskey: 'FINISH_PASSKEY_REGISTER';
     googleLogin: 'GOOGLE_LOGIN';
-    retrieveSalt: 'NEXT';
+    retrieveSalt:
+      | 'SELECT_PASSWORD'
+      | 'error.platform.authMachine.active.login.retrievingCredentialRCR:invocation[0]';
     sendCode: 'SEND_CODE';
     sendConfirmationEmail: 'RESEND_CODE' | 'SEND_REGISTRATION_EMAIL';
     startPasskeyAuth:
       | 'START_PASSKEY_LOGIN'
-      | 'done.invoke.authMachine.active.register.sendingPublicCredential:invocation[0]';
+      | 'xstate.after(100)#authMachine.active.login.passkeyGuard';
     startRegisterPasskey: 'START_PASSKEY_REGISTER';
     verify2faCode: 'CONFIRM_SW_CODE';
     verifyClaimNftEmail2fa: 'VERIFY_CLAIM_NFT_EMAIL_2FA';
@@ -195,14 +203,20 @@ export interface Typegen0 {
     | 'active.login.googleLogin'
     | 'active.login.hardware2fa'
     | 'active.login.idle'
+    | 'active.login.idle.authScreen'
+    | 'active.login.idle.error'
+    | 'active.login.idle.localPasskeySign'
+    | 'active.login.idle.signWithPasskey'
     | 'active.login.inputPassword'
-    | 'active.login.localSignCredential'
     | 'active.login.loginMethodSelection'
     | 'active.login.newDevice'
+    | 'active.login.passkeyGuard'
     | 'active.login.resendingConfirmationEmail'
     | 'active.login.resendingEmailCode'
+    | 'active.login.retrievingCredentialRCR'
     | 'active.login.retrievingRCR'
     | 'active.login.retrievingSalt'
+    | 'active.login.signingCredentialRCR'
     | 'active.login.software2fa'
     | 'active.login.successfulLogin'
     | 'active.login.verifying2faCode'
@@ -218,8 +232,8 @@ export interface Typegen0 {
     | 'active.register.emailValidation'
     | 'active.register.googleLogin'
     | 'active.register.idle'
-    | 'active.register.localSigningPasskeyAuth'
-    | 'active.register.localSigningPasskeyRegister'
+    | 'active.register.localCCRSign'
+    | 'active.register.localRCRSign'
     | 'active.register.registerMethodSelection'
     | 'active.register.resendingRegistrationEmail'
     | 'active.register.retrievingCCR'
@@ -230,6 +244,7 @@ export interface Typegen0 {
     | 'active.register.termsModal'
     | 'active.register.userCreated'
     | 'active.register.verifyingEmail'
+    | 'active.register.waitingForRCR'
     | 'active.web3Connector'
     | 'active.web3Connector.connecting'
     | 'active.web3Connector.email2faCode'
@@ -260,13 +275,15 @@ export interface Typegen0 {
                 | 'hardware2fa'
                 | 'idle'
                 | 'inputPassword'
-                | 'localSignCredential'
                 | 'loginMethodSelection'
                 | 'newDevice'
+                | 'passkeyGuard'
                 | 'resendingConfirmationEmail'
                 | 'resendingEmailCode'
+                | 'retrievingCredentialRCR'
                 | 'retrievingRCR'
                 | 'retrievingSalt'
+                | 'signingCredentialRCR'
                 | 'software2fa'
                 | 'successfulLogin'
                 | 'verifying2faCode'
@@ -275,15 +292,22 @@ export interface Typegen0 {
                 | 'verifyingGoogleLogin'
                 | 'verifyingHwAuth'
                 | 'verifyingLogin'
-                | 'verifyingRegisterPublicKeyCredential';
+                | 'verifyingRegisterPublicKeyCredential'
+                | {
+                    idle?:
+                      | 'authScreen'
+                      | 'error'
+                      | 'localPasskeySign'
+                      | 'signWithPasskey';
+                  };
               register?:
                 | 'completingRegistration'
                 | 'createPassword'
                 | 'emailValidation'
                 | 'googleLogin'
                 | 'idle'
-                | 'localSigningPasskeyAuth'
-                | 'localSigningPasskeyRegister'
+                | 'localCCRSign'
+                | 'localRCRSign'
                 | 'registerMethodSelection'
                 | 'resendingRegistrationEmail'
                 | 'retrievingCCR'
@@ -293,7 +317,8 @@ export interface Typegen0 {
                 | 'sendingPublicCredential'
                 | 'termsModal'
                 | 'userCreated'
-                | 'verifyingEmail';
+                | 'verifyingEmail'
+                | 'waitingForRCR';
               web3Connector?:
                 | 'connecting'
                 | 'email2faCode'

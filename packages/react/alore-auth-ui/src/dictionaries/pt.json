@@ -21,6 +21,7 @@
     "continueWith": "Ou continue com:",
     "selectAnOption": "Selecione uma das opções",
     "continueGoogle": "Continuar com o Google",
+    "signWithPasskey": "Entrar com uma passkey",
     "continueApple": "Continuar com a Apple",
     "layout": {
       "default": {
@@ -50,7 +51,7 @@
       "loginAccount": "Faça login na sua conta",
       "enterEmail": "Digite seu e-mail",
       "dontHaveAccount": "Não tem uma conta ainda? ",
-      "singUp": "Inscrever-se",
+      "signUp": "Inscrever-se",
       "createAccount": "Criar uma account",
       "enterPassword": "Coloque sua senha",
       "verifyEmail": "Verifique seu e-mail",
@@ -71,11 +72,14 @@
       "selectMethodTitle": "Entre em sua conta",
       "selectMethodDescription": "Selecione o método que deseja para entrar sua conta",
       "selectMethodPassword": "Entre usando uma senha",
-      "selectMethodPasskey": "Entre usando uma passkey"
+      "selectMethodPasskey": "Entre usando uma passkey",
+      "passkeyNotSupported": "Passkey não suportada",
+      "passkeyNotSupportedDescription": "A Passkey selecionada não é suportada no seu navegador."
     },
     "register": {
       "password": "Senha",
       "passkey": "Passkey",
+      "passkeyNotSupported": "Passkey não suportada",
       "continue": "Continuar",
       "title": "Vamos começar!",
       "forgeTitle": "Crie uma conta e resgate sua NFT",

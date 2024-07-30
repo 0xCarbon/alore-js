@@ -14,38 +14,6 @@ export type SessionUser = {
   refreshToken: string;
 };
 
-interface PublicKeyCredentialCreationOptions {
-  rp: {
-    name: string;
-    id: string;
-  };
-  user: {
-    name: string;
-    id: string;
-    displayName: string;
-  };
-  challenge: string;
-  pubKeyCredParams: [];
-  timeout?: number;
-  // eslint-disable-next-line no-undef
-  attestation?: AttestationConveyancePreference;
-  // eslint-disable-next-line no-undef
-  excludeCredentials?: PublicKeyCredentialDescriptor[];
-  // eslint-disable-next-line no-undef
-  authenticatorSelection?: AuthenticatorSelectionCriteria;
-  extensions?: {};
-}
-
-interface PublicKeyCredentialRequestOptions {
-  challenge: string;
-  timeout?: number;
-  rpId: string;
-  pubKeyCredParams: [];
-  allowCredentials?: [];
-  userVerification?: {};
-  extensions?: {};
-}
-
 export interface AuthMachineContext {
   salt?: string;
   error?: string;
@@ -61,7 +29,10 @@ export interface AuthMachineContext {
   googleUser?: { email: string; nickname: string };
   sessionUser?: SessionUser;
   CCRPublicKey?: { publicKey: PublicKeyCredentialCreationOptions };
-  RCRPublicKey?: { publicKey: PublicKeyCredentialRequestOptions };
+  RCRPublicKey?: {
+    publicKey: PublicKeyCredentialRequestOptions;
+    mediation?: CredentialMediationRequirement;
+  };
   credentialEmail?: string;
 }
 
@@ -258,7 +229,13 @@ export type AuthMachineEvents =
   | {
       type: 'SETUP_REGISTER_USER';
       registerUser: { email: string; nickname: string; salt: string };
-    };
+    }
+  | {
+      type: 'PASSKEY_NOT_SUPPORTED';
+      payload: { error: string };
+    }
+  | { type: 'SIGN_IN_WITH_PASSKEY' }
+  | { type: 'SET_CONDITIONAL_UI_PASSKEY' };
 
 type AuthReturn = {
   data: {
