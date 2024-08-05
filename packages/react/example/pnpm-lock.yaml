@@ -6,14 +6,14 @@ settings:
 
 devDependencies:
   '@0xcarbon/alore-auth-sdk':
-    specifier: 1.0.0-alpha
-    version: 1.0.0-alpha
+    specifier: file:../alore-auth-sdk
+    version: file:../alore-auth-sdk
   '@0xcarbon/alore-auth-ui':
-    specifier: 1.0.0-alpha
-    version: 1.0.0-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0)
+    specifier: file:../alore-auth-ui
+    version: file:../alore-auth-ui(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0)
   '@0xcarbon/alore-crypto-sdk':
-    specifier: 1.0.0-alpha
-    version: 1.0.0-alpha
+    specifier: file:../alore-crypto-sdk
+    version: file:../alore-crypto-sdk
   '@0xcarbon/dkls23-wasm':
     specifier: 1.0.2
     version: 1.0.2
@@ -29,24 +29,36 @@ devDependencies:
   '@simplewebauthn/browser':
     specifier: 7.4.0
     version: 7.4.0
+  '@types/argon2-browser':
+    specifier: 1.18.1
+    version: 1.18.1
   '@types/react':
     specifier: 18.2.79
     version: 18.2.79
   '@xstate/react':
     specifier: 3.2.2
     version: 3.2.2(@types/react@18.2.79)(react@18.0.0)(xstate@4.38.2)
+  argon2-browser:
+    specifier: 1.18.0
+    version: 1.18.0
   autoprefixer:
     specifier: 10.4.19
     version: 10.4.19(postcss@8.4.38)
   base64-loader:
     specifier: 1.0.0
     version: 1.0.0
+  ethers:
+    specifier: 6.7.1
+    version: 6.7.1
   flowbite:
     specifier: 2.3.0
     version: 2.3.0
   flowbite-react:
     specifier: 0.7.2
     version: 0.7.2(@types/react@18.2.79)(esbuild@0.21.4)(next@14.2.1)(react-dom@18.0.0)(react@18.0.0)(tailwindcss@3.4.3)
+  hpke-js:
+    specifier: 1.2.7
+    version: 1.2.7
   js-cookie:
     specifier: 3.0.5
     version: 3.0.5
@@ -82,60 +94,6 @@ devDependencies:
     version: 1.1.1
 
 packages:
-
-  /@0xcarbon/alore-auth-sdk@1.0.0-alpha:
-    resolution: {integrity: sha512-oxeq8BxxAff9v10z+f66BQokhDbGt23WGN1gFLL3herEWQvKPag2pxncKH6xkif8EWwf2KtrM7KmD8g6T7gsFA==}
-    engines: {node: '>=20.0.0'}
-    dependencies:
-      '@simplewebauthn/browser': 7.4.0
-      argon2-browser: 1.18.0
-      ethers: 6.7.1
-      js-cookie: 3.0.5
-      jwt-decode: 4.0.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-    dev: true
-
-  /@0xcarbon/alore-auth-ui@1.0.0-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0):
-    resolution: {integrity: sha512-KNhh5E4dg/AJnsatbLsfjC1qUs/xrOF5EKstXzXhzL+tuheIT+lo8C0XG3445SR0/+z0ionN/E46YOvcFwknrg==}
-    engines: {node: '>=20.0.0'}
-    peerDependencies:
-      flowbite-react: 0.6.4
-    dependencies:
-      '@heroicons/react': 2.0.16(react@18.2.0)
-      '@hookform/resolvers': 3.1.0(react-hook-form@7.45.4)
-      '@react-oauth/google': 0.12.1(react-dom@18.0.0)(react@18.2.0)
-      '@xstate/react': 3.2.2(@types/react@18.2.79)(react@18.2.0)(xstate@4.38.2)
-      flowbite: 1.6.6
-      flowbite-react: 0.7.2(@types/react@18.2.79)(esbuild@0.21.4)(next@14.2.1)(react-dom@18.0.0)(react@18.0.0)(tailwindcss@3.4.3)
-      js-cookie: 3.0.5
-      jwt-decode: 3.1.2
-      react: 18.2.0
-      react-hook-form: 7.45.4(react@18.2.0)
-      tailwind-merge: 2.3.0
-      tailwindcss: 3.4.3
-      xstate: 4.38.2
-      yup: 1.1.1
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@xstate/fsm'
-      - react-dom
-      - ts-node
-    dev: true
-
-  /@0xcarbon/alore-crypto-sdk@1.0.0-alpha:
-    resolution: {integrity: sha512-0ygRVecJ/JWgQM6KHNHw3n/Hrg2ZVdrAAyfDpIEizvjDodXX886WVsaU/jub2zQjDiAWG1uLcBz7RtNRFEBW5A==}
-    engines: {node: '>=20.0.0'}
-    dependencies:
-      '@0xcarbon/dkls23-wasm': 1.0.2
-      argon2-browser: 1.18.0
-      ethers: 6.7.1
-      hpke-js: 1.2.7
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-    dev: true
 
   /@0xcarbon/dkls23-wasm@1.0.2:
     resolution: {integrity: sha512-aBQTEAFQFsSFGiBgt/VyMLTrv/IskbWKuuejxHqaGfzpzUb1N6g2nhIegzb73ImbMjp3q4R0lgiZX6jWdvwfrw==}
@@ -1177,6 +1135,10 @@ packages:
       '@types/estree': 1.0.5
     dev: true
 
+  /@types/argon2-browser@1.18.1:
+    resolution: {integrity: sha512-PZffP/CqH9m2kovDSRQMfMMxUC3V98I7i7/caa0RB0/nvsXzYbL9bKyqZpNMFmLFGZslROlG1R60ONt7abrwlA==}
+    dev: true
+
   /@types/debug@4.1.12:
     resolution: {integrity: sha512-vIChWdVG3LG1SMxEvI/AK+FWJthlrqlTu7fbrlywTkkaONwk/UAGaULXRlf8vkzFBLVm0zkMdCquhL5aOjhXPQ==}
     dependencies:
@@ -1233,6 +1195,10 @@ packages:
     resolution: {integrity: sha512-eWLDGF/FOSPtAvEqeRAQ4C8LSA7M1I7i0ky1I8U7kD1J5ITyW3AsRhQrKVoWf5pFKZ2kILsEGJhsI9r93PYnOw==}
     dependencies:
       undici-types: 5.26.5
+    dev: true
+
+  /@types/node@20.4.8:
+    resolution: {integrity: sha512-0mHckf6D2DiIAzh8fM8f3HQCvMKDpK94YQ0DSVkfWTG9BZleYIWudw9cJxX8oCk9bM+vAkDyujDV6dmKHbvQpg==}
     dev: true
 
   /@types/parse5@6.0.3:
@@ -4846,4 +4812,63 @@ packages:
 
   /zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
+    dev: true
+
+  file:../alore-auth-sdk:
+    resolution: {directory: ../alore-auth-sdk, type: directory}
+    name: '@0xcarbon/alore-auth-sdk'
+    engines: {node: '>=20.0.0'}
+    dependencies:
+      '@simplewebauthn/browser': 7.4.0
+      argon2-browser: 1.18.0
+      ethers: 6.7.1
+      js-cookie: 3.0.5
+      jwt-decode: 4.0.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: true
+
+  file:../alore-auth-ui(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.0.0):
+    resolution: {directory: ../alore-auth-ui, type: directory}
+    id: file:../alore-auth-ui
+    name: '@0xcarbon/alore-auth-ui'
+    engines: {node: '>=20.0.0'}
+    peerDependencies:
+      flowbite-react: 0.6.4
+    dependencies:
+      '@heroicons/react': 2.0.16(react@18.2.0)
+      '@hookform/resolvers': 3.1.0(react-hook-form@7.45.4)
+      '@react-oauth/google': 0.12.1(react-dom@18.0.0)(react@18.2.0)
+      '@types/node': 20.4.8
+      '@xstate/react': 3.2.2(@types/react@18.2.79)(react@18.2.0)(xstate@4.38.2)
+      flowbite: 1.6.6
+      flowbite-react: 0.7.2(@types/react@18.2.79)(esbuild@0.21.4)(next@14.2.1)(react-dom@18.0.0)(react@18.0.0)(tailwindcss@3.4.3)
+      js-cookie: 3.0.5
+      jwt-decode: 3.1.2
+      react: 18.2.0
+      react-hook-form: 7.45.4(react@18.2.0)
+      tailwind-merge: 2.3.0
+      tailwindcss: 3.4.3
+      xstate: 4.38.2
+      yup: 1.1.1
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@xstate/fsm'
+      - react-dom
+      - ts-node
+    dev: true
+
+  file:../alore-crypto-sdk:
+    resolution: {directory: ../alore-crypto-sdk, type: directory}
+    name: '@0xcarbon/alore-crypto-sdk'
+    engines: {node: '>=20.0.0'}
+    dependencies:
+      '@0xcarbon/dkls23-wasm': 1.0.2
+      argon2-browser: 1.18.0
+      ethers: 6.7.1
+      hpke-js: 1.2.7
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
     dev: true

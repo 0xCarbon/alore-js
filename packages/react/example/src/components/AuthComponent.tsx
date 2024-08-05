@@ -11,7 +11,7 @@ export default function AuthComponent() {
 
   return (
     <Auth
-      locale='pt'
+      locale="pt"
       googleId={process.env.NEXT_PUBLIC_GOOGLE_ID || ''}
       cryptoUtils={{ hashUserInfo, generateSecureHash }}
       keyshareWorker={keyshareWorker}
