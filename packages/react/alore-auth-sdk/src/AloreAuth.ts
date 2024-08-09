@@ -2,8 +2,6 @@ import { startAuthentication } from '@simplewebauthn/browser';
 import ethers from 'ethers';
 import crypto from 'crypto';
 import argon2 from 'argon2-browser';
-import Cookies from 'js-cookie';
-import { jwtDecode } from 'jwt-decode';
 
 export function hashUserInfo(userInfo: string) {
   const hash = crypto.createHash('sha256');
@@ -38,6 +36,7 @@ const DEFAULT_URL = 'https://alpha-api.bealore.com/v1';
 
 export interface AloreAuthConfiguration {
   endpoint?: string;
+  emailTemplate?: string;
 }
 
 type FetchWithProgressiveBackoffConfig = {
@@ -99,7 +98,7 @@ interface AuthMachineContext {
 
 export class AloreAuth {
   protected readonly endpoint: string;
-  protected readonly configuration: string;
+  protected readonly emailTemplate: string;
 
   constructor(
     public readonly apiKey: string,
@@ -108,14 +107,7 @@ export class AloreAuth {
     if (!apiKey) throw new Error('API_KEY is required');
 
     this.endpoint = options?.endpoint || DEFAULT_URL;
-
-    this.configuration = 'TODO';
-
-    // this.configuration = Base64.encode(
-    //   JSON.stringify({
-    //     API_KEY: this.apiKey,
-    //   })
-    // );
+    this.emailTemplate = options?.emailTemplate || '';
   }
 
   services = {
@@ -207,10 +199,20 @@ export class AloreAuth {
             };
           }
     ) => {
-      const { email, nickname } = event.payload;
+      const { email, nickname, locale } = event.payload;
+      const searchParams = new URLSearchParams();
+      let url = '/auth/confirmation-email';
+
+      if (locale) {
+        searchParams.append('locale', locale);
+      }
+
+      if (this.emailTemplate !== '') {
+        searchParams.append('template', this.emailTemplate);
+      }
 
       const response = await this.fetchWithProgressiveBackoff(
-        '/auth/confirmation-email',
+        searchParams.size > 0 ? `${url}?${searchParams.toString()}` : url,
         {
           method: 'POST',
           headers: {
@@ -458,10 +460,20 @@ export class AloreAuth {
             };
           }
     ) => {
-      const { email, passwordHash, device } = event.payload;
+      const { email, passwordHash, device, locale } = event.payload;
+      const searchParams = new URLSearchParams();
+      let url = '/auth/login-verification';
+
+      if (locale) {
+        searchParams.append('locale', locale);
+      }
+
+      if (this.emailTemplate !== '') {
+        searchParams.append('template', this.emailTemplate);
+      }
 
       const response = await this.fetchWithProgressiveBackoff(
-        '/auth/login-verification',
+        searchParams.size > 0 ? `${url}?${searchParams.toString()}` : url,
         {
           method: 'POST',
           headers: {
