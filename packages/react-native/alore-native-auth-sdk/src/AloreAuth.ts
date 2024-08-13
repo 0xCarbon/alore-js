@@ -101,7 +101,6 @@ export class AloreAuth {
 
     this.endpoint = options?.endpoint || DEFAULT_URL;
     this.emailTemplate = options?.emailTemplate || '';
-    console.log('🚀 ~ AloreAuth ~ this.emailTemplate:', this.emailTemplate);
   }
 
   services = {
