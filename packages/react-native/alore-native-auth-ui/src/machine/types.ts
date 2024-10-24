@@ -54,6 +54,7 @@ export type AuthMachineEvents =
   | { type: 'LOGIN_STEP' }
   | { type: 'BACK' }
   | { type: 'NEXT' }
+  | { type: 'INACTIVATE_USER' }
   | {
       type: 'START_PASSKEY_LOGIN';
       payload?: {
@@ -179,6 +180,7 @@ export type AuthMachineServices = {
   verifyEmail: AuthReturn;
   verifyLogin: AuthReturn;
   verifyEmail2fa: ValidSession;
+  inactivateUser: ValidSession;
   sendConfirmationEmail: AuthReturn;
   googleLogin: { data: {} };
   verifyGoogleLogin: ValidSession;

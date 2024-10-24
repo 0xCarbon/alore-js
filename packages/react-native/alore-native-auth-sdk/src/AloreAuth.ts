@@ -604,6 +604,24 @@ export class AloreAuth {
 
       throw new Error(data.message || data.error || 'Authentication failed');
     },
+    inactivateUser: async (context: AuthMachineContext) => {
+      const response = await this.fetchWithProgressiveBackoff(
+        `/users/inactivate/${context.sessionUser?.id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'X-CLIENT-ID': context.sessionUser?.accessToken || '',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data?.message || data?.error || data);
+      } else {
+        return {};
+      }
+    },
   };
 
   public async fetchWithProgressiveBackoff(
