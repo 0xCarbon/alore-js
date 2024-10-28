@@ -94,10 +94,10 @@ export class AloreAuth {
   protected readonly emailTemplate: string;
 
   constructor(
-    public readonly apiKey: string,
+    public readonly clientId: string,
     options?: AloreAuthConfiguration
   ) {
-    if (!apiKey) throw new Error('API_KEY is required');
+    if (!clientId) throw new Error('X_CLIENT_ID is required');
 
     this.endpoint = options?.endpoint || DEFAULT_URL;
     this.emailTemplate = options?.emailTemplate || '';
@@ -610,7 +610,7 @@ export class AloreAuth {
         {
           method: 'PATCH',
           headers: {
-            'X-CLIENT-ID': context.sessionUser?.accessToken || '',
+            Authorization: `Bearer ${context.sessionUser?.accessToken}` || '',
           },
         }
       );
@@ -641,7 +641,7 @@ export class AloreAuth {
       ...options,
       headers: {
         ...options?.headers,
-        'X-API-KEY': this.apiKey,
+        'X-CLIENT-ID': this.clientId,
       },
     };
 
