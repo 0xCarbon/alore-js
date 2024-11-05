@@ -7,12 +7,13 @@
   "author": "0xCarbon",
   "license": "LGPL-2.1-only",
   "dependencies": {
+    "@0xcarbon/alore-native-common": "file:../alore-native-common",
     "base64url": "3.0.1",
     "react": "18.2.0",
     "react-native": "0.74.1",
     "react-native-argon2": "2.0.1",
     "react-native-base64": "0.2.1",
-    "react-native-passkey": "3.0.0-beta"
+    "react-native-passkey": "3.0.0-beta2"
   },
   "devDependencies": {
     "@types/node": "20.14.1",

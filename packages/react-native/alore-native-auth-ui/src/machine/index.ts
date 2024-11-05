@@ -1,11 +1,11 @@
 import { State, assign, createMachine, interpret } from 'xstate';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Passkey } from 'react-native-passkey';
 import {
   AuthMachineContext,
   AuthMachineEvents,
   AuthMachineServices,
-} from './types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Passkey } from 'react-native-passkey';
+} from '@0xcarbon/alore-native-common';
 
 const initialContext: AuthMachineContext = {
   locale: 'en',
@@ -48,6 +48,7 @@ export const authMachine = createMachine(
             passkeyLoginResult: () => undefined,
             passkeyRegistrationResult: () => undefined,
             registerUser: () => undefined,
+            secret: () => undefined,
           }),
           () => AsyncStorage.removeItem('authState'),
         ],
@@ -79,6 +80,7 @@ export const authMachine = createMachine(
               passkeyLoginResult: () => undefined,
               passkeyRegistrationResult: () => undefined,
               registerUser: () => undefined,
+              secret: () => undefined,
             }),
 
             initial: 'idle',
@@ -163,7 +165,7 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.login.passwordStep',
                     actions: assign({
                       error: (_context, event) =>
-                        event.data?.error || event.data?.message,
+                        event.data?.message || event.data?.error,
                     }),
                   },
                 },
@@ -197,7 +199,7 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.login.email2fa',
                     actions: assign({
                       error: (_context, event) =>
-                        event.data?.error || event.data?.message,
+                        event.data?.message || event.data?.error,
                     }),
                   },
 
@@ -250,8 +252,8 @@ export const authMachine = createMachine(
                         target: '#authMachine.active.initial',
                         actions: assign({
                           error: (_context, event) =>
-                            event.data?.error ||
                             event.data?.message ||
+                            event.data?.error ||
                             event.data,
                         }),
                       },
@@ -270,7 +272,9 @@ export const authMachine = createMachine(
                         target:
                           '#authMachine.active.login.passkeyStep.userInputSuccess',
                         actions: assign({
-                          passkeyLoginResult: (_context, event) => event.data,
+                          passkeyLoginResult: (_context, event) =>
+                            event.data.response,
+                          secret: (_context, event) => event.data.secret,
                           error: () => undefined,
                         }),
                       },
@@ -278,8 +282,8 @@ export const authMachine = createMachine(
                         target: '#authMachine.active.initial',
                         actions: assign({
                           error: (_context, event) =>
-                            event.data?.error ||
                             event.data?.message ||
+                            event.data?.error ||
                             event.data,
                         }),
                       },
@@ -304,10 +308,14 @@ export const authMachine = createMachine(
                       onError: {
                         target: '#authMachine.active.initial',
                         actions: assign({
-                          error: (_context, event) =>
-                            event.data?.error ||
-                            event.data?.message ||
-                            event.data,
+                          error: (_context, event) => {
+                            console.log(event.data);
+                            return (
+                              event.data?.message ||
+                              event.data?.error ||
+                              event.data
+                            );
+                          },
                         }),
                       },
                     },
@@ -322,6 +330,21 @@ export const authMachine = createMachine(
                 initial: 'start',
               },
             },
+
+            entry: assign({
+              googleUser: () => undefined,
+              registerUser: () => undefined,
+              CCRPublicKey: () => undefined,
+              RCRPublicKey: () => undefined,
+              error: () => undefined,
+              googleOtpCode: () => undefined,
+              passkeyRegistrationResult: () => undefined,
+              salt: () => undefined,
+              userEmail: () => undefined,
+              passkeyLoginResult: () => undefined,
+              sessionId: () => undefined,
+              secret: () => undefined,
+            }),
 
             initial: 'emailStep',
           },
@@ -368,7 +391,7 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.register.usernameStep',
                     actions: assign({
                       error: (_context, event) =>
-                        event.data?.error || event.data?.message || event.data,
+                        event.data?.message || event.data?.error || event.data,
                     }),
                   },
                 },
@@ -418,7 +441,7 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.register.emailValidationStep',
                     actions: assign({
                       error: (_context, event) =>
-                        event.data?.error || event.data?.message,
+                        event.data?.message || event.data?.error,
                     }),
                   },
                 },
@@ -454,7 +477,7 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.register.passwordStep',
                     actions: assign({
                       error: (_context, event) =>
-                        event.data?.error || event.data?.message,
+                        event.data?.message || event.data?.error,
                     }),
                   },
                 },
@@ -478,7 +501,7 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.register.emailValidationStep',
                     actions: assign({
                       error: (_context, event) =>
-                        event.data?.error || event.data?.message,
+                        event.data?.message || event.data?.error,
                     }),
                   },
                 },
@@ -515,7 +538,7 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.register.usernameStep',
                     actions: assign({
                       error: (_context, event) =>
-                        event.data?.error || event.data?.message || event.data,
+                        event.data?.message || event.data?.error || event.data,
                     }),
                   },
                 },
@@ -545,8 +568,8 @@ export const authMachine = createMachine(
                         target: '#authMachine.active.register.usernameStep',
                         actions: assign({
                           error: (_context, event) =>
-                            event.data?.error ||
                             event.data?.message ||
+                            event.data?.error ||
                             event.data,
                         }),
                       },
@@ -578,8 +601,8 @@ export const authMachine = createMachine(
                         target: '#authMachine.active.register.usernameStep',
                         actions: assign({
                           error: (_context, event) =>
-                            event.data?.error ||
                             event.data?.message ||
+                            event.data?.error ||
                             event.data,
                         }),
                       },
@@ -605,8 +628,8 @@ export const authMachine = createMachine(
                         target: '#authMachine.active.register.usernameStep',
                         actions: assign({
                           error: (_context, event) =>
-                            event.data?.error ||
                             event.data?.message ||
+                            event.data?.error ||
                             event.data,
                         }),
                       },
@@ -638,6 +661,21 @@ export const authMachine = createMachine(
                 initial: 'start',
               },
             },
+
+            entry: assign({
+              googleUser: () => undefined,
+              registerUser: () => undefined,
+              CCRPublicKey: () => undefined,
+              RCRPublicKey: () => undefined,
+              error: () => undefined,
+              googleOtpCode: () => undefined,
+              passkeyRegistrationResult: () => undefined,
+              salt: () => undefined,
+              userEmail: () => undefined,
+              passkeyLoginResult: () => undefined,
+              sessionId: () => undefined,
+              secret: () => undefined,
+            }),
 
             initial: 'emailStep',
           },
@@ -701,6 +739,7 @@ export const authMachine = createMachine(
           passkeyLoginResult: () => undefined,
           passkeyRegistrationResult: () => undefined,
           registerUser: () => undefined,
+          secret: () => undefined,
         }),
       },
     },

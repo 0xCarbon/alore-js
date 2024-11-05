@@ -1,0 +1,17 @@
+{
+  "name": "@0xcarbon/alore-native-common",
+  "version": "1.0.0-alpha",
+  "repository": "https://github.com/0xCarbon/alore-js",
+  "description": "React Native SDK for Alore Common",
+  "main": "./src/index.ts",
+  "author": "0xCarbon",
+  "license": "LGPL-2.1-only",
+  "devDependencies": {
+    "typescript": "5.0.4",
+    "react-native-passkey": "3.0.0-beta2"
+  },
+  "dependencies": {
+    "react-native-argon2": "2.0.1",
+    "react-native-quick-crypto": "0.7.3"
+  }
+}

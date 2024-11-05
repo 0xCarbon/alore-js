@@ -190,7 +190,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   const onNext = () => {
     dismissKeyboard();
 
-    sendAuth({ type: 'NEXT' });
+    sendAuth('NEXT');
   };
 
   const onResendEmail = () => {

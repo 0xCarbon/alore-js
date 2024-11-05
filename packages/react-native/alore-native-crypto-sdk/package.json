@@ -1,0 +1,23 @@
+{
+  "name": "@0xcarbon/alore-native-crypto-sdk",
+  "version": "1.0.0-alpha",
+  "repository": "https://github.com/0xCarbon/alore-js",
+  "description": "React Native SDK for Alore Crypto",
+  "main": "./src/index.ts",
+  "author": "0xCarbon",
+  "license": "LGPL-2.1-only",
+  "dependencies": {
+    "@0xcarbon/alore-native-common": "file:../alore-native-common",
+    "@0xcarbon/rn-tss-module": "1.0.0",
+    "@react-native-async-storage/async-storage": "1.23.1",
+    "ethers": "6.7.1",
+    "hpke-js": "1.2.7",
+    "react": "18.2.0",
+    "react-native": "0.73.6",
+    "react-native-argon2": "2.0.1",
+    "react-native-quick-crypto": "0.7.3"
+  },
+  "devDependencies": {
+    "typescript": "5.0.4"
+  }
+}

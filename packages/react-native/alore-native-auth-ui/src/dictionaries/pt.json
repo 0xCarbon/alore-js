@@ -56,6 +56,10 @@
     "somethingWrong": "Algo deu errado",
     "defaultError": "Não foi possível processar seu login neste momento. ",
     "wrongCode": "Código inválido.",
-    "passkeyNotSupported": "Passkey não suportada"
+    "passkeyNotSupported": "Passkey não suportada",
+    "noViableCredential": "Nenhuma credencial válida está disponível para o usuário.",
+    "invalidRequest": "A solicitação recebida não pode ser validada.",
+    "userCancelled": "O usuário cancelou a solicitação.",
+    "passkeyNotFound": "Nenhuma passkey encontrada para o id fornecido"
   }
 }

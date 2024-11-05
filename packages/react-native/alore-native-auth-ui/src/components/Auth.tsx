@@ -28,7 +28,16 @@ export interface AuthProps {
 const Auth = ({ styles, onSuccess, toast = true, cryptoUtils }: AuthProps) => {
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
-  const { sessionUser, error: authError, locale } = authState.context;
+  const {
+    sessionUser,
+    error: authError,
+    locale,
+    userEmail,
+  } = authState.context;
+  console.log('🚀 ~ Auth ~ userEmail:', userEmail);
+  console.log('🚀 ~ Auth ~ authError:', authError);
+
+  console.log(JSON.stringify(authState.value));
 
   const dictionary = useDictionary(locale);
 
@@ -45,6 +54,16 @@ const Auth = ({ styles, onSuccess, toast = true, cryptoUtils }: AuthProps) => {
       errorMessage = dictionary?.errors?.wrongCode;
     } else if (authError?.includes('PASSKEY_NOT_SUPPORTED')) {
       errorMessage = dictionary?.errors?.passkeyNotSupported;
+    } else if (authError?.includes('No viable credential')) {
+      errorMessage = dictionary?.errors?.noViableCredential;
+    } else if (
+      authError?.includes('The incoming request cannot be validated')
+    ) {
+      errorMessage = dictionary?.errors?.invalidRequest;
+    } else if (authError?.includes('The user cancelled the request')) {
+      errorMessage = dictionary?.errors?.userCancelled;
+    } else if (authError?.includes('No passkey found for the given id')) {
+      errorMessage = dictionary?.errors?.passkeyNotFound;
     }
 
     return errorMessage;

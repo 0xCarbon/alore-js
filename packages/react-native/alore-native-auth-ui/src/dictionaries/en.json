@@ -57,6 +57,10 @@
     "invalidEmailPasswordDescription": "The combination of e-mail and password you wrote is incorrect or not valid.",
     "defaultError": "We could not process your login at this moment. Try again in a few seconds.",
     "wrongCode": "You’ve sent the wrong code. Try again.",
-    "passkeyNotSupported": "Passkey not supported"
+    "passkeyNotSupported": "Passkey not supported",
+    "noViableCredential": "No viable credential is available for the user.",
+    "invalidRequest": "The incoming request cannot be validated.",
+    "userCancelled": "The user cancelled the request.",
+    "passkeyNotFound": "No passkey found for the given id"
   }
 }
