@@ -24,6 +24,8 @@ const StyledTextField = ({
       <TextField
         {...props}
         style={styles?.common?.inputField}
+        containerStyle={styles?.common?.inputField}
+        fieldStyle={styles?.common?.inputFieldStyle}
         labelStyle={styles?.common?.inputField}
         placeholderTextColor={styles?.common?.inputFieldPlaceholderColor?.color}
       />

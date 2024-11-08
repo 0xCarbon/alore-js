@@ -100,6 +100,7 @@ export class AloreAuth {
     if (!clientId) throw new Error('X_CLIENT_ID is required');
 
     this.endpoint = options?.endpoint || DEFAULT_URL;
+
     this.emailTemplate = options?.emailTemplate || '';
   }
 
@@ -408,30 +409,30 @@ export class AloreAuth {
     ) => {
       const { email, nickname, locale } = event.payload;
       const searchParams = new URLSearchParams();
-      let url = '/auth/confirmation-email';
 
       if (locale) {
         searchParams.append('locale', locale);
       }
 
-      if (this.emailTemplate !== '') {
+      if (this.emailTemplate) {
         searchParams.append('template', this.emailTemplate);
       }
 
-      const response = await this.fetchWithProgressiveBackoff(
-        searchParams.size > 0 ? `${url}?${searchParams.toString()}` : url,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email,
-            nickname,
-            locale,
-          }),
-        }
-      );
+      const url = searchParams.toString()
+        ? `/auth/confirmation-email?${searchParams.toString()}`
+        : '/auth/confirmation-email';
+
+      const response = await this.fetchWithProgressiveBackoff(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          nickname,
+          locale,
+        }),
+      });
 
       if (response.ok) {
         const resJson = await response.json();
@@ -530,30 +531,30 @@ export class AloreAuth {
     ) => {
       const { email, passwordHash, device, locale } = event.payload;
       const searchParams = new URLSearchParams();
-      let url = '/auth/login-verification';
 
       if (locale) {
         searchParams.append('locale', locale);
       }
 
-      if (this.emailTemplate !== '') {
+      if (this.emailTemplate) {
         searchParams.append('template', this.emailTemplate);
       }
 
-      const response = await this.fetchWithProgressiveBackoff(
-        searchParams.size > 0 ? `${url}?${searchParams.toString()}` : url,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email,
-            passwordHash,
-            device,
-          }),
-        }
-      );
+      const url = searchParams.toString()
+        ? `/auth/login-verification?${searchParams.toString()}`
+        : '/auth/login-verification';
+
+      const response = await this.fetchWithProgressiveBackoff(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          passwordHash,
+          device,
+        }),
+      });
 
       const data = await response.json();
 
