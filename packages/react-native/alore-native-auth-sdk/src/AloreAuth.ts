@@ -94,12 +94,13 @@ export class AloreAuth {
   protected readonly emailTemplate: string;
 
   constructor(
-    public readonly apiKey: string,
+    public readonly clientId: string,
     options?: AloreAuthConfiguration
   ) {
-    if (!apiKey) throw new Error('API_KEY is required');
+    if (!clientId) throw new Error('X_CLIENT_ID is required');
 
     this.endpoint = options?.endpoint || DEFAULT_URL;
+
     this.emailTemplate = options?.emailTemplate || '';
   }
 
@@ -408,30 +409,30 @@ export class AloreAuth {
     ) => {
       const { email, nickname, locale } = event.payload;
       const searchParams = new URLSearchParams();
-      let url = '/auth/confirmation-email';
 
       if (locale) {
         searchParams.append('locale', locale);
       }
 
-      if (this.emailTemplate !== '') {
+      if (this.emailTemplate) {
         searchParams.append('template', this.emailTemplate);
       }
 
-      const response = await this.fetchWithProgressiveBackoff(
-        searchParams.size > 0 ? `${url}?${searchParams.toString()}` : url,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email,
-            nickname,
-            locale,
-          }),
-        }
-      );
+      const url = searchParams.toString()
+        ? `/auth/confirmation-email?${searchParams.toString()}`
+        : '/auth/confirmation-email';
+
+      const response = await this.fetchWithProgressiveBackoff(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          nickname,
+          locale,
+        }),
+      });
 
       if (response.ok) {
         const resJson = await response.json();
@@ -530,30 +531,30 @@ export class AloreAuth {
     ) => {
       const { email, passwordHash, device, locale } = event.payload;
       const searchParams = new URLSearchParams();
-      let url = '/auth/login-verification';
 
       if (locale) {
         searchParams.append('locale', locale);
       }
 
-      if (this.emailTemplate !== '') {
+      if (this.emailTemplate) {
         searchParams.append('template', this.emailTemplate);
       }
 
-      const response = await this.fetchWithProgressiveBackoff(
-        searchParams.size > 0 ? `${url}?${searchParams.toString()}` : url,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email,
-            passwordHash,
-            device,
-          }),
-        }
-      );
+      const url = searchParams.toString()
+        ? `/auth/login-verification?${searchParams.toString()}`
+        : '/auth/login-verification';
+
+      const response = await this.fetchWithProgressiveBackoff(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          passwordHash,
+          device,
+        }),
+      });
 
       const data = await response.json();
 
@@ -604,6 +605,24 @@ export class AloreAuth {
 
       throw new Error(data.message || data.error || 'Authentication failed');
     },
+    inactivateUser: async (context: AuthMachineContext) => {
+      const response = await this.fetchWithProgressiveBackoff(
+        `/users/inactivate/${context.sessionUser?.id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${context.sessionUser?.accessToken}` || '',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data?.message || data?.error || data);
+      } else {
+        return {};
+      }
+    },
   };
 
   public async fetchWithProgressiveBackoff(
@@ -623,7 +642,7 @@ export class AloreAuth {
       ...options,
       headers: {
         ...options?.headers,
-        'X-API-KEY': this.apiKey,
+        'X-CLIENT-ID': this.clientId,
       },
     };
 

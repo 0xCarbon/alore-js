@@ -9,15 +9,15 @@ export const stepStyles = {
       color: Colors.gray[900],
     },
     inputContainer: {
-      backgroundColor: 'transparent',
-      paddingBottom: 12,
       flexDirection: 'row',
       width: '100%',
       alignItems: 'center',
       borderBottomWidth: 1,
+      overflow: 'hidden',
     },
     inputIconContainer: {
       paddingHorizontal: 10,
+      paddingBottom: 6,
     },
     inputIcon: {
       color: 'rgb(107 114 128)',
@@ -26,6 +26,11 @@ export const stepStyles = {
       color: 'white',
       fontSize: 16,
       fontWeight: '400',
+      width: '100%',
+    },
+    inputFieldStyle: {
+      width: '100%',
+      paddingBottom: 8,
     },
     inputFieldPlaceholderColor: {
       color: 'rgb(107 114 128)',
