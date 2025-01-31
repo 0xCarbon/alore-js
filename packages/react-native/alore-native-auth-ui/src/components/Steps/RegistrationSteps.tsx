@@ -27,7 +27,7 @@ interface RegistrationStepsProps {
     generateSecureHash: (
       data: string,
       salt: string,
-      keyDerivationFunction: 'argon2d' | 'pbkdf2',
+      keyDerivationFunction: 'argon2d' | 'pbkdf2'
     ) => Promise<string>;
   };
 }
@@ -64,7 +64,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
       authState.matches('active.register.passkeyStep.userInput') ||
       authState.matches('active.register.passkeyStep.userInputSuccess') ||
       authState.matches('active.register.passkeyStep.start'),
-    [authState.value],
+    [authState.value]
   );
   const {
     CCRPublicKey,
@@ -84,7 +84,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
 
     const backHandler = BackHandler.addEventListener(
       'hardwareBackPress',
-      backAction,
+      backAction
     );
 
     return () => backHandler.remove();
@@ -174,11 +174,11 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
           ruleValidation(
             rule,
             { password, confirmPassword },
-            { email, nickname: username },
+            { email, nickname: username }
           ),
-        true,
+        true
       ),
-    [password, confirmPassword, email, username],
+    [password, confirmPassword, email, username]
   );
 
   const onBack = () => {
@@ -326,7 +326,8 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
   const emailValidationStep = () => (
     <View
       style={styles.verifyEmailStep?.container}
-      data-test="register-verify-email-step">
+      data-test="register-verify-email-step"
+    >
       <View style={styles.verifyEmailStep?.cardContainer}>
         <BackButton styles={styles} onClick={onBack} />
         <Text style={styles.common?.stepTitle}>

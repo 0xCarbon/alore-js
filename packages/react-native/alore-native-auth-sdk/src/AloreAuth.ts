@@ -3,10 +3,10 @@ import crypto, { randomBytes } from 'crypto';
 import argon2 from 'react-native-argon2';
 import { Passkey } from 'react-native-passkey';
 import {
-  PasskeyAuthenticationRequest,
-  PasskeyAuthenticationResult,
-  PasskeyRegistrationRequest,
-  PasskeyRegistrationResult,
+  PasskeyCreateRequest,
+  PasskeyCreateResult,
+  PasskeyGetRequest,
+  PasskeyGetResult,
 } from 'react-native-passkey/lib/typescript/PasskeyTypes';
 
 export function hashUserInfo(userInfo: string) {
@@ -83,8 +83,8 @@ interface AuthMachineContext {
   googleOtpCode?: string;
   googleUser?: { email: string; nickname: string };
   sessionUser?: SessionUser;
-  CCRPublicKey?: { publicKey: PasskeyRegistrationRequest };
-  RCRPublicKey?: { publicKey: PasskeyAuthenticationRequest };
+  CCRPublicKey?: { publicKey: PasskeyGetRequest };
+  RCRPublicKey?: { publicKey: PasskeyCreateRequest };
   credentialEmail?: string;
   isFirstLogin?: boolean;
 }
@@ -110,11 +110,12 @@ export class AloreAuth {
       event: {
         type: 'FINISH_PASSKEY_LOGIN';
         payload: {
-          passkeyAuth: PasskeyAuthenticationResult;
+          passkeyAuth: PasskeyCreateResult;
         };
       }
     ) => {
       const { passkeyAuth } = event.payload;
+
       const response = await this.fetchWithProgressiveBackoff(
         `/auth/login-passkey-finish`,
         {
@@ -125,16 +126,19 @@ export class AloreAuth {
           body: JSON.stringify({ passkeyAuth, sessionId: context.sessionId }),
         }
       );
+
       const data = await response.json();
 
       if (response.ok) return data;
+
+      throw new Error(data.message || data.error || 'Authentication failed');
     },
     userInputLoginPasskey: async (
       context: AuthMachineContext,
       event: {
         type: 'USER_INPUT_PASSKEY_LOGIN';
         payload: {
-          RCRPublicKey: { publicKey: PasskeyAuthenticationRequest };
+          RCRPublicKey: { publicKey: PasskeyCreateRequest };
         };
       }
     ) => {
@@ -147,7 +151,7 @@ export class AloreAuth {
 
       const blob = new Uint8Array(randomBytes(32));
 
-      const loginData: PasskeyAuthenticationRequest = {
+      const loginData: PasskeyGetRequest = {
         ...publicKey,
         extensions: {
           largeBlob: isFirstLogin
@@ -158,12 +162,19 @@ export class AloreAuth {
           prf: { eval: { first: new TextEncoder().encode('Alore') } },
         },
       };
+
       const result = await Passkey.get(loginData);
-      // @ts-ignore
-      const resultJson = JSON.parse(result);
+
+      let loginResultJson: PasskeyGetResult;
+      if (typeof result === 'string') {
+        // @ts-ignore
+        loginResultJson = JSON.parse(result);
+      } else {
+        loginResultJson = result;
+      }
 
       // @ts-ignore
-      const clientExtensionResults = resultJson?.clientExtensionResults;
+      const clientExtensionResults = loginResultJson?.clientExtensionResults;
       // @ts-ignore
       const prfWritten = !!clientExtensionResults?.prf?.results;
       // @ts-ignore
@@ -180,8 +191,7 @@ export class AloreAuth {
       if (!secretFromCredential) {
         throw new Error('PASSKEY_NOT_SUPPORTED');
       }
-
-      return resultJson;
+      return loginResultJson;
     },
     startPasskeyAuth: async (
       _: AuthMachineContext,
@@ -194,10 +204,6 @@ export class AloreAuth {
     ) => {
       let url = `/auth/login-passkey`;
 
-      if (event.payload?.email) {
-        url += `?email=${event.payload.email}`;
-      }
-
       const startAuthResponse = await this.fetchWithProgressiveBackoff(url);
 
       const data = await startAuthResponse.json();
@@ -209,7 +215,7 @@ export class AloreAuth {
       event: {
         type: 'USER_INPUT_PASSKEY_REGISTER';
         payload: {
-          CCRPublicKey: { publicKey: PasskeyRegistrationRequest };
+          CCRPublicKey: { publicKey: PasskeyGetRequest };
           email: string;
           nickname: string;
         };
@@ -248,22 +254,29 @@ export class AloreAuth {
           residentKey: 'required',
           userVerification: 'required',
         },
+      }).catch((error) => {
+        console.log('error', error);
       });
-      // @ts-ignore
-      const resultJson: PasskeyRegistrationResult = JSON.parse(result);
+
+      let registerResultJson: PasskeyGetResult;
+      if (typeof result === 'string') {
+        // @ts-ignore
+        registerResultJson = JSON.parse(result);
+      } else {
+        registerResultJson = result;
+      }
 
       // @ts-ignore
-      const clientExtensionResults = resultJson?.clientExtensionResults;
+      const clientExtensionResults = registerResultJson?.clientExtensionResults;
       // @ts-ignore
       const prfSupported = !!clientExtensionResults?.prf?.enabled;
       // @ts-ignore
-      const largeBlobSupported = !!extensionResults?.largeBlob?.supported;
-
+      const largeBlobSupported = !!clientExtensionResults?.largeBlob?.supported;
       if (!prfSupported && !largeBlobSupported) {
         throw new Error('PASSKEY_NOT_SUPPORTED');
       }
 
-      return resultJson;
+      return registerResultJson;
     },
     startRegisterPasskey: async (
       _context: AuthMachineContext,
@@ -303,7 +316,7 @@ export class AloreAuth {
       event: {
         type: 'FINISH_PASSKEY_REGISTER';
         payload: {
-          passkeyRegistration: PasskeyRegistrationResult;
+          passkeyRegistration: PasskeyGetResult;
           email: string;
           nickname: string;
           device: string;
@@ -658,6 +671,9 @@ export class AloreAuth {
         // eslint-disable-next-line no-await-in-loop
         const response = await fetch(`${this.endpoint}${url}`, init);
 
+        if (response.status === 429) {
+          return new Response(JSON.stringify({ error: 'Too many requests' }));
+        }
         if (response.ok || attempt === maxAttempts || response.status !== 500) {
           return response;
         }
