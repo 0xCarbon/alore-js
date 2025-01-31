@@ -43,6 +43,8 @@ const Auth = ({
   const { googleUser, sessionUser, registerUser } = authState.context;
   const [isClient, setIsClient] = useState(false);
 
+  console.debug('authState', authState.value);
+  console.debug('context', authState.context);
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -87,8 +89,8 @@ const Auth = ({
       <GoogleOAuthProvider clientId={googleId}>
         <Suspense
           fallback={
-            <div className='flex h-full min-h-screen w-full flex-col items-center justify-center'>
-              <Spinner className='m-auto !h-12 w-full !fill-gray-300' />
+            <div className="flex h-full min-h-screen w-full flex-col items-center justify-center">
+              <Spinner className="m-auto !h-12 w-full !fill-gray-300" />
             </div>
           }
         >

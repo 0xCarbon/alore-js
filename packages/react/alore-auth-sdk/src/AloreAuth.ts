@@ -321,6 +321,7 @@ export class AloreAuth {
 
       const data = await startPasskeyRegistrationResponse.json();
 
+      console.log('data', data);
       return data;
     },
     finishRegisterPasskey: async (

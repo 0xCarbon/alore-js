@@ -15,8 +15,8 @@ devDependencies:
     specifier: file:../alore-crypto-sdk
     version: file:../alore-crypto-sdk
   '@0xcarbon/dkls23-wasm':
-    specifier: 1.0.2
-    version: 1.0.2
+    specifier: 1.0.3
+    version: npm.pkg.github.com/@0xCarbon/dkls23-wasm@1.0.3
   '@heroicons/react':
     specifier: 2.0.16
     version: 2.0.16(react@18.0.0)
@@ -94,10 +94,6 @@ devDependencies:
     version: 1.1.1
 
 packages:
-
-  /@0xcarbon/dkls23-wasm@1.0.2:
-    resolution: {integrity: sha512-aBQTEAFQFsSFGiBgt/VyMLTrv/IskbWKuuejxHqaGfzpzUb1N6g2nhIegzb73ImbMjp3q4R0lgiZX6jWdvwfrw==}
-    dev: true
 
   /@adraffy/ens-normalize@1.9.2:
     resolution: {integrity: sha512-0h+FrQDqe2Wn+IIGFkTCd4aAwTJ+7834Ek1COohCyV26AXhwQ7WQaz+4F/nLOeVl/3BtWHOHLPsq46V8YB46Eg==}
@@ -208,10 +204,6 @@ packages:
     peerDependencies:
       '@effect-ts/otel-node': '*'
     peerDependenciesMeta:
-      '@effect-ts/core':
-        optional: true
-      '@effect-ts/otel':
-        optional: true
       '@effect-ts/otel-node':
         optional: true
     dependencies:
@@ -4864,11 +4856,17 @@ packages:
     name: '@0xcarbon/alore-crypto-sdk'
     engines: {node: '>=20.0.0'}
     dependencies:
-      '@0xcarbon/dkls23-wasm': 1.0.2
+      '@0xcarbon/dkls23-wasm': npm.pkg.github.com/@0xCarbon/dkls23-wasm@1.0.3
       argon2-browser: 1.18.0
       ethers: 6.7.1
       hpke-js: 1.2.7
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+    dev: true
+
+  npm.pkg.github.com/@0xCarbon/dkls23-wasm@1.0.3:
+    resolution: {integrity: sha512-jpGAldr082OdZtMfO01kjC5eamvcAkWuJXJv0ESHyVDeLoz9HlmG1unJqA5muODJZnuArWnyKiZPk7LBJqt4tg==, tarball: https://npm.pkg.github.com/download/@0xCarbon/dkls23-wasm/1.0.3/366bf7d1232ea479c6d03d92f136ef6636dbed42}
+    name: '@0xCarbon/dkls23-wasm'
+    version: 1.0.3
     dev: true
