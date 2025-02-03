@@ -16,7 +16,7 @@
     "@0xcarbon/alore-auth-ui": "file:../alore-auth-ui",
     "@0xcarbon/alore-auth-sdk": "file:../alore-auth-sdk",
     "@0xcarbon/alore-crypto-sdk": "file:../alore-crypto-sdk",
-    "@0xcarbon/dkls23-wasm": "1.0.3",
+    "@0xcarbon/dkls23-wasm": "1.0.2",
     "@heroicons/react": "2.0.16",
     "@hookform/resolvers": "3.1.0",
     "@react-oauth/google": "0.12.1",

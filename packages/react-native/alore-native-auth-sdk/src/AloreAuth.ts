@@ -255,7 +255,7 @@ export class AloreAuth {
           userVerification: 'required',
         },
       }).catch((error) => {
-        console.log('error', error);
+        console.error('error', error);
       });
 
       let registerResultJson: PasskeyGetResult;

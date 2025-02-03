@@ -176,7 +176,7 @@ export const Register = ({
       const _registerCredential = await navigator.credentials
         .create(credentialCreationOptions)
         .catch((err) => {
-          console.log('err', err);
+          console.error('err', err);
         });
 
       if (!_registerCredential) {
