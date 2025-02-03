@@ -40,7 +40,7 @@ jobs:
           cache-dependency-path: ${{ github.workspace }}/packages/react/alore-auth-ui/pnpm-lock.yaml
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - uses: daynin/nodejs-license-checker@v0.2.0
         with:
@@ -85,7 +85,7 @@ jobs:
         run: echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - uses: daynin/nodejs-license-checker@v0.2.0
         with:
@@ -130,7 +130,7 @@ jobs:
         run: echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - uses: daynin/nodejs-license-checker@v0.2.0
         with:
@@ -175,7 +175,7 @@ jobs:
         run: echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - uses: daynin/nodejs-license-checker@v0.2.0
         with:
@@ -220,7 +220,7 @@ jobs:
         run: echo "NPM_TOKEN=${{ secrets.NPM_TOKEN }}" >> $GITHUB_ENV
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - uses: daynin/nodejs-license-checker@v0.2.0
         with:
