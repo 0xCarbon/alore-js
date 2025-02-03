@@ -768,9 +768,11 @@ export const Login = ({
             {loginDictionary?.login}
           </Button>
           <div className="h-[0.5px] w-full bg-gray-300" />
-          <Button color="light" onClick={handlePasskeyButton} outline>
-            {dictionary?.auth.signWithPasskey}
-          </Button>
+          {typeof window.PublicKeyCredential !== 'undefined' && (
+            <Button color="light" onClick={handlePasskeyButton} outline>
+              {dictionary?.auth.signWithPasskey}
+            </Button>
+          )}
           <Button color="light" onClick={handleGoogleLogin} outline>
             <div className="flex flex-row items-center justify-center gap-2">
               <img src={google} alt="google logo" width={16} />

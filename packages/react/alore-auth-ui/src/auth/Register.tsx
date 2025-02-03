@@ -79,6 +79,7 @@ export const Register = ({
   } = authState.context;
   const [userSalt, setUserSalt] = useState('');
   const [registrationMethod, setRegistrationMethod] = useState('password');
+
   const login = useGoogleLogin({
     onSuccess: (tokenResponse) => {
       resetUserInfo();
@@ -172,9 +173,11 @@ export const Register = ({
     };
 
     try {
-      const _registerCredential = await navigator.credentials.create(
-        credentialCreationOptions
-      );
+      const _registerCredential = await navigator.credentials
+        .create(credentialCreationOptions)
+        .catch((err) => {
+          console.log('err', err);
+        });
 
       if (!_registerCredential) {
         sendAuth({
@@ -877,6 +880,7 @@ export const Register = ({
                 </div>
               </Button>
               <Button
+                disabled={typeof window.PublicKeyCredential === 'undefined'}
                 data-test="register-method-selection-passkey"
                 onClick={() => setRegistrationMethod('passkey')}
                 color="light"

@@ -7,8 +7,6 @@ export default function AuthComponent() {
   const keyshareWorker: null | Worker = useContext(KeyshareWorkerContext);
   const [state, actor] = useAuthService();
 
-  console.log(state, actor);
-
   return (
     <Auth
       locale="pt"

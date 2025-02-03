@@ -43,8 +43,6 @@ const Auth = ({
   const { googleUser, sessionUser, registerUser } = authState.context;
   const [isClient, setIsClient] = useState(false);
 
-  console.debug('authState', authState.value);
-  console.debug('context', authState.context);
   useEffect(() => {
     setIsClient(true);
   }, []);
