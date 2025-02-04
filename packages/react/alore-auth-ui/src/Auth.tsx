@@ -87,8 +87,8 @@ const Auth = ({
       <GoogleOAuthProvider clientId={googleId}>
         <Suspense
           fallback={
-            <div className='flex h-full min-h-screen w-full flex-col items-center justify-center'>
-              <Spinner className='m-auto !h-12 w-full !fill-gray-300' />
+            <div className="flex h-full min-h-screen w-full flex-col items-center justify-center">
+              <Spinner className="m-auto !h-12 w-full !fill-gray-300" />
             </div>
           }
         >
