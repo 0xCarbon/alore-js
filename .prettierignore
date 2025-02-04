@@ -1,0 +1,8 @@
+coverage
+public
+dist
+pnpm-lock.yaml
+pnpm-workspace.yaml
+**.html
+**/_next/**
+**/.next/**

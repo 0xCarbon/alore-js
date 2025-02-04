@@ -1,0 +1,48 @@
+{
+  "name": "alore-js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=8"
+  },
+  "workspaces": [
+    "packages/react/*"
+  ],
+  "scripts": {
+    "prepare": "husky install",
+    "lint-staged": "lint-staged",
+    "prettier": "prettier --write ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@8.15.7+sha512.c85cd21b6da10332156b1ca2aa79c0a61ee7ad2eb0453b88ab299289e9e8ca93e6091232b25c07cbf61f6df77128d9c849e5c9ac6e44854dbd211c49f3a67adc",
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "4.3.0",
+    "@typescript-eslint/eslint-plugin": "6.15.0",
+    "@typescript-eslint/parser": "6.15.0",
+    "autoprefixer": "10.4.16",
+    "@eslint/js": "9.19.0",
+    "eslint": "9.19.0",
+    "eslint-config-prettier": "10.0.1",
+    "eslint-plugin-prettier": "5.2.3",
+    "eslint-plugin-react": "7.37.4",
+    "eslint-config-airbnb": "19.0.4",
+    "eslint-config-next": "14.0.4",
+    "eslint-plugin-cypress": "2.15.1",
+    "eslint-plugin-jsx-a11y": "6.8.0",
+    "eslint-plugin-react-hooks": "4.6.0",
+    "eslint-plugin-tailwindcss": "3.13.0",
+    "globals": "15.14.0",
+    "prettier": "3.4.2",
+    "husky": "8.0.3",
+    "lint-staged": "15.2.0",
+    "postcss": "8.4.32",
+    "prettier-plugin-tailwindcss": "0.5.11",
+    "typescript-eslint": "8.23.0"
+  }
+}
+

@@ -1,23 +1,20 @@
+import { useActor } from '@xstate/react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { BackHandler, Keyboard, View } from 'react-native';
-import { Card, Text, Button, LoaderScreen } from 'react-native-ui-lib';
-import useDictionary from '../../hooks/useDictionary';
-import { useActor } from '@xstate/react';
-import useAuthServiceInstance from '../../hooks/useAuthServiceInstance';
-import StyledTextField from '../StyledTextField';
-import { EnvelopeIcon, UserIcon } from 'react-native-heroicons/solid';
-import {
-  passwordRules,
-  ruleValidation,
-  validateEmailPattern,
-} from '../../helpers';
 import DeviceInfo from 'react-native-device-info';
-import FormRules from '../FormRules';
-import BackButton from '../BackButton';
-import { stepStyles } from './styles';
-import { RecursivePartial } from '../../types';
+import { EnvelopeIcon, UserIcon } from 'react-native-heroicons/solid';
+import { Button, Card, LoaderScreen, Text } from 'react-native-ui-lib';
 import { Toast, ToastProps } from 'react-native-ui-lib/src/incubator';
+
+import { passwordRules, ruleValidation, validateEmailPattern } from '../../helpers';
+import useAuthServiceInstance from '../../hooks/useAuthServiceInstance';
+import useDictionary from '../../hooks/useDictionary';
+import { RecursivePartial } from '../../types';
+import BackButton from '../BackButton';
+import FormRules from '../FormRules';
 import { GoogleIcon } from '../GoogleIcon';
+import StyledTextField from '../StyledTextField';
+import { stepStyles } from './styles';
 
 interface RegistrationStepsProps {
   toast?: boolean;
@@ -27,7 +24,7 @@ interface RegistrationStepsProps {
     generateSecureHash: (
       data: string,
       salt: string,
-      keyDerivationFunction: 'argon2d' | 'pbkdf2'
+      keyDerivationFunction: 'argon2d' | 'pbkdf2',
     ) => Promise<string>;
   };
 }
@@ -64,16 +61,10 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
       authState.matches('active.register.passkeyStep.userInput') ||
       authState.matches('active.register.passkeyStep.userInputSuccess') ||
       authState.matches('active.register.passkeyStep.start'),
-    [authState.value]
+    [authState.value],
   );
-  const {
-    CCRPublicKey,
-    passkeyRegistrationResult,
-    error,
-    salt,
-    authMethods,
-    userEmail,
-  } = authState.context;
+  const { CCRPublicKey, passkeyRegistrationResult, error, salt, authMethods, userEmail } =
+    authState.context;
   const { generateSecureHash, hashUserInfo } = cryptoUtils;
 
   useEffect(() => {
@@ -82,10 +73,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
       return true;
     };
 
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction
-    );
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
 
     return () => backHandler.remove();
   }, []);
@@ -121,10 +109,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
           nickname: username,
         },
       });
-    } else if (
-      authState.matches('active.register.passkeyStep.idle') &&
-      !CCRPublicKey
-    ) {
+    } else if (authState.matches('active.register.passkeyStep.idle') && !CCRPublicKey) {
       const fetchUserAgentAndSendAuth = async () => {
         const userAgent = await DeviceInfo.getUserAgent();
         const device = hashUserInfo(userAgent);
@@ -171,14 +156,10 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
       passwordRules.reduce(
         (isValid, rule) =>
           isValid &&
-          ruleValidation(
-            rule,
-            { password, confirmPassword },
-            { email, nickname: username }
-          ),
-        true
+          ruleValidation(rule, { password, confirmPassword }, { email, nickname: username }),
+        true,
       ),
-    [password, confirmPassword, email, username]
+    [password, confirmPassword, email, username],
   );
 
   const onBack = () => {
@@ -250,7 +231,10 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
     <View style={styles.emailStep?.container}>
       <Card style={styles.emailStep?.card}>
         <View style={styles.emailStep?.cardContainer}>
-          <BackButton styles={styles} onClick={onBack} />
+          <BackButton
+            styles={styles}
+            onClick={onBack}
+          />
           <Text style={styles.common?.stepTitle}>{dictionary?.emailLabel}</Text>
           <StyledTextField
             styles={styles}
@@ -291,10 +275,11 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
     <View style={styles.usernameStep?.container}>
       <Card style={styles.usernameStep?.card}>
         <View style={styles.usernameStep?.cardContainer}>
-          <BackButton styles={styles} onClick={onBack} />
-          <Text style={styles.common?.stepTitle}>
-            {dictionary?.createUsername}
-          </Text>
+          <BackButton
+            styles={styles}
+            onClick={onBack}
+          />
+          <Text style={styles.common?.stepTitle}>{dictionary?.createUsername}</Text>
           <StyledTextField
             styles={styles}
             placeholder={dictionary?.enterUsername}
@@ -313,8 +298,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
             labelProps={{ style: styles.common?.nextButtonLabel }}
             style={{
               ...styles.common?.nextButton,
-              opacity:
-                username === '' || username.length < 4 || isLoading ? 0.5 : 1,
+              opacity: username === '' || username.length < 4 || isLoading ? 0.5 : 1,
             }}
             disabled={username === '' || username.length < 4 || isLoading}
           />
@@ -329,10 +313,11 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
       data-test="register-verify-email-step"
     >
       <View style={styles.verifyEmailStep?.cardContainer}>
-        <BackButton styles={styles} onClick={onBack} />
-        <Text style={styles.common?.stepTitle}>
-          {dictionary?.verifyEmailStep.verifyEmail}
-        </Text>
+        <BackButton
+          styles={styles}
+          onClick={onBack}
+        />
+        <Text style={styles.common?.stepTitle}>{dictionary?.verifyEmailStep.verifyEmail}</Text>
         <Text style={styles.verifyEmailStep?.subtitle}>
           {dictionary?.verifyEmailStep.verifyEmailDescription}
         </Text>
@@ -347,9 +332,7 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
             autoCapitalize="none"
             autoCorrect={false}
             autoComplete="off"
-            errorMessage={
-              error?.includes('code') ? `${dictionary?.wrongCode}` : undefined
-            }
+            errorMessage={error?.includes('code') ? `${dictionary?.wrongCode}` : undefined}
           />
         </View>
         <Button
@@ -380,10 +363,12 @@ export const RegistrationSteps: React.FC<RegistrationStepsProps> = ({
     <View style={styles.passwordStep?.container}>
       <Card style={styles.passwordStep?.card}>
         <View style={styles.passwordStep?.cardContainer}>
-          <BackButton styles={styles} onClick={onBack} disabled={isLoading} />
-          <Text style={styles.common?.stepTitle}>
-            {dictionary?.register.createPassword}
-          </Text>
+          <BackButton
+            styles={styles}
+            onClick={onBack}
+            disabled={isLoading}
+          />
+          <Text style={styles.common?.stepTitle}>{dictionary?.register.createPassword}</Text>
           <StyledTextField
             styles={styles}
             secureTextEntry
