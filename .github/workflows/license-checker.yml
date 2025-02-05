@@ -21,7 +21,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: packages/react/alore-auth-ui
+        working-directory: packages/alore-auth-ui
 
     steps:
       - name: Checkout
@@ -63,7 +63,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: packages/react/alore-crypto-sdk
+        working-directory: packages/alore-crypto-sdk
 
     steps:
       - name: Checkout
@@ -108,7 +108,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: packages/react/alore-auth-sdk
+        working-directory: packages/alore-auth-sdk
 
     steps:
       - name: Checkout
