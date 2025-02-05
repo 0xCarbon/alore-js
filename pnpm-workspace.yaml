@@ -1,4 +1,0 @@
-packages:
-    - 'packages/react/alore-auth-sdk'
-    - 'packages/react/alore-auth-ui'
-    - 'packages/react/alore-crypto-sdk'
