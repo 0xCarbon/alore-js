@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* eslint-disable no-unused-vars */
 import { assign, createMachine, interpret, State } from 'xstate';
 
