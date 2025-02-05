@@ -1,6 +1,6 @@
 'use client';
 
-import { AuthProvider } from '@0xcarbon/alore-auth-ui';
+import { AuthProvider } from '@alore/auth-react-ui';
 
 import AuthComponent from '@/components/AuthComponent';
 import { aloreAuth } from '@/config/authInstance';

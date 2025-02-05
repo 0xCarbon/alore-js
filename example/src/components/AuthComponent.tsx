@@ -1,5 +1,5 @@
-import { generateSecureHash, hashUserInfo } from '@0xcarbon/alore-auth-sdk';
-import Auth, { useAuthService } from '@0xcarbon/alore-auth-ui';
+import { generateSecureHash, hashUserInfo } from '@alore/auth-react-sdk';
+import Auth, { useAuthService } from '@alore/auth-react-ui';
 import { useContext } from 'react';
 
 import { KeyshareWorkerContext } from './KeyshareWorker';

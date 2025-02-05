@@ -12,9 +12,9 @@
     "install-aure-crypto-sdk": "cd ../packages/alore-crypto-sdk && pnpm i"
   },
   "devDependencies": {
-    "@0xcarbon/alore-auth-ui": "file:../packages/alore-auth-ui",
-    "@0xcarbon/alore-auth-sdk": "file:../packages/alore-auth-sdk",
-    "@0xcarbon/alore-crypto-sdk": "file:../packages/alore-crypto-sdk",
+    "@alore/auth-react-ui": "file:../packages/alore-auth-ui",
+    "@alore/auth-react-sdk": "file:../packages/alore-auth-sdk",
+    "@alore/crypto-sdk": "file:../packages/alore-crypto-sdk",
     "@0xcarbon/dkls23-wasm": "1.0.2",
     "@heroicons/react": "2.0.16",
     "@hookform/resolvers": "3.1.0",

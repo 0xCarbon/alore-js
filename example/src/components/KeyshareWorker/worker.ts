@@ -1,4 +1,4 @@
-import { AloreCrypto, KeyshareWorkerMessage, SimpleCredential } from '@0xcarbon/alore-crypto-sdk';
+import { AloreCrypto, KeyshareWorkerMessage, SimpleCredential } from '@alore/crypto-sdk';
 
 import { apiKey, endpoint } from '@/config/authInstance';
 
