@@ -1,18 +1,21 @@
 'use client';
 
-import React from 'react';
-import { Button, Card, Spinner } from 'flowbite-react';
-import { FieldValues, useForm, useWatch } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import { ArrowRightIcon, EnvelopeIcon } from '@heroicons/react/20/solid';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useActor } from '@xstate/react';
+import { KeyIcon, LockOpenIcon } from '@heroicons/react/24/outline';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { useGoogleLogin } from '@react-oauth/google';
+import { useActor } from '@xstate/react';
+import { Button, Card, Spinner } from 'flowbite-react';
+import { Locale } from 'get-dictionary';
+import React from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { FieldValues, useForm, useWatch } from 'react-hook-form';
+import { twMerge } from 'tailwind-merge';
+import * as yup from 'yup';
+
 import { NewDeviceInfo, verifyEmptyValues } from '../helpers';
 import useDictionary from '../hooks/useDictionary';
 import { AuthInstance } from '../machine/types';
-import { KeyIcon, LockOpenIcon } from '@heroicons/react/24/outline';
 import {
   aloreLogoBlack,
   authErrorImage,
@@ -22,8 +25,6 @@ import {
   metamaskLogo,
   walletConnectLogo,
 } from '../utils';
-import { Locale } from 'get-dictionary';
-import { twMerge } from 'tailwind-merge';
 
 const InputForm = React.lazy(() => import('../components/InputForm'));
 const InputOTP = React.lazy(() => import('../components/InputOTP'));
@@ -47,7 +48,7 @@ export interface LoginProps {
     generateSecureHash: (
       data: string,
       salt: string,
-      keyDerivationFunction: 'argon2d' | 'pbkdf2'
+      keyDerivationFunction: 'argon2d' | 'pbkdf2',
     ) => Promise<string>;
   };
 }
@@ -82,14 +83,11 @@ export const Login = ({
   const [sendEmailCooldown, setSendEmailCooldown] = useState(0);
   const [cooldownMultiplier, setCooldownMultiplier] = useState(1);
   const [newDeviceInfo, setNewDeviceInfo] = useState<NewDeviceInfo>();
-  const [loginMethod, setLoginMethod] = useState<'password' | 'passkey'>(
-    'password'
+  const [loginMethod, setLoginMethod] = useState<'password' | 'passkey'>('password');
+  const [isConditionalMediationAvailable, setIsConditionalMediationAvailable] = useState(false);
+  const [authAbortController, setAuthAbortController] = useState<AbortController | undefined>(
+    undefined,
   );
-  const [isConditionalMediationAvailable, setIsConditionalMediationAvailable] =
-    useState(false);
-  const [authAbortController, setAuthAbortController] = useState<
-    AbortController | undefined
-  >(undefined);
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
   const googleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => {
@@ -114,9 +112,7 @@ export const Login = ({
         // eslint-disable-next-line no-undef
         PublicKeyCredential.isConditionalMediationAvailable(),
       ]).then(([isConditionalMediationAvailableCheck]) => {
-        setIsConditionalMediationAvailable(
-          isConditionalMediationAvailableCheck
-        );
+        setIsConditionalMediationAvailable(isConditionalMediationAvailableCheck);
       });
     }
   };
@@ -181,19 +177,16 @@ export const Login = ({
           response: {
             authenticatorData: Buffer.from(
               // eslint-disable-next-line no-undef
-              (credential.response as AuthenticatorAssertionResponse)
-                .authenticatorData
+              (credential.response as AuthenticatorAssertionResponse).authenticatorData,
             ).toString('base64'),
-            clientDataJSON: Buffer.from(
-              credential.response.clientDataJSON
-            ).toString('base64'),
+            clientDataJSON: Buffer.from(credential.response.clientDataJSON).toString('base64'),
             signature: Buffer.from(
               // eslint-disable-next-line no-undef
-              (credential.response as AuthenticatorAssertionResponse).signature
+              (credential.response as AuthenticatorAssertionResponse).signature,
             ).toString('base64'),
             userHandle: Buffer.from(
               // @ts-ignore
-              credential.response.userHandle || [0]
+              credential.response.userHandle || [0],
             ).toString('base64'),
           },
           type: 'public-key',
@@ -340,7 +333,7 @@ export const Login = ({
       authState.matches('active.login.resendingConfirmationEmail') ||
       authState.matches('active.web3Connector.verifyingClaimNftEmail2fa') ||
       authState.matches('active.web3Connector.verifyingEmailEligibility'),
-    [authState.value]
+    [authState.value],
   );
 
   useEffect(() => {
@@ -373,11 +366,11 @@ export const Login = ({
 
   const activeHw2fa = useMemo(
     () => active2fa?.filter((item) => item.twoFaTypeId === HARDWARE) || [],
-    [active2fa]
+    [active2fa],
   );
   const activeSw2fa = useMemo(
     () => active2fa?.find((item) => item.twoFaTypeId === SOFTWARE),
-    [active2fa]
+    [active2fa],
   );
 
   const emailDefaultValues: FieldValues = {
@@ -461,14 +454,8 @@ export const Login = ({
     const { username: email } = getValuesEmail();
     const { password } = getValuesPassword();
     if (salt && active2fa) {
-      const secureHashArgon2d = await generateSecureHash(
-        password,
-        salt,
-        'argon2d'
-      );
-      const hardwares2fa = active2fa.filter(
-        (item) => item.twoFaTypeId === HARDWARE
-      );
+      const secureHashArgon2d = await generateSecureHash(password, salt, 'argon2d');
+      const hardwares2fa = active2fa.filter((item) => item.twoFaTypeId === HARDWARE);
 
       sendAuth({
         type: 'VERIFY_HW_AUTH',
@@ -493,10 +480,7 @@ export const Login = ({
     setLoading(false);
   };
 
-  const derivePasswordAndGetKeyshares = async (
-    password: string,
-    email: string
-  ) => {
+  const derivePasswordAndGetKeyshares = async (password: string, email: string) => {
     if (keyshareWorker) {
       keyshareWorker.postMessage({
         method: 'derive-password',
@@ -512,11 +496,7 @@ export const Login = ({
 
     if (salt && email) {
       derivePasswordAndGetKeyshares(password, email);
-      const secureHashArgon2d = await generateSecureHash(
-        password,
-        salt,
-        'argon2d'
-      );
+      const secureHashArgon2d = await generateSecureHash(password, salt, 'argon2d');
 
       if (typeof window !== 'undefined') {
         let device = window.localStorage.getItem('currentDeviceSecret');
@@ -558,11 +538,7 @@ export const Login = ({
     const { password } = getValuesPassword();
     if (salt) {
       derivePasswordAndGetKeyshares(password, email);
-      const secureHashArgon2d = await generateSecureHash(
-        password,
-        salt,
-        'argon2d'
-      );
+      const secureHashArgon2d = await generateSecureHash(password, salt, 'argon2d');
 
       sendAuth({
         type: 'CONFIRM_SW_CODE',
@@ -586,11 +562,7 @@ export const Login = ({
 
     if (salt) {
       derivePasswordAndGetKeyshares(password, email);
-      const secureHashArgon2d = await generateSecureHash(
-        password,
-        salt,
-        'argon2d'
-      );
+      const secureHashArgon2d = await generateSecureHash(password, salt, 'argon2d');
 
       if (typeof window !== 'undefined') {
         let device = window.localStorage.getItem('currentDeviceSecret');
@@ -621,11 +593,7 @@ export const Login = ({
     const { password } = getValuesPassword();
     if (salt) {
       derivePasswordAndGetKeyshares(password, email);
-      const secureHashArgon2d = await generateSecureHash(
-        password,
-        salt,
-        'argon2d'
-      );
+      const secureHashArgon2d = await generateSecureHash(password, salt, 'argon2d');
       sendAuth({
         type: 'RESEND_CODE',
         payload: {
@@ -643,10 +611,7 @@ export const Login = ({
     setLoading(false);
 
     setSendEmailCooldown(15 * cooldownMultiplier);
-    intervalRef.current = setInterval(
-      () => setSendEmailCooldown((state) => state - 1),
-      1000
-    );
+    intervalRef.current = setInterval(() => setSendEmailCooldown((state) => state - 1), 1000);
     setCooldownMultiplier((state) => state + 1);
   };
 
@@ -656,11 +621,7 @@ export const Login = ({
     const { password } = getValuesPassword();
     if (salt) {
       derivePasswordAndGetKeyshares(password, email);
-      const secureHashArgon2d = await generateSecureHash(
-        password,
-        salt,
-        'argon2d'
-      );
+      const secureHashArgon2d = await generateSecureHash(password, salt, 'argon2d');
       sendAuth({
         type: 'CONFIRM_DEVICE_CODE',
         payload: {
@@ -681,7 +642,7 @@ export const Login = ({
     [
       { ...getValuesEmail(), ...getValuesPassword() },
       { ...emailDirtyFields, ...passwordDirtyFields },
-    ]
+    ],
   );
 
   const getAuthError = () => {
@@ -705,27 +666,29 @@ export const Login = ({
       <>
         {authError ? (
           <div className="flex flex-col items-center justify-center gap-5">
-            <img src={authErrorImage} alt="alore logo" width={70} />
+            <img
+              src={authErrorImage}
+              alt="alore logo"
+              width={70}
+            />
             {authError?.includes('beta') ? (
-              <span className="text-center font-poppins text-xl font-bold text-alr-red">
+              <span className="font-poppins text-alr-red text-center text-xl font-bold">
                 {authError}
               </span>
             ) : (
               <>
-                <span className="text-center font-poppins text-xl font-bold text-alr-red">
+                <span className="font-poppins text-alr-red text-center text-xl font-bold">
                   {authErrorTitle}
                 </span>
-                <span className="text-center font-medium text-alr-grey">
+                <span className="text-alr-grey text-center font-medium">
                   {authErrorDescription}
                 </span>
               </>
             )}
           </div>
         ) : (
-          <h1 className="text-center font-inter text-lg font-bold text-gray-700">
-            {forgeId
-              ? loginDictionary?.forgeLogin
-              : loginDictionary?.loginAccount}
+          <h1 className="font-inter text-center text-lg font-bold text-gray-700">
+            {forgeId ? loginDictionary?.forgeLogin : loginDictionary?.loginAccount}
           </h1>
         )}
         <form
@@ -760,22 +723,32 @@ export const Login = ({
             type="submit"
             data-test="login-button"
             disabled={verifyEmptyValues(getValuesEmail('username'))}
-            className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700"
+            className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
           >
-            {isLoading && (
-              <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />
-            )}
+            {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
             {loginDictionary?.login}
           </Button>
           <div className="h-[0.5px] w-full bg-gray-300" />
           {typeof window.PublicKeyCredential !== 'undefined' && (
-            <Button color="light" onClick={handlePasskeyButton} outline>
+            <Button
+              color="light"
+              onClick={handlePasskeyButton}
+              outline
+            >
               {dictionary?.auth.signWithPasskey}
             </Button>
           )}
-          <Button color="light" onClick={handleGoogleLogin} outline>
+          <Button
+            color="light"
+            onClick={handleGoogleLogin}
+            outline
+          >
             <div className="flex flex-row items-center justify-center gap-2">
-              <img src={google} alt="google logo" width={16} />
+              <img
+                src={google}
+                alt="google logo"
+                width={16}
+              />
               {dictionary?.auth.continueGoogle}
             </div>
           </Button>
@@ -806,7 +779,7 @@ export const Login = ({
           <span className="text-center text-sm font-medium">
             {loginDictionary?.dontHaveAccount}
             <div
-              className="cursor-pointer text-alr-red"
+              className="text-alr-red cursor-pointer"
               onClick={() => {
                 sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
               }}
@@ -817,28 +790,23 @@ export const Login = ({
         </form>
       </>
     );
-  }, [
-    getValuesEmail(),
-    isLoginSubmitDisabled,
-    emailErrors,
-    emailControl,
-    isLoading,
-  ]);
+  }, [getValuesEmail(), isLoginSubmitDisabled, emailErrors, emailControl, isLoading]);
 
   const SelectLoginMethod = useMemo(() => {
     const { authErrorTitle, authErrorDescription } = getAuthError();
 
     return (
       <div>
-        <BackButton disabled={isLoading} onClick={() => sendAuth('BACK')} />
+        <BackButton
+          disabled={isLoading}
+          onClick={() => sendAuth('BACK')}
+        />
         {authError ? (
           <div className="my-4 flex flex-col items-center justify-center gap-2">
-            <span className="text-center font-poppins text-xl font-bold text-alr-red">
+            <span className="font-poppins text-alr-red text-center text-xl font-bold">
               {authErrorTitle}
             </span>
-            <span className="text-center font-medium text-alr-grey">
-              {authErrorDescription}
-            </span>
+            <span className="text-alr-grey text-center font-medium">{authErrorDescription}</span>
           </div>
         ) : undefined}
         <div
@@ -846,10 +814,10 @@ export const Login = ({
           data-test="login-method-selection-step"
         >
           {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
-          <span className="mb-6 text-center font-poppins text-2xl font-bold text-alr-grey md:text-[1.75rem]">
+          <span className="font-poppins text-alr-grey mb-6 text-center text-2xl font-bold md:text-[1.75rem]">
             {loginDictionary?.selectMethodTitle}
           </span>
-          <span className="mb-6 w-full text-center font-medium text-alr-grey">
+          <span className="text-alr-grey mb-6 w-full text-center font-medium">
             {loginDictionary?.selectMethodDescription}
           </span>
           <div className="flex flex-col gap-5">
@@ -859,22 +827,16 @@ export const Login = ({
                 onClick={() => setLoginMethod('password')}
                 color="light"
                 className={`${
-                  loginMethod === 'password'
-                    ? '!border-alr-red'
-                    : '!border-gray-500'
-                } w-full cursor-pointer items-start border focus:ring-0 child:h-full`}
+                  loginMethod === 'password' ? '!border-alr-red' : '!border-gray-500'
+                } child:h-full w-full cursor-pointer items-start border focus:ring-0`}
               >
                 <div className="flex flex-col items-start justify-center gap-2">
                   <LockOpenIcon
                     className={`${
-                      loginMethod === 'password'
-                        ? 'text-alr-red'
-                        : 'text-gray-500'
+                      loginMethod === 'password' ? 'text-alr-red' : 'text-gray-500'
                     } h-7 w-7`}
                   />
-                  <span className="font-semibold text-gray-900">
-                    {loginDictionary?.password}
-                  </span>
+                  <span className="font-semibold text-gray-900">{loginDictionary?.password}</span>
                   <span className="text-start text-xs font-normal text-gray-600">
                     {loginDictionary?.selectMethodPassword}
                   </span>
@@ -885,22 +847,16 @@ export const Login = ({
                 onClick={() => setLoginMethod('passkey')}
                 color="light"
                 className={`${
-                  loginMethod === 'passkey'
-                    ? '!border-alr-red'
-                    : '!border-gray-500'
-                } w-full cursor-pointer items-start border focus:ring-0 child:h-full`}
+                  loginMethod === 'passkey' ? '!border-alr-red' : '!border-gray-500'
+                } child:h-full w-full cursor-pointer items-start border focus:ring-0`}
               >
                 <div className="flex flex-col items-start justify-center gap-2">
                   <KeyIcon
                     className={`${
-                      loginMethod === 'passkey'
-                        ? 'text-alr-red'
-                        : 'text-gray-500'
+                      loginMethod === 'passkey' ? 'text-alr-red' : 'text-gray-500'
                     } h-7 w-7`}
                   />
-                  <span className="font-semibold text-gray-900">
-                    {loginDictionary?.passkey}
-                  </span>
+                  <span className="font-semibold text-gray-900">{loginDictionary?.passkey}</span>
                   <span className="text-start text-xs font-normal text-gray-600">
                     {loginDictionary?.selectMethodPasskey}
                   </span>
@@ -910,7 +866,7 @@ export const Login = ({
             <Button
               data-test="login-method-selection-submit"
               onClick={() => selectLoginMethod()}
-              className="mb-6 flex w-full cursor-pointer items-center bg-alr-red text-alr-white"
+              className="bg-alr-red text-alr-white mb-6 flex w-full cursor-pointer items-center"
             >
               {loginDictionary?.continue}
             </Button>
@@ -923,19 +879,26 @@ export const Login = ({
   const PasswordInputStep = useMemo(
     () => (
       <>
-        <BackButton className="mb-2.5" onClick={() => sendAuth('BACK')}>
+        <BackButton
+          className="mb-2.5"
+          onClick={() => sendAuth('BACK')}
+        >
           {getValuesEmail('username') || googleUser?.email}
         </BackButton>
 
         {authError && (
           <div className="flex flex-col items-center justify-center gap-5">
-            <img src={authErrorImage} alt="alore logo" width={70} />
-            <span className="text-center font-poppins text-xl font-bold text-alr-red">
+            <img
+              src={authErrorImage}
+              alt="alore logo"
+              width={70}
+            />
+            <span className="font-poppins text-alr-red text-center text-xl font-bold">
               {authError?.includes('Invalid credentials')
                 ? loginDictionary?.invalidEmailPassword
                 : loginDictionary?.somethingWrong}
             </span>
-            <span className="text-center font-medium text-alr-grey">
+            <span className="text-alr-grey text-center font-medium">
               {authError?.includes('Invalid credentials')
                 ? loginDictionary?.invalidEmailPasswordDescription
                 : loginDictionary?.defaultError}
@@ -968,17 +931,15 @@ export const Login = ({
             type="submit"
             data-test="login-submit"
             disabled={verifyEmptyValues(getValuesPassword('password'))}
-            className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700"
+            className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
           >
-            {isLoading && (
-              <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />
-            )}
+            {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
             {loginDictionary?.login}
           </Button>
           <span className="text-sm font-medium">
             {loginDictionary?.dontHaveAccount}
             <div
-              className="cursor-pointer text-alr-red"
+              className="text-alr-red cursor-pointer"
               onClick={() => {
                 sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
               }}
@@ -989,28 +950,25 @@ export const Login = ({
         </form>
       </>
     ),
-    [
-      getValuesPassword(),
-      isLoginSubmitDisabled,
-      passwordErrors,
-      passwordControl,
-      isLoading,
-    ]
+    [getValuesPassword(), isLoginSubmitDisabled, passwordErrors, passwordControl, isLoading],
   );
 
   const VerifyEmail = useMemo(
     () => (
       <div className="pb-10 pt-4">
-        <BackButton disabled={isLoading} onClick={() => sendAuth('BACK')} />
+        <BackButton
+          disabled={isLoading}
+          onClick={() => sendAuth('BACK')}
+        />
 
         <div
           className="flex w-full flex-col items-center"
           data-test="login-verify-email-step"
         >
-          <span className="mb-10 mt-[4.5rem] font-poppins text-[1.75rem] font-bold text-alr-grey">
+          <span className="font-poppins text-alr-grey mb-10 mt-[4.5rem] text-[1.75rem] font-bold">
             {loginDictionary?.verifyEmail}
           </span>
-          <span className="mb-12 w-[23.75rem] text-center font-medium text-alr-grey">
+          <span className="text-alr-grey mb-12 w-[23.75rem] text-center font-medium">
             {loginDictionary?.verifyEmailDescription}
           </span>
 
@@ -1021,23 +979,17 @@ export const Login = ({
               onChange={(value) => setSecure2FACode(value)}
               inputLength={6}
               data-test="secure-code"
-              errorMessage={
-                authError?.includes('wrong')
-                  ? loginDictionary?.wrongCode
-                  : undefined
-              }
+              errorMessage={authError?.includes('wrong') ? loginDictionary?.wrongCode : undefined}
               disabled={isLoading}
             />
           </div>
           <Button
             data-test="secure-code-submit"
             onClick={() => onClickSecureCodeSubmit()}
-            className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700 mb-6 w-full"
+            className="bg-alr-red hover:bg-alr-dark-red group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
             disabled={secureCode2FA.length !== 6 || isLoading}
           >
-            {isLoading && (
-              <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />
-            )}
+            {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
             {loginDictionary?.confirmCode}
           </Button>
           <span
@@ -1046,17 +998,15 @@ export const Login = ({
               `text-base font-medium duration-300`,
               sendEmailCooldown > 0
                 ? 'pointer-events-none opacity-50'
-                : 'cursor-pointer opacity-100 hover:text-alr-red'
+                : 'hover:text-alr-red cursor-pointer opacity-100',
             )}
           >
-            {`${loginDictionary?.resendCode}${
-              sendEmailCooldown ? ` (${sendEmailCooldown}s)` : ''
-            }`}
+            {`${loginDictionary?.resendCode}${sendEmailCooldown ? ` (${sendEmailCooldown}s)` : ''}`}
           </span>
         </div>
       </div>
     ),
-    [secureCode2FA, sendEmailCooldown, isLoading, authState]
+    [secureCode2FA, sendEmailCooldown, isLoading, authState],
   );
 
   const VerifyHw2FAStep = useMemo(
@@ -1066,12 +1016,15 @@ export const Login = ({
 
         {authError?.includes('Failed authenticating with hardware key') ? (
           <div className="mt-6 flex w-full flex-col items-center gap-6">
-            <img alt="fingerprint error" src={fingerprintError} />
-            <span className="text-center font-poppins text-[1.3rem] font-bold text-alr-red">
+            <img
+              alt="fingerprint error"
+              src={fingerprintError}
+            />
+            <span className="font-poppins text-alr-red text-center text-[1.3rem] font-bold">
               {loginDictionary?.cantVerify2fa}
             </span>
             <Button
-              className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700 w-full"
+              className="bg-alr-red hover:bg-alr-dark-red group relative flex w-full items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
               onClick={() => startHwAuth(0)}
             >
               {loginDictionary?.tryAgain}
@@ -1080,7 +1033,7 @@ export const Login = ({
               <>
                 <span>{loginDictionary?.tryHardware}</span>
                 <div
-                  className="flex cursor-pointer items-center gap-x-1 text-base font-semibold text-alr-red"
+                  className="text-alr-red flex cursor-pointer items-center gap-x-1 text-base font-semibold"
                   onClick={() => startHwAuth(1)}
                 >
                   {loginDictionary?.useAnotherHardware}
@@ -1090,7 +1043,7 @@ export const Login = ({
             )}
             {activeSw2fa && (
               <div
-                className="flex cursor-pointer items-center gap-x-1 text-base font-semibold text-alr-red"
+                className="text-alr-red flex cursor-pointer items-center gap-x-1 text-base font-semibold"
                 onClick={() => sendAuth('USE_SOFTWARE_2FA')}
               >
                 {loginDictionary?.useSw2fa}
@@ -1100,16 +1053,19 @@ export const Login = ({
           </div>
         ) : (
           <div className="flex w-full flex-col items-center">
-            <span className="mb-10 mt-[3rem] text-center font-poppins text-[1.3rem] font-bold text-alr-grey">
+            <span className="font-poppins text-alr-grey mb-10 mt-[3rem] text-center text-[1.3rem] font-bold">
               {loginDictionary?.touchHardware}
             </span>
-            <span className="mb-10 w-[15rem] text-sm font-normal text-alr-grey">
+            <span className="text-alr-grey mb-10 w-[15rem] text-sm font-normal">
               {loginDictionary?.touchHardwareDescription}
             </span>
-            <img alt="usb indicator" src={fingerprint} />
+            <img
+              alt="usb indicator"
+              src={fingerprint}
+            />
             {activeSw2fa && (
               <div
-                className="mt-9 flex cursor-pointer items-center gap-x-1 text-base font-semibold text-alr-red"
+                className="text-alr-red mt-9 flex cursor-pointer items-center gap-x-1 text-base font-semibold"
                 onClick={() => sendAuth('USE_SOFTWARE_2FA')}
               >
                 {loginDictionary?.useSw2fa}
@@ -1120,7 +1076,7 @@ export const Login = ({
         )}
       </div>
     ),
-    [isLoading, active2fa]
+    [isLoading, active2fa],
   );
 
   const VerifySw2FAStep = useMemo(
@@ -1129,7 +1085,7 @@ export const Login = ({
         <BackButton onClick={() => sendAuth('BACK')} />
 
         <div className="flex w-full flex-col items-center">
-          <span className="mb-10 mt-[3rem] text-center font-poppins text-[1.3rem] font-bold text-alr-grey">
+          <span className="font-poppins text-alr-grey mb-10 mt-[3rem] text-center text-[1.3rem] font-bold">
             {loginDictionary?.inform2FACode}
           </span>
 
@@ -1141,26 +1097,22 @@ export const Login = ({
               data-test="secure-code-2FA"
               inputLength={6}
               errorMessage={
-                authError?.includes('Invalid 2FA code')
-                  ? loginDictionary?.wrongCode
-                  : undefined
+                authError?.includes('Invalid 2FA code') ? loginDictionary?.wrongCode : undefined
               }
             />
           </div>
           <Button
             data-test="secure-code-2FA-submit"
             onClick={() => onSubmitSecureCode2FA()}
-            className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700 mb-6 w-full"
+            className="bg-alr-red hover:bg-alr-dark-red group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
             disabled={secureCode2FA.length !== 6}
           >
-            {isLoading && (
-              <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />
-            )}
+            {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
             {loginDictionary?.confirmCode}
           </Button>
           {active2fa?.find((item) => item.twoFaTypeId === HARDWARE) && (
             <div
-              className="mt-9 flex cursor-pointer items-center gap-x-1 text-base font-semibold text-alr-red"
+              className="text-alr-red mt-9 flex cursor-pointer items-center gap-x-1 text-base font-semibold"
               onClick={() => sendAuth('USE_HARDWARE_2FA')}
             >
               {loginDictionary?.useHw2fa}
@@ -1170,17 +1122,17 @@ export const Login = ({
         </div>
       </div>
     ),
-    [secureCode2FA, isLoading, active2fa]
+    [secureCode2FA, isLoading, active2fa],
   );
 
   const NewDeviceStep = useMemo(
     () => (
       <div>
         <div className="flex w-full flex-col items-center">
-          <span className="mb-5 mt-14 font-poppins text-[1.75rem] font-bold text-alr-grey">
+          <span className="font-poppins text-alr-grey mb-5 mt-14 text-[1.75rem] font-bold">
             {loginDictionary?.newDevice}
           </span>
-          <span className="mb-3 w-[23.75rem] text-center font-medium text-alr-grey">
+          <span className="text-alr-grey mb-3 w-[23.75rem] text-center font-medium">
             {loginDictionary?.verifyEmailDescription}
           </span>
           <span className="mb-5 font-bold">{getValuesEmail('username')}</span>
@@ -1201,21 +1153,17 @@ export const Login = ({
               data-test="secure-code-email"
               inputLength={6}
               errorMessage={
-                authError?.includes('Wrong code')
-                  ? loginDictionary?.wrongCode
-                  : undefined
+                authError?.includes('Wrong code') ? loginDictionary?.wrongCode : undefined
               }
             />
           </div>
           <Button
             data-test="secure-code-email-submit"
             onClick={() => onSubmitSecureCodeEmail()}
-            className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700 mb-6 w-full"
+            className="bg-alr-red hover:bg-alr-dark-red group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
             disabled={secureCodeEmail.length !== 6}
           >
-            {isLoading && (
-              <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />
-            )}
+            {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
             {loginDictionary?.confirmCode}
           </Button>
           <span
@@ -1224,17 +1172,15 @@ export const Login = ({
               `text-base font-medium duration-300`,
               sendEmailCooldown > 0
                 ? 'pointer-events-none opacity-50'
-                : 'cursor-pointer opacity-100 hover:text-alr-red'
+                : 'hover:text-alr-red cursor-pointer opacity-100',
             )}
           >
-            {`${loginDictionary?.resendCode}${
-              sendEmailCooldown ? ` (${sendEmailCooldown}s)` : ''
-            }`}
+            {`${loginDictionary?.resendCode}${sendEmailCooldown ? ` (${sendEmailCooldown}s)` : ''}`}
           </span>
         </div>
       </div>
     ),
-    [secureCodeEmail, sendEmailCooldown, isLoading, newDeviceInfo]
+    [secureCodeEmail, sendEmailCooldown, isLoading, newDeviceInfo],
   );
 
   return (
@@ -1244,14 +1190,18 @@ export const Login = ({
     >
       {forgeId ? (
         <div className="flex flex-col">
-          <span className="text-center font-poppins text-2xl font-black text-alr-grey">
+          <span className="font-poppins text-alr-grey text-center text-2xl font-black">
             Tardezinha com Thiaguinho
           </span>
           <div className="flex w-full flex-row items-center justify-center gap-2">
             <span className="font-inter text-sm font-medium text-gray-900">
               {dictionary?.auth.poweredBy}
             </span>
-            <img src={aloreLogoBlack} alt="alore logo" width="60" />
+            <img
+              src={aloreLogoBlack}
+              alt="alore logo"
+              width="60"
+            />
           </div>
         </div>
       ) : (
@@ -1265,8 +1215,8 @@ export const Login = ({
       )}
       <Card
         className={twMerge(
-          `flex min-w-[20rem] md:w-96 mx-5 py-2 md:mx-7 md:child:!px-9`,
-          isLoading ? 'pointer-events-none opacity-50' : ''
+          `md:child:!px-9 mx-5 flex min-w-[20rem] py-2 md:mx-7 md:w-96`,
+          isLoading ? 'pointer-events-none opacity-50' : '',
         )}
       >
         {forgeId && authState.matches('active.web3Connector') && 'TODO'}
@@ -1274,9 +1224,7 @@ export const Login = ({
           authState.matches('active.login.idle') ||
           authState.matches('active.login.googleLogin') ||
           authState.matches('active.login.retrievingSalt') ||
-          authState.matches(
-            'active.login.verifyingRegisterPublicKeyCredential'
-          ) ||
+          authState.matches('active.login.verifyingRegisterPublicKeyCredential') ||
           authState.matches('active.login.retrievingRCR')) &&
           EmailInputStep}
         {(authState.matches('active.login.loginMethodSelection') ||
@@ -1302,13 +1250,13 @@ export const Login = ({
           authState.matches('active.login.resendingConfirmationEmail')) &&
           NewDeviceStep}
         {authState.matches('active.login.successfulLogin') && (
-          <div className="flex flex-col justify-center items-center gap-4">
-            <div className="flex flex-row gap-2 justify-center items-center">
+          <div className="flex flex-col items-center justify-center gap-4">
+            <div className="flex flex-row items-center justify-center gap-2">
               <span>Login complete for</span>
               <span className="font-semibold">{sessionUser?.nickname}</span>
             </div>
             <Button
-              className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700"
+              className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
               onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
             >
               LOGOUT

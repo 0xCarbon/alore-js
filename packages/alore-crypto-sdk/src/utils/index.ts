@@ -1,8 +1,8 @@
 import init, { derive_child_keyshare } from '@0xcarbon/dkls23-wasm';
-import crypto from 'crypto';
 import argon2 from 'argon2-browser';
-import { keccak256, toUtf8Bytes } from 'ethers';
+import crypto from 'crypto';
 import { UUID } from 'crypto';
+import { keccak256, toUtf8Bytes } from 'ethers';
 
 interface JavascriptEncryptedFile {
   algorithm: string;
@@ -25,12 +25,7 @@ type KeyshareWorkerMessage = {
     | 'retrieve-keyshare'
     | 'download-keyshare'
     | 'link-keyshare';
-  payload?:
-    | string
-    | CryptoKey
-    | Keyshare
-    | JavascriptEncryptedFile
-    | SimpleCredential;
+  payload?: string | CryptoKey | Keyshare | JavascriptEncryptedFile | SimpleCredential;
   walletId?: UUID;
   apiKeyId?: UUID;
   accountId?: UUID;
@@ -291,13 +286,10 @@ function arrayToHex(array: number[]) {
 
 async function deriveAccountKeyshareFromWalletKeyshare(
   walletKeyshare: Keyshare,
-  account_index: number
+  account_index: number,
 ) {
   return init().then(async () => {
-    const accountKeyshare = await derive_child_keyshare(
-      walletKeyshare,
-      account_index
-    );
+    const accountKeyshare = await derive_child_keyshare(walletKeyshare, account_index);
 
     return accountKeyshare[Object.keys(accountKeyshare)[0]];
   });
@@ -327,7 +319,7 @@ function hashUserInfo(userInfo: string) {
 async function generateSecureHash(
   password: string,
   salt: string,
-  keyDerivationFunction: KeyDerivationFunction = 'argon2d'
+  keyDerivationFunction: KeyDerivationFunction = 'argon2d',
 ): Promise<string> {
   if (keyDerivationFunction === 'argon2d') {
     const result = await argon2.hash({
@@ -378,9 +370,7 @@ function generateUUID() {
 
 function hexStringToBytes(hexString: string): number[] {
   const bytes: number[] = [];
-  const cleanHexString = hexString.startsWith('0x')
-    ? hexString.slice(2)
-    : hexString;
+  const cleanHexString = hexString.startsWith('0x') ? hexString.slice(2) : hexString;
   for (let i = 0; i < cleanHexString.length; i += 2) {
     const byte = parseInt(cleanHexString.substr(i, 2), 16);
     if (!Number.isNaN(byte)) {

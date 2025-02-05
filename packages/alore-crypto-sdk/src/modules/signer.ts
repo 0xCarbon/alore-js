@@ -1,7 +1,11 @@
+import init, { sign_phase1, sign_phase2, sign_phase3, sign_phase4 } from '@0xcarbon/dkls23-wasm';
 import { Signature, Transaction } from 'ethers';
+
 import { AloreCrypto } from '../core/AloreCrypto';
 import {
   Broadcast3to4,
+  generateUUID,
+  hexStringToBytes,
   Keyshare,
   SignData,
   SingleOfHashmapKeep1to2,
@@ -10,15 +14,7 @@ import {
   SingleVecTransmit2to3,
   UniqueKeep1to2,
   UniqueKeep2to3,
-  generateUUID,
-  hexStringToBytes,
 } from '../utils';
-import init, {
-  sign_phase1,
-  sign_phase2,
-  sign_phase3,
-  sign_phase4,
-} from '@0xcarbon/dkls23-wasm';
 
 export class SignerModule {
   constructor(protected sdk: AloreCrypto) {}
@@ -40,7 +36,7 @@ export class SignerModule {
     walletId: string,
     shareBeingDerivedIndex: number,
     isForImportedAccount: boolean,
-    accountId?: string
+    accountId?: string,
   ) {
     await init();
 
@@ -70,13 +66,13 @@ export class SignerModule {
           shareBeingDerivedIndex,
           walletId,
           accountId,
-          true
+          true,
         )
       : await this.communicationPhase1(
           signData,
           clientVecTransmit1to2,
           shareBeingDerivedIndex,
-          walletId
+          walletId,
         );
 
     const clientPhase2 = this.phase2(
@@ -84,7 +80,7 @@ export class SignerModule {
       signData,
       clientUniqueKeep1to2,
       clientHashmapKeep1to2,
-      serverVecTransmit1to2
+      serverVecTransmit1to2,
     );
 
     const clientUniqueKeep2to3 = clientPhase2[0];
@@ -98,13 +94,13 @@ export class SignerModule {
           walletId,
           shareBeingDerivedIndex,
           accountId,
-          true
+          true,
         )
       : await this.communicationPhase2(
           signData,
           clientVecTransmit2to3,
           walletId,
-          shareBeingDerivedIndex
+          shareBeingDerivedIndex,
         );
 
     const clientPhase3 = this.phase3(
@@ -112,7 +108,7 @@ export class SignerModule {
       signData,
       clientUniqueKeep2to3,
       clientHashmapKeep2to3,
-      serverVecTransmit2to3
+      serverVecTransmit2to3,
     );
 
     const XCoord = clientPhase3[0];
@@ -125,13 +121,13 @@ export class SignerModule {
           walletId,
           shareBeingDerivedIndex,
           accountId,
-          true
+          true,
         )
       : await this.communicationPhase3(
           signData,
           clientBroadcast3to4,
           walletId,
-          shareBeingDerivedIndex
+          shareBeingDerivedIndex,
         );
 
     const clientPhase4 = this.phase4(
@@ -139,23 +135,13 @@ export class SignerModule {
       signData,
       XCoord,
       clientBroadcast3to4,
-      serverBroadcast3to4
+      serverBroadcast3to4,
     );
 
     if (isForImportedAccount) {
-      await this.communicationPhase4(
-        signData,
-        walletId,
-        shareBeingDerivedIndex,
-        accountId,
-        true
-      );
+      await this.communicationPhase4(signData, walletId, shareBeingDerivedIndex, accountId, true);
     } else {
-      await this.communicationPhase4(
-        signData,
-        walletId,
-        shareBeingDerivedIndex
-      );
+      await this.communicationPhase4(signData, walletId, shareBeingDerivedIndex);
     }
 
     const sigR = `0x${XCoord}`;
@@ -185,7 +171,7 @@ export class SignerModule {
     shareBeingDerivedIndex: number,
     walletId?: string,
     accountId?: string,
-    isForImportedAccount?: boolean
+    isForImportedAccount?: boolean,
   ) {
     const uArray = Array.from(clientVecTransmit1to2[0].mul_transmit.u);
     clientVecTransmit1to2[0].mul_transmit.u = uArray;
@@ -216,14 +202,14 @@ export class SignerModule {
     signData: SignData,
     uniqueKeep1to2: UniqueKeep1to2,
     hashmapKeep1to2: Map<number, SingleOfHashmapKeep1to2>,
-    serverVecTransmit1to2: SingleVecTransmit1to2[]
+    serverVecTransmit1to2: SingleVecTransmit1to2[],
   ) {
     const result = sign_phase2(
       party,
       signData,
       uniqueKeep1to2,
       hashmapKeep1to2,
-      serverVecTransmit1to2
+      serverVecTransmit1to2,
     );
 
     return result.Ok;
@@ -235,7 +221,7 @@ export class SignerModule {
     walletId: string,
     shareBeingDerivedIndex: number,
     accountId?: string,
-    isForImportedAccount?: boolean
+    isForImportedAccount?: boolean,
   ) {
     const serverPhase2 = await this.sdk
       .fetchWithProgressiveBackoff(`/dkls23/sign/phase-2`, {
@@ -262,14 +248,14 @@ export class SignerModule {
     signData: SignData,
     uniqueKeep2to3: UniqueKeep2to3,
     hashmapKeep2to3: Map<number, SingleOfHashmapKeep2to3>,
-    serverVecTransmit2to3: SingleVecTransmit2to3[]
+    serverVecTransmit2to3: SingleVecTransmit2to3[],
   ) {
     const result = sign_phase3(
       party,
       signData,
       uniqueKeep2to3,
       hashmapKeep2to3,
-      serverVecTransmit2to3
+      serverVecTransmit2to3,
     );
 
     return result.Ok;
@@ -281,7 +267,7 @@ export class SignerModule {
     walletId: string,
     shareBeingDerivedIndex: number,
     accountId?: string,
-    isForImportedAccount?: boolean
+    isForImportedAccount?: boolean,
   ) {
     const result = await this.sdk
       .fetchWithProgressiveBackoff(`/dkls23/sign/phase-3`, {
@@ -308,14 +294,14 @@ export class SignerModule {
     signData: SignData,
     xCoord: string,
     clientBroadcast3to4: Broadcast3to4,
-    serverBroadcast3to4: Broadcast3to4
+    serverBroadcast3to4: Broadcast3to4,
   ) {
     const result = sign_phase4(
       party,
       signData,
       xCoord,
       [clientBroadcast3to4, serverBroadcast3to4],
-      true
+      true,
     );
 
     return result.Ok;
@@ -326,24 +312,21 @@ export class SignerModule {
     walletId: string,
     shareBeingDerivedIndex: number,
     accountId?: string,
-    isForImportedAccount?: boolean
+    isForImportedAccount?: boolean,
   ) {
-    const result = await this.sdk.fetchWithProgressiveBackoff(
-      `/dkls23/sign/phase-4`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          sign_id: signData.sign_id,
-          wallet_id: walletId,
-          account_id: accountId,
-          is_for_imported_account: isForImportedAccount,
-          child_number: shareBeingDerivedIndex,
-        }),
-      }
-    );
+    const result = await this.sdk.fetchWithProgressiveBackoff(`/dkls23/sign/phase-4`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sign_id: signData.sign_id,
+        wallet_id: walletId,
+        account_id: accountId,
+        is_for_imported_account: isForImportedAccount,
+        child_number: shareBeingDerivedIndex,
+      }),
+    });
 
     return result;
   }

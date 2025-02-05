@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+
 import { Dictionary, getDictionary, Locale } from '../get-dictionary';
 
 const useDictionary = (locale: Locale) => {

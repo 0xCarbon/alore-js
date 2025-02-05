@@ -1,5 +1,6 @@
 import { useActor } from '@xstate/react';
 import { useContext } from 'react';
+
 import { AuthContext } from '../components/AuthProvider';
 
 const useAuthService = () => {

@@ -1,7 +1,16 @@
+import init, {
+  phase1_wasm_binding,
+  phase2_wasm_binding,
+  phase3_wasm_binding,
+  phase4_wasm_binding,
+  re_key_wasm_binding,
+} from '@0xcarbon/dkls23-wasm';
+
 import { AloreCrypto } from '../core/AloreCrypto';
 import {
   BroadcastDerive2to4,
   BroadcastDerive3to4,
+  generateUUID,
   KeepDerive2to3,
   KeepZeroShare2to3,
   Keyshare,
@@ -11,15 +20,7 @@ import {
   SingleTransmitMul3to4,
   SingleTransmitZeroShare2to4,
   SingleTransmitZeroShare3to4,
-  generateUUID,
 } from '../utils';
-import init, {
-  phase1_wasm_binding,
-  phase2_wasm_binding,
-  phase3_wasm_binding,
-  phase4_wasm_binding,
-  re_key_wasm_binding,
-} from '@0xcarbon/dkls23-wasm';
 
 export class KeygenModule {
   constructor(protected sdk: AloreCrypto) {}
@@ -58,10 +59,7 @@ export class KeygenModule {
     const polyFragToKeep = clientPhase1[0];
     const polyFragToSend = clientPhase1[1];
 
-    const serverPolyFrag = await this.communicationPhase1(
-      sessionData,
-      polyFragToSend
-    );
+    const serverPolyFrag = await this.communicationPhase1(sessionData, polyFragToSend);
 
     const {
       polyPoint,
@@ -72,16 +70,13 @@ export class KeygenModule {
       broadcastDerive2to4,
     } = await this.phase2(sessionData, [polyFragToKeep, serverPolyFrag]);
 
-    const {
-      serverCommitment,
-      serverBroadcastDerive2to4,
-      serverTransmitZeroShare2to4,
-    } = await this.communicationPhase2(
-      sessionData,
-      proofCommitment.commitment,
-      transmitZeroShare2to4,
-      broadcastDerive2to4
-    );
+    const { serverCommitment, serverBroadcastDerive2to4, serverTransmitZeroShare2to4 } =
+      await this.communicationPhase2(
+        sessionData,
+        proofCommitment.commitment,
+        transmitZeroShare2to4,
+        broadcastDerive2to4,
+      );
 
     const {
       keepZeroShare3to4,
@@ -101,16 +96,13 @@ export class KeygenModule {
       transmitZeroShare3to4,
       transmitMul3to4,
       broadcastDerive3to4,
-      proofCommitment
+      proofCommitment,
     );
 
     const serveProofCommitmentWithOldCommitment = serverProofCommitment;
     serveProofCommitmentWithOldCommitment.commitment = serverCommitment;
 
-    const proofsCommitments = [
-      proofCommitment,
-      serveProofCommitmentWithOldCommitment,
-    ];
+    const proofsCommitments = [proofCommitment, serveProofCommitmentWithOldCommitment];
     const partiesDerive2to4: Map<number, BroadcastDerive2to4> = new Map();
     partiesDerive2to4.set(1, broadcastDerive2to4);
     partiesDerive2to4.set(2, serverBroadcastDerive2to4);
@@ -129,22 +121,17 @@ export class KeygenModule {
       keepMul3to4,
       serverTransmitMul3to4,
       partiesDerive2to4,
-      partiesDerive3to4
+      partiesDerive3to4,
     );
 
     if (clientPhase4.index) {
       throw new Error(clientPhase4.description);
     }
 
-    const serverFinalResponse = await this.communicationPhase4(
-      sessionData,
-      dkgId
-    );
+    const serverFinalResponse = await this.communicationPhase4(sessionData, dkgId);
 
     if (!serverFinalResponse.ok) {
-      throw new Error(
-        `Server communication phase 4 failed: ${serverFinalResponse.toString()}`
-      );
+      throw new Error(`Server communication phase 4 failed: ${serverFinalResponse.toString()}`);
     }
 
     return clientPhase4[Object.keys(clientPhase4)[0]] as Keyshare;
@@ -156,11 +143,7 @@ export class KeygenModule {
       threshold: 2,
       share_count: 2,
     };
-    const result = re_key_wasm_binding(
-      sessionData,
-      sessionId,
-      privateKey.slice(-64)
-    );
+    const result = re_key_wasm_binding(sessionData, sessionId, privateKey.slice(-64));
     return result;
   }
 
@@ -170,10 +153,7 @@ export class KeygenModule {
     return result;
   }
 
-  private async communicationPhase1(
-    sessionData: SessionData,
-    polyFragToSend: BigInt
-  ) {
+  private async communicationPhase1(sessionData: SessionData, polyFragToSend: BigInt) {
     const serverPolyFrag = await this.sdk
       .fetchWithProgressiveBackoff(`/dkls23/keygen/phase-1`, {
         method: 'POST',
@@ -214,7 +194,7 @@ export class KeygenModule {
     sessionData: SessionData,
     commitment: number[],
     transmitZeroShare2to4: SingleTransmitZeroShare2to4[],
-    broadcastDerive2to4: BroadcastDerive2to4
+    broadcastDerive2to4: BroadcastDerive2to4,
   ) {
     const phase2Response = await this.sdk
       .fetchWithProgressiveBackoff(`/dkls23/keygen/phase-2`, {
@@ -231,11 +211,8 @@ export class KeygenModule {
       })
       .then((res) => res.json());
 
-    const {
-      serverCommitment,
-      serverTransmitZeroShare2to4,
-      serverBroadcastDerive2to4,
-    } = phase2Response;
+    const { serverCommitment, serverTransmitZeroShare2to4, serverBroadcastDerive2to4 } =
+      phase2Response;
 
     if (!serverCommitment) {
       throw new Error('Server did not send commitment');
@@ -251,7 +228,7 @@ export class KeygenModule {
   private phase3(
     sessionData: SessionData,
     zeroKept: Map<number, KeepZeroShare2to3>,
-    bipKept: KeepDerive2to3
+    bipKept: KeepDerive2to3,
   ) {
     const result = phase3_wasm_binding(sessionData, zeroKept, bipKept);
 
@@ -275,7 +252,7 @@ export class KeygenModule {
     transmitZeroShare3to4: SingleTransmitZeroShare3to4[],
     transmitMul3to4: SingleTransmitMul3to4[],
     broadcastDerive3to4: BroadcastDerive3to4,
-    proofCommitment: ProofCommitment
+    proofCommitment: ProofCommitment,
   ) {
     const phase3Response = await this.sdk
       .fetchWithProgressiveBackoff(`/dkls23/keygen/phase-3`, {
@@ -318,7 +295,7 @@ export class KeygenModule {
     mulKept: Map<number, SingleMulKept>,
     mulReceived: SingleTransmitMul3to4[],
     bipReceived2: Map<number, BroadcastDerive2to4>,
-    bipReceived3: Map<number, BroadcastDerive3to4>
+    bipReceived3: Map<number, BroadcastDerive3to4>,
   ) {
     const result = phase4_wasm_binding(
       sessionData,
@@ -330,26 +307,23 @@ export class KeygenModule {
       mulKept,
       mulReceived,
       bipReceived2,
-      bipReceived3
+      bipReceived3,
     );
 
     return result;
   }
 
   private async communicationPhase4(sessionData: SessionData, dkgId?: string) {
-    const phase4Response = await this.sdk.fetchWithProgressiveBackoff(
-      `/dkls23/keygen/phase-4`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          session_id: sessionData.session_id,
-          dkg_id: dkgId,
-        }),
-      }
-    );
+    const phase4Response = await this.sdk.fetchWithProgressiveBackoff(`/dkls23/keygen/phase-4`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        session_id: sessionData.session_id,
+        dkg_id: dkgId,
+      }),
+    });
 
     if (phase4Response.status !== 201) {
       throw new Error('Phase 4 failed');

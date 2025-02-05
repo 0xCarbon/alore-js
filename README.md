@@ -91,13 +91,14 @@ DISCLAIMER: package @0xcarbon/dkls23-wasm is not described in this repo but need
 4. Call our Login component wrapped in our Providers (Keyshare worker and the complete implementation you can find at [https://beta.bealore.com](https://beta.bealore.com))
 
    ```js
-   "use client";
+   'use client';
 
-   import { aloreAuth } from "@/config/authInstance";
-   import KeyshareWorkerProvider from "../components/KeyshareWorker";
-   import { AuthProvider } from "@0xcarbon/alore-auth-ui";
+   import { AuthProvider } from '@0xcarbon/alore-auth-ui';
 
-   import AuthComponent from "@/components/AuthComponent";
+   import AuthComponent from '@/components/AuthComponent';
+   import { aloreAuth } from '@/config/authInstance';
+
+   import KeyshareWorkerProvider from '../components/KeyshareWorker';
 
    export default function Home() {
      return (

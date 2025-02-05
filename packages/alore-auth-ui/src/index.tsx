@@ -1,7 +1,7 @@
 import Auth, { AuthProps } from './Auth';
-import { SessionUser } from './machine/types';
-import useAuthService from './hooks/useAuthService';
 import { AuthProvider } from './components/AuthProvider';
+import useAuthService from './hooks/useAuthService';
+import { SessionUser } from './machine/types';
 
 export type { AuthProps, SessionUser };
 export { useAuthService, AuthProvider };

@@ -1,20 +1,11 @@
 'use client';
 
-import {
-  FlowbiteTextInputTheme,
-  Label,
-  TextInput,
-  TextInputProps,
-} from 'flowbite-react';
+import { FlowbiteTextInputTheme, Label, TextInput, TextInputProps } from 'flowbite-react';
 import React from 'react';
-import {
-  Control,
-  Controller,
-  FieldErrorsImpl,
-  FieldValues,
-} from 'react-hook-form';
-import InputErrorHelperText from './InputErrorHelperText';
+import { Control, Controller, FieldErrorsImpl, FieldValues } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
+
+import InputErrorHelperText from './InputErrorHelperText';
 
 const textInputTheme: FlowbiteTextInputTheme = {
   base: 'flex',
@@ -77,7 +68,7 @@ interface Props extends TextInputProps {
   className?: string;
 }
 
-const infoIcon = () => <i className='fa-solid fa-circle-info text-alr-red' />;
+const infoIcon = () => <i className="fa-solid fa-circle-info text-alr-red" />;
 
 const InputForm = ({
   control,
@@ -96,7 +87,7 @@ const InputForm = ({
       <div className={twMerge('flex flex-col', className)}>
         {label && (
           <Label
-            className='mb-2 font-medium !text-gray-500'
+            className="mb-2 font-medium !text-gray-500"
             htmlFor={field.name}
           >
             {label}

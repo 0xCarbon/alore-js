@@ -1,10 +1,11 @@
 'use client';
 
-import { aloreAuth } from '@/config/authInstance';
-import KeyshareWorkerProvider from '../components/KeyshareWorker';
 import { AuthProvider } from '@0xcarbon/alore-auth-ui';
 
 import AuthComponent from '@/components/AuthComponent';
+import { aloreAuth } from '@/config/authInstance';
+
+import KeyshareWorkerProvider from '../components/KeyshareWorker';
 
 export default function Home() {
   return (

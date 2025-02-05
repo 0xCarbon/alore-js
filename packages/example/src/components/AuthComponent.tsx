@@ -1,12 +1,16 @@
+import { generateSecureHash, hashUserInfo } from '@0xcarbon/alore-auth-sdk';
 import Auth, { useAuthService } from '@0xcarbon/alore-auth-ui';
 import { useContext } from 'react';
+
 import { KeyshareWorkerContext } from './KeyshareWorker';
-import { hashUserInfo, generateSecureHash } from '@0xcarbon/alore-auth-sdk';
 
 export default function AuthComponent() {
   const keyshareWorker: null | Worker = useContext(KeyshareWorkerContext);
   const [state, actor] = useAuthService();
 
+  console.log('state', state);
+  console.log('actor', actor);
+  
   return (
     <Auth
       locale="pt"

@@ -43,8 +43,7 @@ const OTPInput = ({
   }, [value, inputLength]);
 
   function focusToNextInput(target: HTMLElement) {
-    const nextElementSibling =
-      target.nextElementSibling as HTMLInputElement | null;
+    const nextElementSibling = target.nextElementSibling as HTMLInputElement | null;
 
     if (nextElementSibling) {
       nextElementSibling.focus();
@@ -52,8 +51,7 @@ const OTPInput = ({
   }
 
   function focusToPrevInput(target: HTMLElement) {
-    const previousElementSibling =
-      target.previousElementSibling as HTMLInputElement | null;
+    const previousElementSibling = target.previousElementSibling as HTMLInputElement | null;
 
     if (previousElementSibling) {
       previousElementSibling.focus();
@@ -80,8 +78,7 @@ const OTPInput = ({
     const targetValueLength = targetValue.length;
 
     if (targetValueLength === 1) {
-      const newValue =
-        value.substring(0, idx) + targetValue + value.substring(idx + 1);
+      const newValue = value.substring(0, idx) + targetValue + value.substring(idx + 1);
 
       onChange(newValue);
 
@@ -125,8 +122,7 @@ const OTPInput = ({
   function inputOnFocus(e: React.FocusEvent<HTMLInputElement>) {
     const { target } = e;
 
-    const prevInputEl =
-      target.previousElementSibling as HTMLInputElement | null;
+    const prevInputEl = target.previousElementSibling as HTMLInputElement | null;
 
     if (prevInputEl && prevInputEl.value === '') {
       return prevInputEl.focus();
@@ -140,21 +136,21 @@ const OTPInput = ({
       data-test={dataTest}
       className={twMerge('flex flex-col items-center gap-y-6', className)}
     >
-      <div className='flex w-full gap-x-5'>
+      <div className="flex w-full gap-x-5">
         {inputs.map((digit, idx) => (
           <input
             // eslint-disable-next-line react/no-array-index-key
             key={idx}
-            type='text'
+            type="text"
             // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus={idx === 0}
-            inputMode='numeric'
-            autoComplete='one-time-code'
-            pattern='\d{1}'
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern="\d{1}"
             maxLength={inputLength}
             className={twMerge(
               `h-[2.56rem] w-[2.56rem] rounded-md border text-center font-semibold duration-500`,
-              errorMessage ? 'border-alr-red' : 'border-gray-300'
+              errorMessage ? 'border-alr-red' : 'border-gray-300',
             )}
             value={digit}
             onChange={(e) => inputOnChange(e, idx)}
@@ -164,11 +160,7 @@ const OTPInput = ({
           />
         ))}
       </div>
-      {errorMessage && (
-        <span className='text-base font-normal text-alr-red'>
-          {errorMessage}
-        </span>
-      )}
+      {errorMessage && <span className="text-alr-red text-base font-normal">{errorMessage}</span>}
     </div>
   );
 };

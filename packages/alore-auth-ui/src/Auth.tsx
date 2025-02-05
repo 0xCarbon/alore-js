@@ -1,14 +1,15 @@
 'use client';
 
-import React, { Suspense, useEffect, useState } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { Login } from './auth/Login';
 import { useActor } from '@xstate/react';
-import { Register } from './auth/Register';
-import { SessionUser } from './machine/types';
-import { Locale } from 'get-dictionary';
 import { Spinner } from 'flowbite-react';
+import { Locale } from 'get-dictionary';
+import React, { Suspense, useEffect, useState } from 'react';
+
+import { Login } from './auth/Login';
+import { Register } from './auth/Register';
 import useAuthServiceInstance from './hooks/useAuthServiceInstance';
+import { SessionUser } from './machine/types';
 
 export interface AuthProps {
   locale?: Locale;
@@ -22,7 +23,7 @@ export interface AuthProps {
     generateSecureHash: (
       data: string,
       salt: string,
-      keyDerivationFunction: 'argon2d' | 'pbkdf2'
+      keyDerivationFunction: 'argon2d' | 'pbkdf2',
     ) => Promise<string>;
   };
   onSuccess?: (sessionUser: SessionUser) => void;
@@ -49,11 +50,7 @@ const Auth = ({
 
   useEffect(() => {
     if (googleUser) {
-      sendAuth([
-        { type: 'INITIALIZE', forgeId },
-        'LOGIN',
-        'ADVANCE_TO_PASSWORD',
-      ]);
+      sendAuth([{ type: 'INITIALIZE', forgeId }, 'LOGIN', 'ADVANCE_TO_PASSWORD']);
     } else sendAuth([{ type: 'INITIALIZE', forgeId }, 'LOGIN']);
 
     return () => {
@@ -63,12 +60,7 @@ const Auth = ({
 
   useEffect(() => {
     if (registerUser) {
-      sendAuth([
-        'RESET',
-        { type: 'INITIALIZE', forgeId },
-        'SIGN_UP',
-        'ADVANCE_TO_PASSWORD',
-      ]);
+      sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP', 'ADVANCE_TO_PASSWORD']);
     }
   }, [registerUser]);
 

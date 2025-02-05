@@ -599,6 +599,14 @@ packages:
       react-hook-form: 7.45.4(react@18.0.0)
     dev: true
 
+  /@hookform/resolvers@3.1.0(react-hook-form@7.54.2):
+    resolution: {integrity: sha512-z0A8K+Nxq+f83Whm/ajlwE6VtQlp/yPHZnXw7XWVPIGm1Vx0QV8KThU3BpbBRfAZ7/dYqCKKBNnQh85BkmBKkA==}
+    peerDependencies:
+      react-hook-form: ^7.0.0
+    dependencies:
+      react-hook-form: 7.54.2(react@18.2.0)
+    dev: true
+
   /@isaacs/cliui@8.0.2:
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
     engines: {node: '>=12'}
@@ -3816,11 +3824,11 @@ packages:
       react: 18.0.0
     dev: true
 
-  /react-hook-form@7.45.4(react@18.2.0):
-    resolution: {integrity: sha512-HGDV1JOOBPZj10LB3+OZgfDBTn+IeEsNOKiq/cxbQAIbKaiJUe/KV8DBUzsx0Gx/7IG/orWqRRm736JwOfUSWQ==}
-    engines: {node: '>=12.22.0'}
+  /react-hook-form@7.54.2(react@18.2.0):
+    resolution: {integrity: sha512-eHpAUgUjWbZocoQYUHposymRb4ZP6d0uwUnooL2uOybA9/3tPUvoAKqEWK1WaSiTxxOfTpffNZP7QwlnM3/gEg==}
+    engines: {node: '>=18.0.0'}
     peerDependencies:
-      react: ^16.8.0 || ^17 || ^18
+      react: ^16.8.0 || ^17 || ^18 || ^19
     dependencies:
       react: 18.2.0
     dev: true
@@ -4834,7 +4842,7 @@ packages:
       flowbite-react: 0.6.4
     dependencies:
       '@heroicons/react': 2.0.16(react@18.2.0)
-      '@hookform/resolvers': 3.1.0(react-hook-form@7.45.4)
+      '@hookform/resolvers': 3.1.0(react-hook-form@7.54.2)
       '@react-oauth/google': 0.12.1(react-dom@18.0.0)(react@18.2.0)
       '@types/node': 20.4.8
       '@xstate/react': 3.2.2(@types/react@18.2.79)(react@18.2.0)(xstate@4.38.2)
@@ -4843,7 +4851,7 @@ packages:
       js-cookie: 3.0.5
       jwt-decode: 3.1.2
       react: 18.2.0
-      react-hook-form: 7.45.4(react@18.2.0)
+      react-hook-form: 7.54.2(react@18.2.0)
       tailwind-merge: 2.3.0
       tailwindcss: 3.4.3
       xstate: 4.38.2

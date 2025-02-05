@@ -9,8 +9,7 @@
     "lint": "next lint",
     "install-aure-auth-ui": "cd ../alore-auth-ui && pnpm i",
     "install-aure-auth-sdk": "cd ../alore-auth-sdk && pnpm i",
-    "install-aure-crypto-sdk": "cd ../alore-crypto-sdk && pnpm i",
-    "prepare": "npm run install-aure-auth-ui && npm run install-aure-auth-sdk && npm run install-aure-crypto-sdk"
+    "install-aure-crypto-sdk": "cd ../alore-crypto-sdk && pnpm i"
   },
   "devDependencies": {
     "@0xcarbon/alore-auth-ui": "file:../alore-auth-ui",

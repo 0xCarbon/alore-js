@@ -1,29 +1,25 @@
 'use client';
 
-import React from 'react';
-import { Button, Card, Spinner } from 'flowbite-react';
-import { FieldValues, useForm, useWatch } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useActor } from '@xstate/react';
 import { ArrowRightIcon, EnvelopeIcon } from '@heroicons/react/20/solid';
-import jwt_decode from 'jwt-decode';
 import { KeyIcon, LockOpenIcon } from '@heroicons/react/24/outline';
-import { randomBytes } from 'crypto';
-import { passwordRules, ruleValidation } from '../components/FormRules/helpers';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { useGoogleLogin } from '@react-oauth/google';
+import { useActor } from '@xstate/react';
+import { randomBytes } from 'crypto';
+import { Button, Card, Spinner } from 'flowbite-react';
+import { Locale } from 'get-dictionary';
+import jwt_decode from 'jwt-decode';
+import React from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { FieldValues, useForm, useWatch } from 'react-hook-form';
+import { twMerge } from 'tailwind-merge';
+import * as yup from 'yup';
+
+import { passwordRules, ruleValidation } from '../components/FormRules/helpers';
 import { verifyEmptyValues } from '../helpers';
 import useDictionary from '../hooks/useDictionary';
 import { AuthInstance } from '../machine/types';
-import {
-  aloreLogoBlack,
-  google,
-  metamaskLogo,
-  walletConnectLogo,
-} from '../utils';
-import { Locale } from 'get-dictionary';
-import { twMerge } from 'tailwind-merge';
+import { aloreLogoBlack, google, metamaskLogo, walletConnectLogo } from '../utils';
 
 const InputForm = React.lazy(() => import('../components/InputForm'));
 const InputOTP = React.lazy(() => import('../components/InputOTP'));
@@ -46,7 +42,7 @@ export interface RegisterProps {
     generateSecureHash: (
       data: string,
       salt: string,
-      keyDerivationFunction: 'argon2d' | 'pbkdf2'
+      keyDerivationFunction: 'argon2d' | 'pbkdf2',
     ) => Promise<string>;
   };
 }
@@ -96,12 +92,8 @@ export const Register = ({
     if (registrationMethod === 'password') {
       sendAuth('SELECT_PASSWORD');
     } else {
-      const nickname = registerUser
-        ? registerUser.nickname
-        : userInfoGetValues('nickname');
-      const email = registerUser
-        ? registerUser.email
-        : userInfoGetValues('email');
+      const nickname = registerUser ? registerUser.nickname : userInfoGetValues('nickname');
+      const email = registerUser ? registerUser.email : userInfoGetValues('email');
       const device = hashUserInfo(window.navigator.userAgent);
       sendAuth({
         type: 'START_PASSKEY_REGISTER',
@@ -127,12 +119,8 @@ export const Register = ({
 
     // TODO: Validate prf on ios/macos when 18.0 drops
 
-    const email = registerUser
-      ? registerUser.email
-      : userInfoGetValues('email');
-    const nickname = registerUser
-      ? registerUser.nickname
-      : userInfoGetValues('nickname');
+    const email = registerUser ? registerUser.email : userInfoGetValues('email');
+    const nickname = registerUser ? registerUser.nickname : userInfoGetValues('nickname');
     const device = hashUserInfo(window.navigator.userAgent);
 
     const extensions: {
@@ -211,15 +199,13 @@ export const Register = ({
                 response: {
                   attestationObject: Buffer.from(
                     // eslint-disable-next-line no-undef
-                    (
-                      registerCredential.response as AuthenticatorAttestationResponse
-                    ).attestationObject
+                    (registerCredential.response as AuthenticatorAttestationResponse)
+                      .attestationObject,
                   ).toString('base64'),
                   clientDataJSON: Buffer.from(
                     // eslint-disable-next-line no-undef
-                    (
-                      registerCredential.response as AuthenticatorAttestationResponse
-                    ).clientDataJSON
+                    (registerCredential.response as AuthenticatorAttestationResponse)
+                      .clientDataJSON,
                   ).toString('base64'),
                 },
                 type: 'public-key',
@@ -299,9 +285,7 @@ export const Register = ({
         secretFromCredential = largeBlob;
       }
 
-      const isSafari = /^((?!chrome|android).)*safari/i.test(
-        navigator.userAgent
-      );
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
       if (blobWritten && isSafari) {
         secretFromCredential = largeBlob;
@@ -325,25 +309,19 @@ export const Register = ({
             response: {
               authenticatorData: Buffer.from(
                 // eslint-disable-next-line no-undef
-                (
-                  firstLoginCredential.response as AuthenticatorAssertionResponse
-                ).authenticatorData
+                (firstLoginCredential.response as AuthenticatorAssertionResponse).authenticatorData,
               ).toString('base64'),
               clientDataJSON: Buffer.from(
                 // eslint-disable-next-line no-undef
-                (
-                  firstLoginCredential.response as AuthenticatorAssertionResponse
-                ).clientDataJSON
+                (firstLoginCredential.response as AuthenticatorAssertionResponse).clientDataJSON,
               ).toString('base64'),
               signature: Buffer.from(
                 // eslint-disable-next-line no-undef
-                (
-                  firstLoginCredential.response as AuthenticatorAssertionResponse
-                ).signature
+                (firstLoginCredential.response as AuthenticatorAssertionResponse).signature,
               ).toString('base64'),
               userHandle: Buffer.from(
                 // @ts-ignore
-                firstLoginCredential.response.userHandle || [0]
+                firstLoginCredential.response.userHandle || [0],
               ).toString('base64'),
             },
             type: 'public-key',
@@ -399,18 +377,14 @@ export const Register = ({
         .matches(/^[a-zA-Z].*$/, dictionary?.formValidation.validName)
         .max(40)
         .required(dictionary?.formValidation.required),
-      agreedWithTerms: yup
-        .boolean()
-        .isTrue(dictionary?.formValidation.agreeTerms),
+      agreedWithTerms: yup.boolean().isTrue(dictionary?.formValidation.agreeTerms),
     })
     .required();
 
   const passwordFormSchema = yup
     .object({
       password: yup.string().required(dictionary?.formValidation.required),
-      confirmPassword: yup
-        .string()
-        .required(dictionary?.formValidation.required),
+      confirmPassword: yup.string().required(dictionary?.formValidation.required),
     })
     .required();
 
@@ -463,24 +437,19 @@ export const Register = ({
       authState.matches('active.register.sendingAuthPublicCredential') ||
       authState.matches('active.web3Connector.verifyingClaimNftEmail2fa') ||
       authState.matches('active.web3Connector.verifyingEmailEligibility'),
-    [authState.value]
+    [authState.value],
   );
 
   useEffect(() => {
     if (registerUser) {
-      sendAuth([
-        { type: 'INITIALIZE', forgeId },
-        'SIGN_UP',
-        'ADVANCE_TO_PASSWORD',
-      ]);
+      sendAuth([{ type: 'INITIALIZE', forgeId }, 'SIGN_UP', 'ADVANCE_TO_PASSWORD']);
     } else sendAuth([{ type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
   }, []);
 
   useEffect(() => {
     if (inviteToken) {
       try {
-        const decoded: { email: string; nickname: string; salt: string } =
-          jwt_decode(inviteToken);
+        const decoded: { email: string; nickname: string; salt: string } = jwt_decode(inviteToken);
         const { email, nickname } = decoded;
 
         userInfoSetValue('email', email);
@@ -547,10 +516,7 @@ export const Register = ({
     });
 
     setSendEmailCooldown(15 * cooldownMultiplier);
-    intervalRef.current = setInterval(
-      () => setSendEmailCooldown((state) => state - 1),
-      1000
-    );
+    intervalRef.current = setInterval(() => setSendEmailCooldown((state) => state - 1), 1000);
     setCooldownMultiplier((state) => state + 1);
   }
 
@@ -574,12 +540,8 @@ export const Register = ({
 
   async function onSubmitPassword(data: typeof passwordDefaultValues) {
     const { password } = data;
-    const email = registerUser
-      ? registerUser.email
-      : userInfoGetValues('email');
-    const nickname = registerUser
-      ? registerUser.nickname
-      : userInfoGetValues('nickname');
+    const email = registerUser ? registerUser.email : userInfoGetValues('email');
+    const nickname = registerUser ? registerUser.nickname : userInfoGetValues('nickname');
     const { userAgent } = window.navigator;
     const device = hashUserInfo(userAgent);
     const saltWallet = registerUser ? registerUser.salt : salt || userSalt;
@@ -590,11 +552,7 @@ export const Register = ({
           method: 'derive-password',
           payload: { password, email },
         });
-        const secureHashArgon2d = await generateSecureHash(
-          password,
-          saltWallet,
-          'argon2d'
-        );
+        const secureHashArgon2d = await generateSecureHash(password, saltWallet, 'argon2d');
 
         sendAuth({
           type: 'COMPLETE_REGISTRATION',
@@ -611,7 +569,7 @@ export const Register = ({
 
   const isUserInfoSubmitDisabled = useMemo(
     () => verifyEmptyValues(userInfoGetValues()),
-    [userInfoGetValues(), userInfoDirtyFields]
+    [userInfoGetValues(), userInfoDirtyFields],
   );
 
   const isPasswordSubmitDisabled = useMemo(() => {
@@ -633,7 +591,7 @@ export const Register = ({
       <>
         {inviteToken ? (
           <div className="flex flex-col gap-2.5">
-            <h1 className="mb-1 text-center text-[1.75rem] font-bold text-alr-grey">
+            <h1 className="text-alr-grey mb-1 text-center text-[1.75rem] font-bold">
               {registerDictionary?.welcome}
             </h1>
             <div className="mb-5 text-gray-600">
@@ -644,14 +602,12 @@ export const Register = ({
             </div>
           </div>
         ) : (
-          <h1 className="mb-1 text-center font-inter font-semibold text-gray-600 md:text-lg">
-            {forgeId
-              ? registerDictionary?.forgeTitle
-              : registerDictionary?.title}
+          <h1 className="font-inter mb-1 text-center font-semibold text-gray-600 md:text-lg">
+            {forgeId ? registerDictionary?.forgeTitle : registerDictionary?.title}
           </h1>
         )}
         {authError?.includes('beta') && (
-          <span className="text-center font-poppins text-xl font-bold text-alr-red">
+          <span className="font-poppins text-alr-red text-center text-xl font-bold">
             {authError}
           </span>
         )}
@@ -695,7 +651,7 @@ export const Register = ({
                 {registerDictionary?.agreeTermsPart1}
                 <span
                   onClick={() => sendAuth('SHOW_TERMS_MODAL')}
-                  className="cursor-pointer text-alr-red underline"
+                  className="text-alr-red cursor-pointer underline"
                   data-test="terms-of-service"
                 >
                   {registerDictionary?.agreeTermsPart2}
@@ -708,7 +664,7 @@ export const Register = ({
             data-test="register-button"
             type="submit"
             disabled={isUserInfoSubmitDisabled || isLoading}
-            className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700"
+            className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
           >
             {isLoading && <Spinner className="mr-2 !h-5 w-6 !fill-gray-300" />}
             {registerDictionary?.buttonStart}
@@ -720,17 +676,23 @@ export const Register = ({
             sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'LOGIN']);
           }}
         >
-          <span className="font-inter font-semibold">
-            {registerDictionary?.alreadyHaveAccount}
-          </span>
+          <span className="font-inter font-semibold">{registerDictionary?.alreadyHaveAccount}</span>
           <ArrowRightIcon className="h-4 w-4" />
         </div>
         {forgeId && (
           <>
             <div className="h-[0.5px] w-full bg-gray-300" />
-            <Button color="light" onClick={handleLogin} outline>
+            <Button
+              color="light"
+              onClick={handleLogin}
+              outline
+            >
               <div className="flex flex-row items-center justify-center gap-2">
-                <img src={google} alt="google logo" width={16} />
+                <img
+                  src={google}
+                  alt="google logo"
+                  width={16}
+                />
                 {dictionary?.auth.continueGoogle}
               </div>
             </Button>
@@ -767,22 +729,25 @@ export const Register = ({
       userInfoGetValues(),
       userInfoDirtyFields,
       isLoading,
-    ]
+    ],
   );
 
   const VerifyEmail = useMemo(
     () => (
       <>
-        <BackButton disabled={isLoading} onClick={() => sendAuth('BACK')} />
+        <BackButton
+          disabled={isLoading}
+          onClick={() => sendAuth('BACK')}
+        />
 
         <div
           className="flex w-full flex-col items-center"
           data-test="register-verify-email-step"
         >
-          <span className="mb-6 font-poppins text-2xl font-bold text-alr-grey md:text-[1.75rem]">
+          <span className="font-poppins text-alr-grey mb-6 text-2xl font-bold md:text-[1.75rem]">
             {registerDictionary?.verifyEmail}
           </span>
-          <span className="mb-6 w-full text-center font-medium text-alr-grey">
+          <span className="text-alr-grey mb-6 w-full text-center font-medium">
             {registerDictionary?.informCode}
           </span>
 
@@ -794,9 +759,7 @@ export const Register = ({
               inputLength={6}
               data-test="secure-code"
               errorMessage={
-                authError?.includes('wrong')
-                  ? `${registerDictionary?.wrongCode}`
-                  : undefined
+                authError?.includes('wrong') ? `${registerDictionary?.wrongCode}` : undefined
               }
               disabled={isLoading}
             />
@@ -804,12 +767,10 @@ export const Register = ({
           <Button
             data-test="secure-code-submit"
             onClick={() => onClickSecureCodeSubmit()}
-            className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700 mb-6 w-full"
+            className="bg-alr-red hover:bg-alr-dark-red group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
             disabled={secureCode.length !== 6 || isLoading}
           >
-            {isLoading && (
-              <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />
-            )}
+            {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
             {registerDictionary?.confirmCode}
           </Button>
           <span
@@ -818,7 +779,7 @@ export const Register = ({
               `text-base font-medium duration-300`,
               sendEmailCooldown > 0
                 ? 'pointer-events-none opacity-50'
-                : 'cursor-pointer opacity-100 hover:text-alr-red'
+                : 'hover:text-alr-red cursor-pointer opacity-100',
             )}
           >
             {`${registerDictionary?.resendCode}${
@@ -828,27 +789,30 @@ export const Register = ({
         </div>
       </>
     ),
-    [secureCode, sendEmailCooldown, isLoading]
+    [secureCode, sendEmailCooldown, isLoading],
   );
 
   const SelectRegisterMethod = useMemo(
     () => (
       <div>
-        <BackButton disabled={isLoading} onClick={() => sendAuth('BACK')} />
+        <BackButton
+          disabled={isLoading}
+          onClick={() => sendAuth('BACK')}
+        />
         <div
           className="mt-2 flex w-full flex-col items-center"
           data-test="register-method-selection-step"
         >
           {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
           {authError?.toLocaleLowerCase().includes('passkey') && (
-            <span className="mb-4 text-center font-poppins text-xl font-bold text-alr-red">
+            <span className="font-poppins text-alr-red mb-4 text-center text-xl font-bold">
               {registerDictionary?.passkeyNotSupported}
             </span>
           )}
-          <span className="mb-6 font-poppins text-2xl font-bold text-alr-grey md:text-[1.75rem]">
+          <span className="font-poppins text-alr-grey mb-6 text-2xl font-bold md:text-[1.75rem]">
             {registerDictionary?.selectMethodTitle}
           </span>
-          <span className="mb-6 w-full text-center font-medium text-alr-grey">
+          <span className="text-alr-grey mb-6 w-full text-center font-medium">
             {registerDictionary?.selectMethodDescription}
           </span>
           <div className="flex flex-col gap-5">
@@ -858,17 +822,13 @@ export const Register = ({
                 onClick={() => setRegistrationMethod('password')}
                 color="light"
                 className={`${
-                  registrationMethod === 'password'
-                    ? '!border-alr-red'
-                    : '!border-gray-500'
-                } w-full cursor-pointer items-start border focus:ring-0 child:h-full`}
+                  registrationMethod === 'password' ? '!border-alr-red' : '!border-gray-500'
+                } child:h-full w-full cursor-pointer items-start border focus:ring-0`}
               >
                 <div className="flex flex-col items-start justify-center gap-2">
                   <LockOpenIcon
                     className={`${
-                      registrationMethod === 'password'
-                        ? 'text-alr-red'
-                        : 'text-gray-500'
+                      registrationMethod === 'password' ? 'text-alr-red' : 'text-gray-500'
                     } h-7 w-7`}
                   />
                   <span className="font-semibold text-gray-900">
@@ -885,22 +845,16 @@ export const Register = ({
                 onClick={() => setRegistrationMethod('passkey')}
                 color="light"
                 className={`${
-                  registrationMethod === 'passkey'
-                    ? '!border-alr-red'
-                    : '!border-gray-500'
-                } w-full cursor-pointer items-start border focus:ring-0 child:h-full`}
+                  registrationMethod === 'passkey' ? '!border-alr-red' : '!border-gray-500'
+                } child:h-full w-full cursor-pointer items-start border focus:ring-0`}
               >
                 <div className="flex flex-col items-start justify-center gap-2">
                   <KeyIcon
                     className={`${
-                      registrationMethod === 'passkey'
-                        ? 'text-alr-red'
-                        : 'text-gray-500'
+                      registrationMethod === 'passkey' ? 'text-alr-red' : 'text-gray-500'
                     } h-7 w-7`}
                   />
-                  <span className="font-semibold text-gray-900">
-                    {registerDictionary?.passkey}
-                  </span>
+                  <span className="font-semibold text-gray-900">{registerDictionary?.passkey}</span>
                   <span className="text-start text-xs font-normal text-gray-600">
                     {registerDictionary?.selectMethodPasskey}
                   </span>
@@ -910,7 +864,7 @@ export const Register = ({
             <Button
               data-test="register-method-selection-submit"
               onClick={() => selectRegisterMethod()}
-              className="mb-6 flex w-full cursor-pointer items-center bg-alr-red text-alr-white"
+              className="bg-alr-red text-alr-white mb-6 flex w-full cursor-pointer items-center"
             >
               {registerDictionary?.continue}
             </Button>
@@ -918,7 +872,7 @@ export const Register = ({
         </div>
       </div>
     ),
-    [isLoading, registrationMethod]
+    [isLoading, registrationMethod],
   );
 
   const Password = useMemo(
@@ -926,9 +880,7 @@ export const Register = ({
       <>
         <BackButton
           disabled={isLoading}
-          onClick={() =>
-            sendAuth(inviteToken || registerUser ? 'BACK_TO_IDLE' : 'BACK')
-          }
+          onClick={() => sendAuth(inviteToken || registerUser ? 'BACK_TO_IDLE' : 'BACK')}
         >
           {userInfoGetValues('email')}
         </BackButton>
@@ -937,7 +889,7 @@ export const Register = ({
           className="flex w-full flex-col"
           data-test="register-password-step"
         >
-          <span className="mb-5 text-center font-poppins font-bold text-alr-grey">
+          <span className="font-poppins text-alr-grey mb-5 text-center font-bold">
             {registerDictionary?.createPassword}
           </span>
           <form
@@ -977,12 +929,10 @@ export const Register = ({
             <Button
               data-test="password-submit"
               type="submit"
-              className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700"
+              className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
               disabled={isPasswordSubmitDisabled || isLoading}
             >
-              {isLoading && (
-                <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />
-              )}
+              {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
               {dictionary?.next}
             </Button>
           </form>
@@ -997,7 +947,7 @@ export const Register = ({
       passwordDirtyFields,
       isLoading,
       registerUser,
-    ]
+    ],
   );
 
   return (
@@ -1017,14 +967,18 @@ export const Register = ({
 
       {forgeId ? (
         <div className="flex flex-col">
-          <span className="text-center font-poppins text-2xl font-black text-alr-grey">
+          <span className="font-poppins text-alr-grey text-center text-2xl font-black">
             Tardezinha com Thiaguinho
           </span>
           <div className="flex w-full flex-row items-center justify-center gap-2">
             <span className="font-inter text-sm font-medium text-gray-900">
               {dictionary?.auth.poweredBy}
             </span>
-            <img src={aloreLogoBlack} alt="alore logo" width="60" />
+            <img
+              src={aloreLogoBlack}
+              alt="alore logo"
+              width="60"
+            />
           </div>
         </div>
       ) : (
@@ -1038,8 +992,8 @@ export const Register = ({
       )}
       <Card
         className={twMerge(
-          `flex min-w-[20rem] md:w-96 mx-5 py-2 md:mx-7 md:child:!px-9`,
-          isLoading ? 'pointer-events-none opacity-50' : ''
+          `md:child:!px-9 mx-5 flex min-w-[20rem] py-2 md:mx-7 md:w-96`,
+          isLoading ? 'pointer-events-none opacity-50' : '',
         )}
       >
         {forgeId && authState.matches('active.web3Connector') && 'TODO'}
@@ -1065,13 +1019,13 @@ export const Register = ({
           authState.matches('active.register.completingRegistration')) &&
           Password}
         {authState.matches('active.register.userCreated') && (
-          <div className="flex flex-col justify-center items-center gap-4">
-            <div className="flex flex-row gap-2 justify-center items-center">
+          <div className="flex flex-col items-center justify-center gap-4">
+            <div className="flex flex-row items-center justify-center gap-2">
               <span>Registration complete for</span>
               <span className="font-semibold">{sessionUser?.nickname}</span>
             </div>
             <Button
-              className="group flex items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-white duration-300 bg-alr-red hover:bg-alr-dark-red border border-transparent focus:ring-red-300 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:disabled:hover:bg-red-600 rounded-lg focus:ring-2 enabled:hover:bg-red-700 dark:enabled:hover:bg-red-700"
+              className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
               onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
             >
               LOGOUT

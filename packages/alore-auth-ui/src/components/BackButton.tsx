@@ -11,23 +11,17 @@ interface Props {
   className?: string;
 }
 
-const BackButton = ({
-  onClick,
-  disabled = false,
-  children,
-  className = '',
-  ...props
-}: Props) => (
+const BackButton = ({ onClick, disabled = false, children, className = '', ...props }: Props) => (
   <span
     {...props}
     onClick={!disabled ? onClick : undefined}
     className={twMerge(
-      `flex w-fit cursor-pointer items-center gap-x-1 text-base text-alr-red`,
+      `text-alr-red flex w-fit cursor-pointer items-center gap-x-1 text-base`,
       disabled ? 'cursor-not-allowed' : '',
-      className
+      className,
     )}
   >
-    <ArrowLeftIcon className='h-4 w-4' />
+    <ArrowLeftIcon className="h-4 w-4" />
     {children}
   </span>
 );
