@@ -9,8 +9,7 @@ import { randomBytes } from 'crypto';
 import { Button, Card, Spinner } from 'flowbite-react';
 import { Locale } from 'get-dictionary';
 import jwt_decode from 'jwt-decode';
-import React from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { FieldValues, useForm, useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import * as yup from 'yup';
@@ -28,7 +27,7 @@ const CheckboxForm = React.lazy(() => import('../components/CheckboxForm'));
 const TermsModal = React.lazy(() => import('../components/TermsModal'));
 const FormRules = React.lazy(() => import('../components/FormRules'));
 
-const envelopIcon = () => <EnvelopeIcon className="h-4 w-4 text-gray-500" />;
+const envelopIcon = () => <EnvelopeIcon className="size-4 text-gray-500" />;
 
 export interface RegisterProps {
   locale?: Locale;
@@ -38,11 +37,11 @@ export interface RegisterProps {
   inviteToken?: string;
   keyshareWorker?: Worker | null;
   cryptoUtils: {
-    hashUserInfo: (userInfo: string) => string;
+    hashUserInfo: (_userInfo: string) => string;
     generateSecureHash: (
-      data: string,
-      salt: string,
-      keyDerivationFunction: 'argon2d' | 'pbkdf2',
+      _data: string,
+      _salt: string,
+      _keyDerivationFunction: 'argon2d' | 'pbkdf2',
     ) => Promise<string>;
   };
 }
@@ -636,7 +635,7 @@ export const Register = ({
             control={userInfoControl}
             errors={userInfoErrors}
             name="nickname"
-            type={'text'}
+            type="text"
             placeholder={registerDictionary?.nicknameLabel}
             data-test="register-first-name"
             disabled={isLoading}
@@ -677,7 +676,7 @@ export const Register = ({
           }}
         >
           <span className="font-inter font-semibold">{registerDictionary?.alreadyHaveAccount}</span>
-          <ArrowRightIcon className="h-4 w-4" />
+          <ArrowRightIcon className="size-4" />
         </div>
         {forgeId && (
           <>
@@ -829,7 +828,7 @@ export const Register = ({
                   <LockOpenIcon
                     className={`${
                       registrationMethod === 'password' ? 'text-alr-red' : 'text-gray-500'
-                    } h-7 w-7`}
+                    } size-7`}
                   />
                   <span className="font-semibold text-gray-900">
                     {registerDictionary?.password}
@@ -852,7 +851,7 @@ export const Register = ({
                   <KeyIcon
                     className={`${
                       registrationMethod === 'passkey' ? 'text-alr-red' : 'text-gray-500'
-                    } h-7 w-7`}
+                    } size-7`}
                   />
                   <span className="font-semibold text-gray-900">{registerDictionary?.passkey}</span>
                   <span className="text-start text-xs font-normal text-gray-600">
@@ -952,7 +951,7 @@ export const Register = ({
 
   return (
     <div
-      className="flex h-full min-h-screen w-full flex-col items-center justify-center gap-y-2 sm:gap-y-7"
+      className="flex size-full min-h-screen flex-col items-center justify-center gap-y-2 sm:gap-y-7"
       data-test="register-page"
     >
       <TermsModal

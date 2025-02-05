@@ -1,7 +1,6 @@
 import init, { derive_child_keyshare } from '@0xcarbon/dkls23-wasm';
 import argon2 from 'argon2-browser';
-import crypto from 'crypto';
-import { UUID } from 'crypto';
+import crypto, { UUID } from 'crypto';
 import { keccak256, toUtf8Bytes } from 'ethers';
 
 interface JavascriptEncryptedFile {

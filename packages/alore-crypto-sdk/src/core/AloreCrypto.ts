@@ -44,10 +44,13 @@ const DEFAULT_URL = 'https://alpha-api.bealore.com/v1';
  */
 export class AloreCrypto {
   protected readonly endpoint: string;
+
   protected readonly accessToken?: string;
+
   protected readonly refreshToken?: string;
 
   public readonly signer: SignerModule;
+
   public readonly keygen: KeygenModule;
 
   constructor(

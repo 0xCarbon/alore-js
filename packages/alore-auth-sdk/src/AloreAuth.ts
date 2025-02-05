@@ -1,7 +1,6 @@
 import { startAuthentication } from '@simplewebauthn/browser';
 import argon2 from 'argon2-browser';
 import crypto from 'crypto';
-import ethers from 'ethers';
 
 export function hashUserInfo(userInfo: string) {
   const hash = crypto.createHash('sha256');
@@ -91,13 +90,16 @@ interface AuthMachineContext {
   googleOtpCode?: string;
   googleUser?: { email: string; nickname: string };
   sessionUser?: SessionUser;
+  // eslint-disable-next-line no-undef
   CCRPublicKey?: { publicKey: PublicKeyCredentialCreationOptions };
+  // eslint-disable-next-line no-undef
   RCRPublicKey?: { publicKey: PublicKeyCredentialRequestOptions };
   credentialEmail?: string;
 }
 
 export class AloreAuth {
   protected readonly endpoint: string;
+
   protected readonly emailTemplate: string;
 
   constructor(
@@ -195,7 +197,7 @@ export class AloreAuth {
     ) => {
       const { email, nickname, locale } = event.payload;
       const searchParams = new URLSearchParams();
-      let url = '/auth/confirmation-email';
+      const url = '/auth/confirmation-email';
 
       if (locale) {
         searchParams.append('locale', locale);
@@ -234,7 +236,7 @@ export class AloreAuth {
     },
     retrieveSalt: async (
       context: AuthMachineContext,
-      event: {
+      _event: {
         type: 'SELECT_PASSWORD';
         payload: {
           email: string;
@@ -443,7 +445,7 @@ export class AloreAuth {
     ) => {
       const { email, passwordHash, device, locale } = event.payload;
       const searchParams = new URLSearchParams();
-      let url = '/auth/login-verification';
+      const url = '/auth/login-verification';
 
       if (locale) {
         searchParams.append('locale', locale);
@@ -837,6 +839,7 @@ export class AloreAuth {
     },
   };
 
+  // eslint-disable-next-line class-methods-use-this
   private async delay(ms: number) {
     // eslint-disable-next-line no-promise-executor-return
     await new Promise((resolve) => setTimeout(resolve, ms));

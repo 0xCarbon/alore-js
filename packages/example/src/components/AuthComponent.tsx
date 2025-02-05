@@ -10,7 +10,7 @@ export default function AuthComponent() {
 
   console.log('state', state);
   console.log('actor', actor);
-  
+
   return (
     <Auth
       locale="pt"

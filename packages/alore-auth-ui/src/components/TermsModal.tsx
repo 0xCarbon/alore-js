@@ -10,6 +10,46 @@ import useDictionary from '../hooks/useDictionary';
 
 /* eslint-disable react/no-danger */
 
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
+/* eslint-disable react/no-danger */
+
 interface Props {
   locale: Locale;
   show: boolean;

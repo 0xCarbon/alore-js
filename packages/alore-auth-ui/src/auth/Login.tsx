@@ -7,8 +7,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { useActor } from '@xstate/react';
 import { Button, Card, Spinner } from 'flowbite-react';
 import { Locale } from 'get-dictionary';
-import React from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { FieldValues, useForm, useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import * as yup from 'yup';
@@ -30,7 +29,7 @@ const InputForm = React.lazy(() => import('../components/InputForm'));
 const InputOTP = React.lazy(() => import('../components/InputOTP'));
 const BackButton = React.lazy(() => import('../components/BackButton'));
 
-const envelopIcon = () => <EnvelopeIcon className="h-4 w-4 text-gray-500" />;
+const envelopIcon = () => <EnvelopeIcon className="size-4 text-gray-500" />;
 
 const HARDWARE = 1;
 const SOFTWARE = 2;
@@ -44,11 +43,11 @@ export interface LoginProps {
   logoImage?: React.ReactNode;
   keyshareWorker?: Worker | null;
   cryptoUtils: {
-    hashUserInfo: (userInfo: string) => string;
+    hashUserInfo: (_userInfo: string) => string;
     generateSecureHash: (
-      data: string,
-      salt: string,
-      keyDerivationFunction: 'argon2d' | 'pbkdf2',
+      _data: string,
+      _salt: string,
+      _keyDerivationFunction: 'argon2d' | 'pbkdf2',
     ) => Promise<string>;
   };
 }
@@ -82,7 +81,7 @@ export const Login = ({
   const [loading, setLoading] = useState(false);
   const [sendEmailCooldown, setSendEmailCooldown] = useState(0);
   const [cooldownMultiplier, setCooldownMultiplier] = useState(1);
-  const [newDeviceInfo, setNewDeviceInfo] = useState<NewDeviceInfo>();
+  const [newDeviceInfo] = useState<NewDeviceInfo>();
   const [loginMethod, setLoginMethod] = useState<'password' | 'passkey'>('password');
   const [isConditionalMediationAvailable, setIsConditionalMediationAvailable] = useState(false);
   const [authAbortController, setAuthAbortController] = useState<AbortController | undefined>(
@@ -834,7 +833,7 @@ export const Login = ({
                   <LockOpenIcon
                     className={`${
                       loginMethod === 'password' ? 'text-alr-red' : 'text-gray-500'
-                    } h-7 w-7`}
+                    } size-7`}
                   />
                   <span className="font-semibold text-gray-900">{loginDictionary?.password}</span>
                   <span className="text-start text-xs font-normal text-gray-600">
@@ -854,7 +853,7 @@ export const Login = ({
                   <KeyIcon
                     className={`${
                       loginMethod === 'passkey' ? 'text-alr-red' : 'text-gray-500'
-                    } h-7 w-7`}
+                    } size-7`}
                   />
                   <span className="font-semibold text-gray-900">{loginDictionary?.passkey}</span>
                   <span className="text-start text-xs font-normal text-gray-600">
@@ -1037,7 +1036,7 @@ export const Login = ({
                   onClick={() => startHwAuth(1)}
                 >
                   {loginDictionary?.useAnotherHardware}
-                  <ArrowRightIcon className="h-5 w-5" />
+                  <ArrowRightIcon className="size-5" />
                 </div>
               </>
             )}
@@ -1047,16 +1046,16 @@ export const Login = ({
                 onClick={() => sendAuth('USE_SOFTWARE_2FA')}
               >
                 {loginDictionary?.useSw2fa}
-                <ArrowRightIcon className="h-5 w-5" />
+                <ArrowRightIcon className="size-5" />
               </div>
             )}
           </div>
         ) : (
           <div className="flex w-full flex-col items-center">
-            <span className="font-poppins text-alr-grey mb-10 mt-[3rem] text-center text-[1.3rem] font-bold">
+            <span className="font-poppins text-alr-grey mb-10 mt-12 text-center text-[1.3rem] font-bold">
               {loginDictionary?.touchHardware}
             </span>
-            <span className="text-alr-grey mb-10 w-[15rem] text-sm font-normal">
+            <span className="text-alr-grey mb-10 w-60 text-sm font-normal">
               {loginDictionary?.touchHardwareDescription}
             </span>
             <img
@@ -1069,7 +1068,7 @@ export const Login = ({
                 onClick={() => sendAuth('USE_SOFTWARE_2FA')}
               >
                 {loginDictionary?.useSw2fa}
-                <ArrowRightIcon className="h-5 w-5" />
+                <ArrowRightIcon className="size-5" />
               </div>
             )}
           </div>
@@ -1085,7 +1084,7 @@ export const Login = ({
         <BackButton onClick={() => sendAuth('BACK')} />
 
         <div className="flex w-full flex-col items-center">
-          <span className="font-poppins text-alr-grey mb-10 mt-[3rem] text-center text-[1.3rem] font-bold">
+          <span className="font-poppins text-alr-grey mb-10 mt-12 text-center text-[1.3rem] font-bold">
             {loginDictionary?.inform2FACode}
           </span>
 
@@ -1116,7 +1115,7 @@ export const Login = ({
               onClick={() => sendAuth('USE_HARDWARE_2FA')}
             >
               {loginDictionary?.useHw2fa}
-              <ArrowRightIcon className="h-5 w-5" />
+              <ArrowRightIcon className="size-5" />
             </div>
           )}
         </div>
@@ -1185,7 +1184,7 @@ export const Login = ({
 
   return (
     <div
-      className="flex h-full min-h-screen w-full flex-col items-center justify-center gap-y-2 sm:gap-y-7"
+      className="flex size-full min-h-screen flex-col items-center justify-center gap-y-2 sm:gap-y-7"
       data-test="login-page"
     >
       {forgeId ? (

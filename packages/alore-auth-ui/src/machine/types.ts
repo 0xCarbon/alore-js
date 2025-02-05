@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { authService } from '.';
 
 export type SessionUser = {

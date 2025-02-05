@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { assign, createMachine, interpret, State } from 'xstate';
 
 import { AuthMachineContext, AuthMachineEvents, AuthMachineServices } from './types';
@@ -1223,7 +1224,7 @@ let stateDefinition;
 
 // @ts-ignore
 if (typeof window !== 'undefined') {
-  let authState = localStorage.getItem('authState');
+  const authState = localStorage.getItem('authState');
   if (authState) {
     stateDefinition = JSON.parse(authState);
   }

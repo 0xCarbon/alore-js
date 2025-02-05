@@ -96,6 +96,9 @@ importers:
       '@types/js-cookie':
         specifier: 3.0.6
         version: 3.0.6
+      '@types/node':
+        specifier: 20.4.8
+        version: 20.4.8
       typescript:
         specifier: 5.4.5
         version: 5.4.5

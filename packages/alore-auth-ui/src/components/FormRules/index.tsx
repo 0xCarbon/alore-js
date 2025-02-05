@@ -27,9 +27,9 @@ const FormRules = ({ locale, passwordValues, userValues, className }: FormRulesP
           className="flex items-center gap-x-2"
         >
           {ruleValidation(rule, passwordValues, userValues) ? (
-            <CheckIcon className="h-3 w-3 text-green-400 md:h-5 md:w-5" />
+            <CheckIcon className="size-3 text-green-400 md:size-5" />
           ) : (
-            <XMarkIcon className="text-alr-red h-3 w-3 md:h-5 md:w-5" />
+            <XMarkIcon className="text-alr-red size-3 md:size-5" />
           )}
           <span className="text-[11px] text-gray-500 md:text-xs">
             {dictionary?.passwordRules[rule.key as keyof (typeof dictionary)['passwordRules']]}

@@ -19,14 +19,14 @@ export interface AuthProps {
   inviteToken?: string;
   keyshareWorker?: Worker | null;
   cryptoUtils: {
-    hashUserInfo: (userInfo: string) => string;
+    hashUserInfo: (_userInfo: string) => string;
     generateSecureHash: (
-      data: string,
-      salt: string,
-      keyDerivationFunction: 'argon2d' | 'pbkdf2',
+      _data: string,
+      _salt: string,
+      _keyDerivationFunction: 'argon2d' | 'pbkdf2',
     ) => Promise<string>;
   };
-  onSuccess?: (sessionUser: SessionUser) => void;
+  onSuccess?: (_sessionUser: SessionUser) => void;
 }
 
 const Auth = ({
@@ -79,7 +79,7 @@ const Auth = ({
       <GoogleOAuthProvider clientId={googleId}>
         <Suspense
           fallback={
-            <div className="flex h-full min-h-screen w-full flex-col items-center justify-center">
+            <div className="flex size-full min-h-screen flex-col items-center justify-center">
               <Spinner className="m-auto !h-12 w-full !fill-gray-300" />
             </div>
           }
