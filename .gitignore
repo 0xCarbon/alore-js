@@ -55,6 +55,3 @@ yarn-error.log*
 # pnpm
 pnpm-lock.yaml
 pnpm-workspace.yaml
-
-# alore-crypto-sdk
-packages/alore-crypto-sdk/

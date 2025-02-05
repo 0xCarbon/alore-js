@@ -74,18 +74,18 @@ importers:
 
   example:
     devDependencies:
-      '@0xcarbon/alore-auth-sdk':
-        specifier: file:../packages/alore-auth-sdk
-        version: file:packages/alore-auth-sdk
-      '@0xcarbon/alore-auth-ui':
-        specifier: file:../packages/alore-auth-ui
-        version: file:packages/alore-auth-ui(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.3.1)
-      '@0xcarbon/alore-crypto-sdk':
-        specifier: file:../packages/alore-crypto-sdk
-        version: file:packages/alore-crypto-sdk
       '@0xcarbon/dkls23-wasm':
         specifier: 1.0.2
         version: 1.0.2
+      '@alore/auth-react-sdk':
+        specifier: file:../packages/alore-auth-sdk
+        version: file:packages/alore-auth-sdk
+      '@alore/auth-react-ui':
+        specifier: file:../packages/alore-auth-ui
+        version: file:packages/alore-auth-ui(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.3.1)
+      '@alore/crypto-sdk':
+        specifier: file:../packages/alore-crypto-sdk
+        version: file:packages/alore-crypto-sdk
       '@heroicons/react':
         specifier: 2.0.16
         version: 2.0.16(react@18.2.0)
@@ -7885,7 +7885,7 @@ packages:
 
   file:packages/alore-auth-sdk:
     resolution: {directory: packages/alore-auth-sdk, type: directory}
-    name: '@0xcarbon/alore-auth-sdk'
+    name: '@alore/auth-react-sdk'
     engines: {node: '>=20.0.0'}
     dependencies:
       '@simplewebauthn/browser': 7.4.0
@@ -7901,7 +7901,7 @@ packages:
   file:packages/alore-auth-ui(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.3.1):
     resolution: {directory: packages/alore-auth-ui, type: directory}
     id: file:packages/alore-auth-ui
-    name: '@0xcarbon/alore-auth-ui'
+    name: '@alore/auth-react-ui'
     engines: {node: '>=20.0.0'}
     peerDependencies:
       flowbite-react: 0.6.4
@@ -7930,7 +7930,7 @@ packages:
 
   file:packages/alore-crypto-sdk:
     resolution: {directory: packages/alore-crypto-sdk, type: directory}
-    name: '@0xcarbon/alore-crypto-sdk'
+    name: '@alore/crypto-sdk'
     engines: {node: '>=20.0.0'}
     dependencies:
       '@0xcarbon/dkls23-wasm': 1.0.2
