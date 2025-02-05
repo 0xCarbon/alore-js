@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 import init, {
   phase1_wasm_binding,
   phase2_wasm_binding,
@@ -23,6 +24,7 @@ import {
 } from '../utils';
 
 export class KeygenModule {
+  // eslint-disable-next-line no-useless-constructor, no-unused-vars, no-empty-function
   constructor(protected sdk: AloreCrypto) {}
 
   /**

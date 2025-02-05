@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 import init, { sign_phase1, sign_phase2, sign_phase3, sign_phase4 } from '@0xcarbon/dkls23-wasm';
 import { Signature, Transaction } from 'ethers';
 
@@ -17,6 +18,7 @@ import {
 } from '../utils';
 
 export class SignerModule {
+  // eslint-disable-next-line no-useless-constructor, no-unused-vars, no-empty-function
   constructor(protected sdk: AloreCrypto) {}
 
   /**
