@@ -72,6 +72,96 @@ importers:
         specifier: 8.23.0
         version: 8.23.0(eslint@8.57.1)(typescript@5.4.5)
 
+  example:
+    devDependencies:
+      '@0xcarbon/alore-auth-sdk':
+        specifier: file:../packages/alore-auth-sdk
+        version: file:packages/alore-auth-sdk
+      '@0xcarbon/alore-auth-ui':
+        specifier: file:../packages/alore-auth-ui
+        version: file:packages/alore-auth-ui(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.3.1)
+      '@0xcarbon/alore-crypto-sdk':
+        specifier: file:../packages/alore-crypto-sdk
+        version: file:packages/alore-crypto-sdk
+      '@0xcarbon/dkls23-wasm':
+        specifier: 1.0.2
+        version: 1.0.2
+      '@heroicons/react':
+        specifier: 2.0.16
+        version: 2.0.16(react@18.2.0)
+      '@hookform/resolvers':
+        specifier: 3.1.0
+        version: 3.1.0(react-hook-form@7.45.4)
+      '@react-oauth/google':
+        specifier: 0.12.1
+        version: 0.12.1(react-dom@18.3.1)(react@18.2.0)
+      '@simplewebauthn/browser':
+        specifier: 7.4.0
+        version: 7.4.0
+      '@types/argon2-browser':
+        specifier: 1.18.1
+        version: 1.18.1
+      '@types/react':
+        specifier: 18.2.79
+        version: 18.2.79
+      '@xstate/react':
+        specifier: 3.2.2
+        version: 3.2.2(@types/react@18.2.79)(react@18.2.0)(xstate@4.38.2)
+      argon2-browser:
+        specifier: 1.18.0
+        version: 1.18.0
+      autoprefixer:
+        specifier: 10.4.19
+        version: 10.4.19(postcss@8.4.38)
+      base64-loader:
+        specifier: 1.0.0
+        version: 1.0.0
+      ethers:
+        specifier: 6.7.1
+        version: 6.7.1
+      flowbite:
+        specifier: 2.3.0
+        version: 2.3.0
+      flowbite-react:
+        specifier: 0.7.2
+        version: 0.7.2(@types/react@18.2.79)(esbuild@0.24.2)(next@14.2.1)(react-dom@18.3.1)(react@18.2.0)(tailwindcss@3.4.3)
+      hpke-js:
+        specifier: 1.2.7
+        version: 1.2.7
+      js-cookie:
+        specifier: 3.0.5
+        version: 3.0.5
+      jwt-decode:
+        specifier: 4.0.0
+        version: 4.0.0
+      next:
+        specifier: 14.2.1
+        version: 14.2.1(@opentelemetry/api@1.9.0)(react-dom@18.3.1)(react@18.2.0)
+      postcss:
+        specifier: 8.4.38
+        version: 8.4.38
+      react:
+        specifier: '18'
+        version: 18.2.0
+      react-dom:
+        specifier: '18'
+        version: 18.3.1(react@18.2.0)
+      react-hook-form:
+        specifier: 7.45.4
+        version: 7.45.4(react@18.2.0)
+      tailwindcss:
+        specifier: 3.4.3
+        version: 3.4.3
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      xstate:
+        specifier: 4.38.2
+        version: 4.38.2
+      yup:
+        specifier: 1.1.1
+        version: 1.1.1
+
   packages/alore-auth-sdk:
     dependencies:
       '@simplewebauthn/browser':
@@ -188,96 +278,6 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-
-  packages/example:
-    devDependencies:
-      '@0xcarbon/alore-auth-sdk':
-        specifier: file:../alore-auth-sdk
-        version: file:packages/alore-auth-sdk
-      '@0xcarbon/alore-auth-ui':
-        specifier: file:../alore-auth-ui
-        version: file:packages/alore-auth-ui(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.3.1)
-      '@0xcarbon/alore-crypto-sdk':
-        specifier: file:../alore-crypto-sdk
-        version: file:packages/alore-crypto-sdk
-      '@0xcarbon/dkls23-wasm':
-        specifier: 1.0.2
-        version: 1.0.2
-      '@heroicons/react':
-        specifier: 2.0.16
-        version: 2.0.16(react@18.2.0)
-      '@hookform/resolvers':
-        specifier: 3.1.0
-        version: 3.1.0(react-hook-form@7.45.4)
-      '@react-oauth/google':
-        specifier: 0.12.1
-        version: 0.12.1(react-dom@18.3.1)(react@18.2.0)
-      '@simplewebauthn/browser':
-        specifier: 7.4.0
-        version: 7.4.0
-      '@types/argon2-browser':
-        specifier: 1.18.1
-        version: 1.18.1
-      '@types/react':
-        specifier: 18.2.79
-        version: 18.2.79
-      '@xstate/react':
-        specifier: 3.2.2
-        version: 3.2.2(@types/react@18.2.79)(react@18.2.0)(xstate@4.38.2)
-      argon2-browser:
-        specifier: 1.18.0
-        version: 1.18.0
-      autoprefixer:
-        specifier: 10.4.19
-        version: 10.4.19(postcss@8.4.38)
-      base64-loader:
-        specifier: 1.0.0
-        version: 1.0.0
-      ethers:
-        specifier: 6.7.1
-        version: 6.7.1
-      flowbite:
-        specifier: 2.3.0
-        version: 2.3.0
-      flowbite-react:
-        specifier: 0.7.2
-        version: 0.7.2(@types/react@18.2.79)(esbuild@0.24.2)(next@14.2.1)(react-dom@18.3.1)(react@18.2.0)(tailwindcss@3.4.3)
-      hpke-js:
-        specifier: 1.2.7
-        version: 1.2.7
-      js-cookie:
-        specifier: 3.0.5
-        version: 3.0.5
-      jwt-decode:
-        specifier: 4.0.0
-        version: 4.0.0
-      next:
-        specifier: 14.2.1
-        version: 14.2.1(@opentelemetry/api@1.9.0)(react-dom@18.3.1)(react@18.2.0)
-      postcss:
-        specifier: 8.4.38
-        version: 8.4.38
-      react:
-        specifier: '18'
-        version: 18.2.0
-      react-dom:
-        specifier: '18'
-        version: 18.3.1(react@18.2.0)
-      react-hook-form:
-        specifier: 7.45.4
-        version: 7.45.4(react@18.2.0)
-      tailwindcss:
-        specifier: 3.4.3
-        version: 3.4.3
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
-      xstate:
-        specifier: 4.38.2
-        version: 4.38.2
-      yup:
-        specifier: 1.1.1
-        version: 1.1.1
 
 packages:
 
