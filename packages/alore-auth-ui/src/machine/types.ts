@@ -1,5 +1,8 @@
-/* eslint-disable no-undef */
 import { authService } from '.';
+
+type PublicKeyCredentialCreationOptions = globalThis.PublicKeyCredentialCreationOptions;
+type PublicKeyCredentialRequestOptions = globalThis.PublicKeyCredentialRequestOptions;
+type CredentialMediationRequirement = globalThis.CredentialMediationRequirement;
 
 export type SessionUser = {
   createdAt: string;

@@ -1,5 +1,3 @@
-/* eslint-disable react/no-danger */
-
 'use client';
 
 import { Button, Modal } from 'flowbite-react';
@@ -7,90 +5,6 @@ import React from 'react';
 
 import { Locale } from '../get-dictionary';
 import useDictionary from '../hooks/useDictionary';
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
-
-/* eslint-disable react/no-danger */
 
 interface Props {
   locale: Locale;
