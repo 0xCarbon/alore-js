@@ -6,16 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "install-aure-auth-ui": "cd ../packages/alore-auth-ui && pnpm i",
-    "install-aure-auth-sdk": "cd ../packages/alore-auth-sdk && pnpm i",
-    "install-aure-crypto-sdk": "cd ../packages/alore-crypto-sdk && pnpm i",
-    "prepare": "npm run install-aure-auth-ui && npm run install-aure-auth-sdk && npm run install-aure-crypto-sdk"
+    "lint": "next lint"
   },
   "devDependencies": {
-    "@alore/auth-react-ui": "file:../packages/alore-auth-ui",
-    "@alore/auth-react-sdk": "file:../packages/alore-auth-sdk",
-    "@alore/crypto-sdk": "file:../packages/alore-crypto-sdk",
+    "@alore/auth-react-ui": "workspace:*",
+    "@alore/auth-react-sdk": "workspace:*",
+    "@alore/crypto-sdk": "workspace:*",
     "@0xcarbon/dkls23-wasm": "1.0.2",
     "@heroicons/react": "2.0.16",
     "@hookform/resolvers": "3.1.0",

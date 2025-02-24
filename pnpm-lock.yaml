@@ -78,14 +78,14 @@ importers:
         specifier: 1.0.2
         version: 1.0.2
       '@alore/auth-react-sdk':
-        specifier: file:../packages/alore-auth-sdk
-        version: file:packages/alore-auth-sdk
+        specifier: workspace:*
+        version: link:../packages/alore-auth-sdk
       '@alore/auth-react-ui':
-        specifier: file:../packages/alore-auth-ui
-        version: file:packages/alore-auth-ui(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.3.1)
+        specifier: workspace:*
+        version: link:../packages/alore-auth-ui
       '@alore/crypto-sdk':
-        specifier: file:../packages/alore-crypto-sdk
-        version: file:packages/alore-crypto-sdk
+        specifier: workspace:*
+        version: link:../packages/alore-crypto-sdk
       '@heroicons/react':
         specifier: 2.0.16
         version: 2.0.16(react@18.2.0)
@@ -1099,6 +1099,7 @@ packages:
       react-hook-form: ^7.0.0
     dependencies:
       react-hook-form: 7.54.2(react@18.2.0)
+    dev: false
 
   /@humanwhocodes/config-array@0.13.0:
     resolution: {integrity: sha512-DZLEEqFWQFiyK6h5YIeynKx7JlvCYWL0cImfSRXZ9l4Sg2efkFGTuFf6vzXjK1cq6IYkU+Eg/JizXw+TD2vRNw==}
@@ -3757,6 +3758,7 @@ packages:
     dependencies:
       '@popperjs/core': 2.11.8
       mini-svg-data-uri: 1.4.4
+    dev: false
 
   /flowbite@2.3.0:
     resolution: {integrity: sha512-pm3JRo8OIJHGfFYWgaGpPv8E+UdWy0Z3gEAGufw+G/1dusaU/P1zoBLiQpf2/+bYAi+GBQtPVG86KYlV0W+AFQ==}
@@ -4734,6 +4736,7 @@ packages:
 
   /jwt-decode@3.1.2:
     resolution: {integrity: sha512-UfpWE/VZn0iP50d8cz9NrZLM9lSWhcJ+0Gt/nm4by88UL+J1SiKN8/5dkjMmbEzwL2CAe+67GsegCbIKtbp75A==}
+    dev: false
 
   /jwt-decode@4.0.0:
     resolution: {integrity: sha512-+KJGIyHgkGuIq3IEBNftfhW/LfWhXUIY6OmyVWjliu5KH1y0fw7VQ8YndE2O4qZdMSd9SqbnC8GOcZEy0Om7sA==}
@@ -6436,6 +6439,7 @@ packages:
       react: ^16.8.0 || ^17 || ^18 || ^19
     dependencies:
       react: 18.2.0
+    dev: false
 
   /react-icons@4.12.0(react@18.2.0):
     resolution: {integrity: sha512-IBaDuHiShdZqmfc/TwHu6+d6k2ltNCf3AszxNmjJc1KUfXdEeRJOKyNvLmAHaarhzGmTSVygNdyu8/opXv2gaw==}
@@ -7881,63 +7885,4 @@ packages:
 
   /zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
-    dev: true
-
-  file:packages/alore-auth-sdk:
-    resolution: {directory: packages/alore-auth-sdk, type: directory}
-    name: '@alore/auth-react-sdk'
-    engines: {node: '>=20.0.0'}
-    dependencies:
-      '@simplewebauthn/browser': 7.4.0
-      argon2-browser: 1.18.0
-      ethers: 6.7.1
-      js-cookie: 3.0.5
-      jwt-decode: 4.0.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-    dev: true
-
-  file:packages/alore-auth-ui(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.3.1):
-    resolution: {directory: packages/alore-auth-ui, type: directory}
-    id: file:packages/alore-auth-ui
-    name: '@alore/auth-react-ui'
-    engines: {node: '>=20.0.0'}
-    peerDependencies:
-      flowbite-react: 0.6.4
-    dependencies:
-      '@heroicons/react': 2.0.16(react@18.2.0)
-      '@hookform/resolvers': 3.1.0(react-hook-form@7.54.2)
-      '@react-oauth/google': 0.12.1(react-dom@18.3.1)(react@18.2.0)
-      '@types/node': 20.4.8
-      '@xstate/react': 3.2.2(@types/react@18.2.79)(react@18.2.0)(xstate@4.38.2)
-      flowbite: 1.6.6
-      flowbite-react: 0.7.2(@types/react@18.2.79)(esbuild@0.24.2)(next@14.2.1)(react-dom@18.3.1)(react@18.2.0)(tailwindcss@3.4.3)
-      js-cookie: 3.0.5
-      jwt-decode: 3.1.2
-      react: 18.2.0
-      react-hook-form: 7.54.2(react@18.2.0)
-      tailwind-merge: 2.3.0
-      tailwindcss: 3.4.3
-      xstate: 4.38.2
-      yup: 1.1.1
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@xstate/fsm'
-      - react-dom
-      - ts-node
-    dev: true
-
-  file:packages/alore-crypto-sdk:
-    resolution: {directory: packages/alore-crypto-sdk, type: directory}
-    name: '@alore/crypto-sdk'
-    engines: {node: '>=20.0.0'}
-    dependencies:
-      '@0xcarbon/dkls23-wasm': 1.0.2
-      argon2-browser: 1.18.0
-      ethers: 6.7.1
-      hpke-js: 1.2.7
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
     dev: true
