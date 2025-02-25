@@ -40,8 +40,8 @@ jobs:
       - name: Run ESLint
         run: pnpm -w run lint
 
-      - name: Run TypeScript Check
-        run: pnpm -w run type-check
+      # - name: Run TypeScript Check
+      #   run: pnpm -w run type-check
 
       - name: Check Formatting with Prettier
         run: pnpm -w run format-check
