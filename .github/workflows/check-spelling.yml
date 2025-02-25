@@ -20,7 +20,7 @@ jobs:
           check_file_names: 1
           disable_checks: noisy-file
           experimental_apply_changes_via_bot: 1
-          extra_dictionaries:
+          extra_dictionaries: |
             cspell:public-licenses/src/generated/public-licenses.txt
             cspell:cryptocurrencies/cryptocurrencies.txt
             cspell:software-terms/dict/networkingTerms.txt
