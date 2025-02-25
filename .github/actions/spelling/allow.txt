@@ -367,6 +367,7 @@ PRFOr
 airbnb
 camelcase
 classname
+classnames
 commitlint
 nocheck
 ooriginal
