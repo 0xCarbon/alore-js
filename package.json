@@ -5,11 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint .",
+    "lint": "eslint '**/*.{ts,tsx}'",
     "format": "prettier --write .",
-    "prepare": "husky",
-    "type-check": "tsc --noEmit",
-    "format-check": "prettier --check ."
+    "format-check": "prettier --check .",
+    "prepare": "husky"
   },
   "keywords": [],
   "lint-staged": {
@@ -25,7 +24,9 @@
   "devDependencies": {
     "@commitlint/cli": "19.7.1",
     "@commitlint/config-conventional": "19.7.1",
+    "@eslint/compat": "1.2.6",
     "@eslint/js": "9.19.0",
+    "@trivago/prettier-plugin-sort-imports": "5.2.2",
     "eslint": "8.57.1",
     "eslint-config-airbnb": "19.0.4",
     "eslint-config-next": "^15.1.6",
@@ -40,9 +41,7 @@
     "husky": "9.1.7",
     "lint-staged": "15.4.3",
     "prettier": "3.4.2",
-    "typescript-eslint": "8.23.0",
-    "@eslint/compat": "1.2.6",
-    "@trivago/prettier-plugin-sort-imports": "5.2.2",
-    "prettier-plugin-tailwindcss": "0.6.11"
+    "prettier-plugin-tailwindcss": "0.6.11",
+    "typescript-eslint": "8.23.0"
   }
 }
