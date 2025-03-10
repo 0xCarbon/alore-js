@@ -1,0 +1,40 @@
+{
+  "name": "@alore/auth-react-sdk",
+  "version": "1.0.0-alpha",
+  "repository": "https://github.com/0xCarbon/alore-js",
+  "description": "SDK for Alore Auth",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "prepare": "pnpm build",
+    "build": "rm -rf dist/* && tsc"
+  },
+  "author": "0xCarbon",
+  "license": "LGPL-2.1-only",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@simplewebauthn/browser": "7.4.0",
+    "argon2-browser": "1.18.0",
+    "ethers": "6.7.1",
+    "js-cookie": "3.0.5",
+    "jwt-decode": "4.0.0"
+  },
+  "devDependencies": {
+    "@types/argon2-browser": "1.18.1",
+    "@types/js-cookie": "3.0.6",
+    "@types/node": "20.4.8",
+    "typescript": "5.4.5"
+  },
+  "packageManager": "pnpm@8.15.7+sha512.c85cd21b6da10332156b1ca2aa79c0a61ee7ad2eb0453b88ab299289e9e8ca93e6091232b25c07cbf61f6df77128d9c849e5c9ac6e44854dbd211c49f3a67adc"
+}

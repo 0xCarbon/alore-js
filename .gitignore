@@ -1,12 +1,57 @@
-# .gitignore
+# build artifacts
 node_modules
-
-.devcontainer
-
-.env
-
-*.d.ts
-
+target
+build
+out
 dist
+next-env.d.ts
+.done
+.pnp.js
+*.log
+emulators-data
+firebase-export-*
+isolate
+backup
+screenshots
+*.cache
+
+# env
+.env
+.env.local
+.secrets
+
+# testing
+**/apps/*/coverage
+**/apps/*/cypress/videos
+**/apps/*/cypress/screenshots
+**/apps/*/cypress/downloads
+instrumented
+
+# next.js
+.next/
+
+# nyc
+.nyc_output
+
+# misc
 .DS_Store
-*.typegen.ts
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+
+# xstate
+*.typegen.*
+
+# pnpm
+pnpm-lock.yaml
+pnpm-workspace.yaml

@@ -364,3 +364,12 @@ rcr
 postcss
 cjs
 PRFOr
+airbnb
+camelcase
+classname
+classnames
+commitlint
+nocheck
+ooriginal
+trivago
+URLTo
