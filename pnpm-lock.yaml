@@ -78,7 +78,7 @@ importers:
         specifier: 1.0.2
         version: 1.0.2
       '@alore/auth-react-ui':
-        specifier: workspace:*
+        specifier: 1.0.1-alpha
         version: link:../packages/alore-auth-ui
       '@alore/crypto-sdk':
         specifier: workspace:*
@@ -193,8 +193,8 @@ importers:
   packages/alore-auth-ui:
     dependencies:
       '@alore/auth-react-sdk':
-        specifier: file:../alore-auth-sdk
-        version: file:packages/alore-auth-sdk
+        specifier: 1.0.1-alpha
+        version: link:../alore-auth-sdk
       '@heroicons/react':
         specifier: 2.0.16
         version: 2.0.16(react@18.2.0)
@@ -7886,18 +7886,3 @@ packages:
   /zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
     dev: true
-
-  file:packages/alore-auth-sdk:
-    resolution: {directory: packages/alore-auth-sdk, type: directory}
-    name: '@alore/auth-react-sdk'
-    engines: {node: '>=20.0.0'}
-    dependencies:
-      '@simplewebauthn/browser': 7.4.0
-      argon2-browser: 1.18.0
-      ethers: 6.7.1
-      js-cookie: 3.0.5
-      jwt-decode: 4.0.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-    dev: false
