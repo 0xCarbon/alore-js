@@ -444,12 +444,6 @@ export const Register = ({
     [authState.value],
   );
 
-  // useEffect(() => {
-  //   if (registerUser) {
-  //     sendAuth([{ type: 'INITIALIZE', forgeId }, 'SIGN_UP', 'ADVANCE_TO_PASSWORD']);
-  //   } else sendAuth([{ type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
-  // }, []);
-
   useEffect(() => {
     if (inviteToken) {
       try {
