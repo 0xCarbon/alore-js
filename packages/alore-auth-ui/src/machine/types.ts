@@ -1,3 +1,5 @@
+import { AuthProviderConfig } from '@alore/auth-react-sdk/dist/types';
+
 import { authService } from '.';
 
 type PublicKeyCredentialCreationOptions = globalThis.PublicKeyCredentialCreationOptions;
@@ -19,6 +21,7 @@ export type SessionUser = {
 };
 
 export interface AuthMachineContext {
+  authProviderConfigs?: AuthProviderConfig;
   salt?: string;
   error?: string;
   active2fa?: TwoFactorAuth[];
@@ -49,7 +52,7 @@ export type AuthMachineEvents =
   | { type: 'BACK' }
   | { type: 'BACK_TO_IDLE' }
   | { type: 'SELECT_CONNECTOR' }
-  | { type: 'NEXT'; payload: { email: string } }
+  | { type: 'SELECT_PASSWORD_METHOD'; payload: { email: string } }
   | {
       type: 'GOOGLE_LOGIN';
       googleToken: string;

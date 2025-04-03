@@ -76,7 +76,11 @@ export const Login = ({
     googleUser,
     sessionUser,
     RCRPublicKey,
+    authProviderConfigs,
   } = authState.context;
+
+  const { enablePasskeys, requireEmailVerification } = authProviderConfigs || {};
+
   const [currentDevice, setCurrentDevice] = useState('');
   const [loading, setLoading] = useState(false);
   const [sendEmailCooldown, setSendEmailCooldown] = useState(0);
@@ -303,14 +307,8 @@ export const Login = ({
     authState.matches('active.login.signingCredentialRCR'),
   ]);
 
-  useEffect(() => {
-    if (authState.matches('active.login.idle.authScreen') && !isSafari) {
-      sendAuth('SET_CONDITIONAL_UI_PASSKEY');
-    }
-  }, [authState.matches('active.login.idle.authScreen')]);
-
-  const handlePasskeyButton = () => {
-    sendAuth('SIGN_IN_WITH_PASSKEY');
+  const handlePasskeyButton = async () => {
+    sendAuth('START_PASSKEY_LOGIN');
   };
 
   const isLoading = useMemo(
@@ -325,7 +323,6 @@ export const Login = ({
       authState.matches('active.login.resendingEmailCode') ||
       authState.matches('active.login.googleLogin') ||
       authState.matches('active.login.verifyingGoogleLogin') ||
-      authState.matches('active.login.retrievingRCR') ||
       authState.matches('active.login.verifyingRegisterPublicKeyCredential') ||
       authState.matches('active.login.retrievingCredentialRCR') ||
       authState.matches('active.login.signingCredentialRCR') ||
@@ -475,7 +472,7 @@ export const Login = ({
     const { username: email } = data;
 
     // await signOut({ redirect: false });
-    sendAuth({ type: 'NEXT', payload: { email } });
+    sendAuth({ type: 'SELECT_PASSWORD_METHOD', payload: { email } });
     setLoading(false);
   };
 
@@ -662,7 +659,7 @@ export const Login = ({
   const EmailInputStep = useMemo(() => {
     const { authErrorTitle, authErrorDescription } = getAuthError();
     return (
-      <>
+      <div>
         {authError ? (
           <div className="flex flex-col items-center justify-center gap-5">
             <img
@@ -690,51 +687,61 @@ export const Login = ({
             {forgeId ? loginDictionary?.forgeLogin : loginDictionary?.loginAccount}
           </h1>
         )}
-        <form
-          className="flex flex-col gap-y-5"
-          onSubmit={handleSubmitEmail((data) => onSubmitEmail(data))}
-        >
-          <InputForm
-            className="my-1"
-            control={emailControl}
-            errors={emailErrors}
-            name="username"
-            type="text"
-            placeholder={loginDictionary?.enterEmail}
-            data-test="login-email"
-            icon={envelopIcon}
-            autoComplete={
-              authAbortController && isConditionalMediationAvailable
-                ? 'username webauthn'
-                : undefined
-            }
-            autoFocus
-          />
 
-          {/* <Link // TODO removed from beta
+        <div className="mt-3 flex flex-col gap-y-5">
+          {requireEmailVerification && (
+            <>
+              <form
+                className="flex flex-col gap-y-5"
+                onSubmit={handleSubmitEmail((data) => onSubmitEmail(data))}
+              >
+                <InputForm
+                  className="my-1"
+                  control={emailControl}
+                  errors={emailErrors}
+                  name="username"
+                  type="text"
+                  placeholder={loginDictionary?.enterEmail}
+                  data-test="login-email"
+                  icon={envelopIcon}
+                  autoComplete={
+                    authAbortController && isConditionalMediationAvailable
+                      ? 'username webauthn'
+                      : undefined
+                  }
+                  autoFocus
+                />
+
+                {/* <Link // TODO removed from beta
             href="/forgot-password"
             className="cursor-pointer self-end text-xs font-medium text-alr-red"
             data-test="forgot-password"
           >
             Forgot your password?
           </Link> */}
-          <Button
-            type="submit"
-            data-test="login-button"
-            disabled={verifyEmptyValues(getValuesEmail('username'))}
-            className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
-          >
-            {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
-            {loginDictionary?.login}
-          </Button>
-          <div className="h-[0.5px] w-full bg-gray-300" />
-          {typeof window.PublicKeyCredential !== 'undefined' && (
+                <Button
+                  type="submit"
+                  data-test="login-button"
+                  disabled={verifyEmptyValues(getValuesEmail('username'))}
+                  className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
+                >
+                  {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
+                  {loginDictionary?.login}
+                </Button>
+              </form>
+              <div className="h-[0.5px] w-full bg-gray-300" />
+            </>
+          )}
+          {enablePasskeys && typeof window.PublicKeyCredential !== 'undefined' && (
             <Button
               color="light"
               onClick={handlePasskeyButton}
               outline
             >
-              {dictionary?.auth.signWithPasskey}
+              <div className="flex flex-row items-center justify-center gap-2">
+                <KeyIcon className="size-4 text-gray-500" />
+                <span>{dictionary?.auth.signWithPasskey}</span>
+              </div>
             </Button>
           )}
           <Button
@@ -751,6 +758,7 @@ export const Login = ({
               {dictionary?.auth.continueGoogle}
             </div>
           </Button>
+          <div className="h-[0.5px] w-full bg-gray-300" />
           {forgeId && (
             <Button
               color="light"
@@ -786,8 +794,8 @@ export const Login = ({
               {loginDictionary?.signUp}
             </div>
           </span>
-        </form>
-      </>
+        </div>
+      </div>
     );
   }, [getValuesEmail(), isLoginSubmitDisabled, emailErrors, emailControl, isLoading]);
 
@@ -873,7 +881,7 @@ export const Login = ({
         </div>
       </div>
     );
-  }, [isLoading, loginMethod]);
+  }, [isLoading, loginMethod, loginDictionary]);
 
   const PasswordInputStep = useMemo(
     () => (
@@ -1219,12 +1227,10 @@ export const Login = ({
         )}
       >
         {forgeId && authState.matches('active.web3Connector') && 'TODO'}
-        {(authState.matches('active.login.passkeyGuard') ||
-          authState.matches('active.login.idle') ||
+        {(authState.matches('active.login.idle') ||
           authState.matches('active.login.googleLogin') ||
           authState.matches('active.login.retrievingSalt') ||
-          authState.matches('active.login.verifyingRegisterPublicKeyCredential') ||
-          authState.matches('active.login.retrievingRCR')) &&
+          authState.matches('active.login.verifyingRegisterPublicKeyCredential')) &&
           EmailInputStep}
         {(authState.matches('active.login.loginMethodSelection') ||
           authState.matches('active.login.signingCredentialRCR') ||

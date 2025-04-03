@@ -1,48 +1,46 @@
 'use client';
 
+import { generateSecureHash, hashUserInfo } from '@alore/auth-react-sdk';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useActor } from '@xstate/react';
 import { Spinner } from 'flowbite-react';
-import { Locale } from 'get-dictionary';
 import React, { Suspense, useEffect, useState } from 'react';
 
-import { Login } from './auth/Login';
-import { Register } from './auth/Register';
-import useAuthServiceInstance from './hooks/useAuthServiceInstance';
-import { SessionUser } from './machine/types';
+import { Login } from '../auth/Login';
+import { Register } from '../auth/Register';
+import useAuthServiceInstance from '../hooks/useAuthServiceInstance';
+import { SessionUser } from '../machine/types';
 
 export interface AuthProps {
-  locale?: Locale;
   googleId: string;
   forgeId?: string;
   logoImage?: React.ReactNode;
   inviteToken?: string;
   keyshareWorker?: Worker | null;
-  cryptoUtils: {
-    hashUserInfo: (_userInfo: string) => string;
-    generateSecureHash: (
-      _data: string,
-      _salt: string,
-      _keyDerivationFunction: 'argon2d' | 'pbkdf2',
-    ) => Promise<string>;
-  };
   onSuccess?: (_sessionUser: SessionUser) => void;
+  _onError?: (_error: string) => void;
 }
 
 const Auth = ({
-  locale = 'pt',
   googleId,
   forgeId,
   logoImage,
   inviteToken,
   keyshareWorker,
-  cryptoUtils,
   onSuccess,
+  _onError,
 }: AuthProps) => {
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
-  const { googleUser, sessionUser, registerUser } = authState.context;
+  const { googleUser, sessionUser, registerUser, authProviderConfigs } = authState.context;
+  const { locale } = authProviderConfigs || {};
+
   const [isClient, setIsClient] = useState(false);
+
+  const cryptoUtils = {
+    generateSecureHash,
+    hashUserInfo,
+  };
 
   useEffect(() => {
     setIsClient(true);

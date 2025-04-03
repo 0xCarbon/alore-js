@@ -1,1 +1,2 @@
-export * from './AloreAuth';
+export * from './utils/AloreAuth';
+export * from './helpers/crypto';

@@ -1,21 +1,20 @@
-import { generateSecureHash, hashUserInfo } from '@alore/auth-react-sdk';
 import Auth, { useAuthService } from '@alore/auth-react-ui';
 import { useContext } from 'react';
 
-import { KeyshareWorkerContext } from './KeyshareWorker';
+import { KeyshareWorkerContext } from './KeyshareWorkerProvider';
 
 export default function AuthComponent() {
   const keyshareWorker: null | Worker = useContext(KeyshareWorkerContext);
+  // eslint-disable-next-line no-unused-vars
   const [state, actor] = useAuthService();
 
-  console.log('state', state);
-  console.log('actor', actor);
+  console.log('Current State:', state.value);
+  console.log('Context', state.context);
+  console.log();
 
   return (
     <Auth
-      locale="pt"
       googleId={process.env.NEXT_PUBLIC_GOOGLE_ID || ''}
-      cryptoUtils={{ hashUserInfo, generateSecureHash }}
       keyshareWorker={keyshareWorker}
       onSuccess={(user) => {
         console.log('User logged in:', user);

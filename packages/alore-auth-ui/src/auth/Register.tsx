@@ -71,7 +71,11 @@ export const Register = ({
     sessionUser,
     CCRPublicKey,
     RCRPublicKey,
+    authProviderConfigs,
   } = authState.context;
+
+  const { requireUsername } = authProviderConfigs || {};
+
   const [userSalt, setUserSalt] = useState('');
   const [registrationMethod, setRegistrationMethod] = useState('password');
 
@@ -371,11 +375,13 @@ export const Register = ({
         .string()
         .required(dictionary?.formValidation.required)
         .email(dictionary?.formValidation.invalidEmail),
-      nickname: yup
-        .string()
-        .matches(/^[a-zA-Z].*$/, dictionary?.formValidation.validName)
-        .max(40)
-        .required(dictionary?.formValidation.required),
+      nickname: requireUsername
+        ? yup
+            .string()
+            .matches(/^[a-zA-Z].*$/, dictionary?.formValidation.validName)
+            .max(40)
+            .required(dictionary?.formValidation.required)
+        : yup.string().nullable(),
       agreedWithTerms: yup.boolean().isTrue(dictionary?.formValidation.agreeTerms),
     })
     .required();
@@ -389,7 +395,7 @@ export const Register = ({
 
   const userInfoDefaultValues: FieldValues = {
     email: '',
-    nickname: '',
+    nickname: null,
     agreedWithTerms: false,
   };
   const {
@@ -419,6 +425,7 @@ export const Register = ({
   });
   useWatch({ control: passwordControl, name: 'password' });
   useWatch({ control: passwordControl, name: 'confirmPassword' });
+  console.log(userInfoGetValues());
 
   const isLoading = useMemo(
     () =>
@@ -427,8 +434,6 @@ export const Register = ({
       authState.matches('active.register.verifyingEmail') ||
       authState.matches('active.register.resendingRegistrationEmail') ||
       authState.matches('active.register.googleLogin') ||
-      authState.matches('active.register.retrievingCCR') ||
-      authState.matches('active.register.retrievingRCR') ||
       authState.matches('active.register.localCCRSign') ||
       authState.matches('active.register.localRCRSign') ||
       authState.matches('active.register.waitingForRCR') ||
@@ -439,11 +444,11 @@ export const Register = ({
     [authState.value],
   );
 
-  useEffect(() => {
-    if (registerUser) {
-      sendAuth([{ type: 'INITIALIZE', forgeId }, 'SIGN_UP', 'ADVANCE_TO_PASSWORD']);
-    } else sendAuth([{ type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
-  }, []);
+  // useEffect(() => {
+  //   if (registerUser) {
+  //     sendAuth([{ type: 'INITIALIZE', forgeId }, 'SIGN_UP', 'ADVANCE_TO_PASSWORD']);
+  //   } else sendAuth([{ type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
+  // }, []);
 
   useEffect(() => {
     if (inviteToken) {
@@ -529,7 +534,7 @@ export const Register = ({
         type: 'SEND_REGISTRATION_EMAIL',
         payload: {
           email,
-          nickname,
+          nickname: nickname || null,
           isForgeClaim: !!forgeId,
           locale,
         },
@@ -566,10 +571,15 @@ export const Register = ({
     }
   }
 
-  const isUserInfoSubmitDisabled = useMemo(
-    () => verifyEmptyValues(userInfoGetValues()),
-    [userInfoGetValues(), userInfoDirtyFields],
-  );
+  const isUserInfoSubmitDisabled = useMemo(() => {
+    const values = userInfoGetValues();
+
+    if (!requireUsername) {
+      delete values.nickname;
+    }
+
+    return verifyEmptyValues(values) || !values.agreedWithTerms;
+  }, [userInfoGetValues(), userInfoDirtyFields, requireUsername]);
 
   const isPasswordSubmitDisabled = useMemo(() => {
     const passwordValues = passwordGetValues();
@@ -631,15 +641,17 @@ export const Register = ({
             disabled={isLoading || !!inviteToken}
           />
 
-          <InputForm
-            control={userInfoControl}
-            errors={userInfoErrors}
-            name="nickname"
-            type="text"
-            placeholder={registerDictionary?.nicknameLabel}
-            data-test="register-first-name"
-            disabled={isLoading}
-          />
+          {requireUsername && (
+            <InputForm
+              control={userInfoControl}
+              errors={userInfoErrors}
+              name="nickname"
+              type="text"
+              placeholder={registerDictionary?.nicknameLabel}
+              data-test="register-first-name"
+              disabled={isLoading}
+            />
+          )}
           <CheckboxForm
             className="flex items-center justify-center"
             control={userInfoControl}
@@ -1006,8 +1018,6 @@ export const Register = ({
           authState.matches('active.register.resendingRegistrationEmail')) &&
           VerifyEmail}
         {(authState.matches('active.register.registerMethodSelection') ||
-          authState.matches('active.register.retrievingCCR') ||
-          authState.matches('active.register.retrievingRCR') ||
           authState.matches('active.register.localCCRSign') ||
           authState.matches('active.register.localRCRSign') ||
           authState.matches('active.register.waitingForRCR') ||
