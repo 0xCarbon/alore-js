@@ -4,12 +4,13 @@ export function verifyEmptyValues(values: object | string | undefined) {
   if (values) {
     Object.keys(values).forEach((key) => {
       const value = values[key as keyof typeof values];
+
       if (
         (typeof value === 'string' || Array.isArray(value)) &&
         (!value || (value as string | any[]).length === 0)
       ) {
         hasEmptyValues = true;
-      } else if (typeof value === 'object') {
+      } else if (typeof value === 'object' && value !== null) {
         if (Object.keys(value).length === 0) {
           hasEmptyValues = true;
         }

@@ -1,6 +1,8 @@
 'use client';
 
 import { generateSecureHash, hashUserInfo } from '@alore/auth-react-sdk';
+import { PublicClientApplication } from '@azure/msal-browser';
+import { MsalProvider } from '@azure/msal-react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useActor } from '@xstate/react';
 import { Spinner } from 'flowbite-react';
@@ -36,6 +38,15 @@ const Auth = ({
   const { locale } = authProviderConfigs || {};
 
   const [isClient, setIsClient] = useState(false);
+
+  const msalConfig = {
+    auth: {
+      clientId: process.env.NEXT_PUBLIC_MICROSOFT_ID || '',
+      authority: 'https://login.microsoftonline.com/common',
+    },
+  };
+
+  const msalInstance = new PublicClientApplication(msalConfig);
 
   const cryptoUtils = {
     generateSecureHash,
@@ -75,35 +86,37 @@ const Auth = ({
   return (
     isClient && (
       <GoogleOAuthProvider clientId={googleId}>
-        <Suspense
-          fallback={
-            <div className="flex size-full min-h-screen flex-col items-center justify-center">
-              <Spinner className="m-auto !h-12 w-full !fill-gray-300" />
-            </div>
-          }
-        >
-          {authState.matches('active.login') && (
-            <Login
-              locale={locale}
-              authServiceInstance={authServiceInstance}
-              forgeId={forgeId}
-              cryptoUtils={cryptoUtils}
-              keyshareWorker={keyshareWorker}
-              logoImage={logoImage}
-            />
-          )}
-          {authState.matches('active.register') && (
-            <Register
-              locale={locale}
-              authServiceInstance={authServiceInstance}
-              forgeId={forgeId}
-              inviteToken={inviteToken}
-              cryptoUtils={cryptoUtils}
-              keyshareWorker={keyshareWorker}
-              logoImage={logoImage}
-            />
-          )}
-        </Suspense>
+        <MsalProvider instance={msalInstance}>
+          <Suspense
+            fallback={
+              <div className="flex size-full min-h-screen flex-col items-center justify-center">
+                <Spinner className="m-auto !h-12 w-full !fill-gray-300" />
+              </div>
+            }
+          >
+            {authState.matches('active.login') && (
+              <Login
+                locale={locale}
+                authServiceInstance={authServiceInstance}
+                forgeId={forgeId}
+                cryptoUtils={cryptoUtils}
+                keyshareWorker={keyshareWorker}
+                logoImage={logoImage}
+              />
+            )}
+            {authState.matches('active.register') && (
+              <Register
+                locale={locale}
+                authServiceInstance={authServiceInstance}
+                forgeId={forgeId}
+                inviteToken={inviteToken}
+                cryptoUtils={cryptoUtils}
+                keyshareWorker={keyshareWorker}
+                logoImage={logoImage}
+              />
+            )}
+          </Suspense>
+        </MsalProvider>
       </GoogleOAuthProvider>
     )
   );

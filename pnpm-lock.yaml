@@ -193,8 +193,14 @@ importers:
   packages/alore-auth-ui:
     dependencies:
       '@alore/auth-react-sdk':
-        specifier: 1.0.1-alpha
-        version: link:../alore-auth-sdk
+        specifier: file:../alore-auth-sdk
+        version: file:packages/alore-auth-sdk
+      '@azure/msal-browser':
+        specifier: ^4.8.0
+        version: 4.8.0
+      '@azure/msal-react':
+        specifier: ^3.0.7
+        version: 3.0.7(@azure/msal-browser@4.8.0)(react@18.2.0)
       '@heroicons/react':
         specifier: 2.0.16
         version: 2.0.16(react@18.2.0)
@@ -290,6 +296,29 @@ packages:
   /@alloc/quick-lru@5.2.0:
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
     engines: {node: '>=10'}
+
+  /@azure/msal-browser@4.8.0:
+    resolution: {integrity: sha512-z7kJlMW3IAETyq82LDKJqr++IeOvU728q9lkuTFjEIPUWxnB1OlmuPCF32fYurxOnOnJeFEZxjbEzq8xyP0aag==}
+    engines: {node: '>=0.8.0'}
+    dependencies:
+      '@azure/msal-common': 15.3.0
+    dev: false
+
+  /@azure/msal-common@15.3.0:
+    resolution: {integrity: sha512-lh+eZfibGwtQxFnx+mj6cYWn0pwA8tDnn8CBs9P21nC7Uw5YWRwfXaXdVQSMENZ5ojRqR+NzRaucEo4qUvs3pA==}
+    engines: {node: '>=0.8.0'}
+    dev: false
+
+  /@azure/msal-react@3.0.7(@azure/msal-browser@4.8.0)(react@18.2.0):
+    resolution: {integrity: sha512-77S3eVslJMAXNiLmdrJkJ/gJupjeTdUQinYfc8EzgvLuU5QuLng7Lb5qgSz9DuZfYhC2rbOqvrz4x7o0YBXlBA==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      '@azure/msal-browser': ^4.8.0
+      react: ^16.8.0 || ^17 || ^18
+    dependencies:
+      '@azure/msal-browser': 4.8.0
+      react: 18.2.0
+    dev: false
 
   /@babel/code-frame@7.26.2:
     resolution: {integrity: sha512-RJlIHRueQgwWitWgF8OdFYGZX328Ax5BCemNGlqHfplnRT9ESi8JkFlvaVYbS+UubVY6dpv87Fs2u5M29iNFVQ==}
@@ -7886,3 +7915,18 @@ packages:
   /zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
     dev: true
+
+  file:packages/alore-auth-sdk:
+    resolution: {directory: packages/alore-auth-sdk, type: directory}
+    name: '@alore/auth-react-sdk'
+    engines: {node: '>=20.0.0'}
+    dependencies:
+      '@simplewebauthn/browser': 7.4.0
+      argon2-browser: 1.18.0
+      ethers: 6.7.1
+      js-cookie: 3.0.5
+      jwt-decode: 4.0.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: false

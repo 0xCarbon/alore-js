@@ -20,7 +20,8 @@
     "poweredBy": "Powered by",
     "continueWith": "Or continue with:",
     "selectAnOption": "Select an option",
-    "continueGoogle": "Continue with Google",
+    "continueGoogle": "Google",
+    "continueMicrosoft": "Microsoft",
     "signWithPasskey": "Sign in with a passkey",
     "continueApple": "Continue with Apple",
     "layout": {

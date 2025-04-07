@@ -74,7 +74,7 @@ export const Register = ({
     authProviderConfigs,
   } = authState.context;
 
-  const { requireUsername } = authProviderConfigs || {};
+  const { requireUsername, requireEmailVerification, enablePasskeys } = authProviderConfigs || {};
 
   const [userSalt, setUserSalt] = useState('');
   const [registrationMethod, setRegistrationMethod] = useState('password');
@@ -230,38 +230,48 @@ export const Register = ({
 
   const finishPasskeyFirstAuth = async () => {
     const publicKey = RCRPublicKey?.publicKey;
+    console.log('publicKey', publicKey);
 
     if (!publicKey || !navigator.credentials) {
       sendAuth('BACK_TO_IDLE');
+      console.log('entrou');
       return;
     }
 
     const largeBlob = new Uint8Array(randomBytes(32));
 
+    // Prepare the allowCredentials list by decoding the IDs
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const allowCredentialsList = publicKey.allowCredentials?.map((cred: any) => ({
+      ...cred,
+      id: Buffer.from(cred.id, 'base64'),
+    }));
+
     const extensions: {
       prf?: { eval: { first: Uint8Array } };
-      largeBlob?: { write: Uint8Array };
+      largeBlob?: { write?: Uint8Array }; // Make write optional here
     } = {
       prf: { eval: { first: new TextEncoder().encode('Alore') } },
-      largeBlob: {
-        write: largeBlob,
-      },
     };
 
+    // Conditionally add largeBlob.write only if exactly one credential is allowed
+    if (allowCredentialsList?.length === 1) {
+      extensions.largeBlob = {
+        write: largeBlob,
+      };
+    }
+
     try {
+      console.log('chegou aqui antes');
       const firstLoginCredential = (await navigator.credentials.get({
         publicKey: {
           ...publicKey,
           // @ts-ignore
           challenge: Buffer.from(publicKey.challenge, 'base64'),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          allowCredentials: publicKey.allowCredentials?.map((cred: any) => ({
-            ...cred,
-            id: Buffer.from(cred.id, 'base64'),
-          })),
+          allowCredentials: allowCredentialsList, // Use the prepared list
           extensions: {
-            ...publicKey.extensions,
-            // @ts-ignore
+            ...publicKey.extensions, // Include extensions from the server challenge
+            // @ts-ignore - Spread our potentially modified extensions object
             ...extensions,
           },
         },
@@ -269,10 +279,11 @@ export const Register = ({
       })) as PublicKeyCredential;
 
       if (!firstLoginCredential) {
+        console.log('entrou 2');
         sendAuth('BACK_TO_IDLE');
         return;
       }
-
+      console.log('chegou aqui');
       const extensionResults = firstLoginCredential.getClientExtensionResults();
 
       // @ts-ignore
@@ -295,6 +306,7 @@ export const Register = ({
       }
 
       if (!secretFromCredential) {
+        console.log('entrou 3');
         sendAuth({
           type: 'PASSKEY_NOT_SUPPORTED',
           payload: { error: registerDictionary?.passkeyNotSupported! },
@@ -302,6 +314,7 @@ export const Register = ({
 
         return;
       }
+      console.log('chegou aqui 2');
 
       sendAuth({
         type: 'FINISH_PASSKEY_AUTH',
@@ -331,6 +344,7 @@ export const Register = ({
           },
         },
       });
+      console.log('chegou aqui 3');
 
       if (keyshareWorker) {
         keyshareWorker.postMessage({
@@ -342,9 +356,27 @@ export const Register = ({
         });
       }
     } catch (_err) {
+      console.log('chegou aqui', _err);
       sendAuth('BACK_TO_IDLE');
     }
   };
+
+  useEffect(() => {
+    if (
+      authState.matches('active.register.registerMethodSelection') &&
+      !requireEmailVerification &&
+      enablePasskeys
+    ) {
+      const device = hashUserInfo(window.navigator.userAgent);
+
+      sendAuth({
+        type: 'START_PASSKEY_REGISTER',
+        payload: {
+          device,
+        },
+      });
+    }
+  }, [authState.matches('active.register.registerMethodSelection')]);
 
   useEffect(() => {
     if (authState.matches('active.register.localCCRSign')) {
@@ -425,7 +457,6 @@ export const Register = ({
   });
   useWatch({ control: passwordControl, name: 'password' });
   useWatch({ control: passwordControl, name: 'confirmPassword' });
-  console.log(userInfoGetValues());
 
   const isLoading = useMemo(
     () =>
@@ -567,6 +598,8 @@ export const Register = ({
 
   const isUserInfoSubmitDisabled = useMemo(() => {
     const values = userInfoGetValues();
+
+    if (!values) return true;
 
     if (!requireUsername) {
       delete values.nickname;

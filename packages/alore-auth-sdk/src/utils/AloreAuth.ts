@@ -313,7 +313,7 @@ export class AloreAuth {
       },
     ) => {
       const { rpDomain } = context.authProviderConfigs || {};
-      const { email, nickname, device } = event.payload;
+      const { email, nickname, device } = event.payload || {};
 
       const startPasskeyRegistrationResponse = await this.fetchWithProgressiveBackoff(
         '/auth/v1/account-registration-passkey',
@@ -323,8 +323,8 @@ export class AloreAuth {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            userEmail: email,
-            userNickname: nickname,
+            userEmail: email || null,
+            userNickname: nickname || null,
             userDevice: device,
             rpOrigin: rpDomain,
           }),
@@ -356,7 +356,7 @@ export class AloreAuth {
       },
     ) => {
       const { rpDomain } = context.authProviderConfigs || {};
-      const { email, nickname, device, passkeyRegistration } = event.payload;
+      const { email, nickname, device, passkeyRegistration } = event.payload || {};
 
       const response = await this.fetchWithProgressiveBackoff(
         '/auth/v1/account-registration-passkey-finish',
@@ -366,8 +366,8 @@ export class AloreAuth {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            userEmail: email,
-            userNickname: nickname,
+            userEmail: email || null,
+            userNickname: nickname || null,
             userDevice: device,
             passkeyRegistration,
             sessionId: context.sessionId,

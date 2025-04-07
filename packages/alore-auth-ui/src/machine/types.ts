@@ -72,8 +72,8 @@ export type AuthMachineEvents =
   | {
       type: 'START_PASSKEY_REGISTER';
       payload: {
-        device: string;
-        email: string;
+        device?: string;
+        email?: string;
         nickname?: string;
       };
     }

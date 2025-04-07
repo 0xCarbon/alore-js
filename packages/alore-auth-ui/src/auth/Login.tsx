@@ -1,5 +1,6 @@
 'use client';
 
+import { useMsal } from '@azure/msal-react';
 import { ArrowRightIcon, EnvelopeIcon } from '@heroicons/react/20/solid';
 import { KeyIcon, LockOpenIcon } from '@heroicons/react/24/outline';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -22,6 +23,7 @@ import {
   fingerprintError,
   google,
   metamaskLogo,
+  microsoftLogo,
   walletConnectLogo,
 } from '../utils';
 
@@ -92,6 +94,8 @@ export const Login = ({
     undefined,
   );
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
+  const { instance } = useMsal();
+
   const googleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => {
       resetEmail();
@@ -101,9 +105,25 @@ export const Login = ({
       });
     },
   });
-  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+  const microsoftLogin = () => {
+    instance
+      .loginPopup({
+        scopes: ['user.read'],
+      })
+      .then((response) => {
+        console.log('Login success:', response);
+      })
+      .catch((error) => {
+        console.error('Login failed:', error);
+      });
+  };
 
   const handleGoogleLogin = () => googleLogin();
+
+  const handleMicrosoftLogin = () => microsoftLogin();
+
+  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
   const hasPasskeySupportWithPRFOrLargeBlob = () => {
     if (
@@ -744,20 +764,38 @@ export const Login = ({
               </div>
             </Button>
           )}
-          <Button
-            color="light"
-            onClick={handleGoogleLogin}
-            outline
-          >
-            <div className="flex flex-row items-center justify-center gap-2">
-              <img
-                src={google}
-                alt="google logo"
-                width={16}
-              />
-              {dictionary?.auth.continueGoogle}
-            </div>
-          </Button>
+          <div className="flex w-full flex-row gap-4">
+            <Button
+              color="light"
+              className="w-full"
+              onClick={handleGoogleLogin}
+              outline
+            >
+              <div className="flex flex-row items-center justify-center gap-2">
+                <img
+                  src={google}
+                  alt="google logo"
+                  width={16}
+                />
+                {dictionary?.auth.continueGoogle}
+              </div>
+            </Button>
+            <Button
+              color="light"
+              className="w-full"
+              onClick={handleMicrosoftLogin}
+              outline
+            >
+              <div className="flex flex-row items-center justify-center gap-2">
+                <img
+                  src={microsoftLogo}
+                  alt="microsoft logo"
+                  width={16}
+                />
+                {dictionary?.auth.continueMicrosoft}
+              </div>
+            </Button>
+          </div>
           <div className="h-[0.5px] w-full bg-gray-300" />
           {forgeId && (
             <Button
