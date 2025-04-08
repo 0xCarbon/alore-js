@@ -373,3 +373,12 @@ nocheck
 ooriginal
 trivago
 URLTo
+firefox
+mailosaur
+microsoft
+msal
+msedge
+ssword
+testid
+testuser
+viewports
