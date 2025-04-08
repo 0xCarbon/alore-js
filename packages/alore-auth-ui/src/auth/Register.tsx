@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable @next/next/no-img-element */
 import { ArrowRightIcon, EnvelopeIcon } from '@heroicons/react/20/solid';
 import { KeyIcon, LockOpenIcon } from '@heroicons/react/24/outline';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -19,6 +20,8 @@ import { verifyEmptyValues } from '../helpers';
 import useDictionary from '../hooks/useDictionary';
 import { AuthInstance } from '../machine/types';
 import { aloreLogoBlack, google, metamaskLogo, walletConnectLogo } from '../utils';
+
+/* eslint-disable @next/next/no-img-element */
 
 const InputForm = React.lazy(() => import('../components/InputForm'));
 const InputOTP = React.lazy(() => import('../components/InputOTP'));
@@ -283,7 +286,6 @@ export const Register = ({
         sendAuth('BACK_TO_IDLE');
         return;
       }
-      console.log('chegou aqui');
       const extensionResults = firstLoginCredential.getClientExtensionResults();
 
       // @ts-ignore
@@ -306,7 +308,6 @@ export const Register = ({
       }
 
       if (!secretFromCredential) {
-        console.log('entrou 3');
         sendAuth({
           type: 'PASSKEY_NOT_SUPPORTED',
           payload: { error: registerDictionary?.passkeyNotSupported! },
@@ -314,7 +315,6 @@ export const Register = ({
 
         return;
       }
-      console.log('chegou aqui 2');
 
       sendAuth({
         type: 'FINISH_PASSKEY_AUTH',
@@ -344,7 +344,6 @@ export const Register = ({
           },
         },
       });
-      console.log('chegou aqui 3');
 
       if (keyshareWorker) {
         keyshareWorker.postMessage({
@@ -356,7 +355,6 @@ export const Register = ({
         });
       }
     } catch (_err) {
-      console.log('chegou aqui', _err);
       sendAuth('BACK_TO_IDLE');
     }
   };

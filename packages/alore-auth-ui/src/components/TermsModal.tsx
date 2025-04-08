@@ -32,6 +32,7 @@ const TermsModal = ({ locale, show, onClose, onSubmit }: Props) => {
       <Modal.Body className="scrollbar">
         <div className="flex flex-col px-8 pb-5 pt-2">
           <span
+            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
               __html: dictionary?.auth.register.termsDescription || '',
             }}

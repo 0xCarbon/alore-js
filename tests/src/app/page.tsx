@@ -30,7 +30,7 @@ export default function Home() {
             keyshareWorker={keyshareWorker}
             googleId={process.env.NEXT_PUBLIC_GOOGLE_ID || ''}
             onSuccess={(user) => {
-              console.log('User logged in:', user);
+              console.info('User logged in:', user);
             }}
           />
         </AuthProvider>

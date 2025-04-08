@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable @next/next/no-img-element */
 import { useMsal } from '@azure/msal-react';
 import { ArrowRightIcon, EnvelopeIcon } from '@heroicons/react/20/solid';
 import { KeyIcon, LockOpenIcon } from '@heroicons/react/24/outline';
@@ -26,6 +27,8 @@ import {
   microsoftLogo,
   walletConnectLogo,
 } from '../utils';
+
+/* eslint-disable @next/next/no-img-element */
 
 const InputForm = React.lazy(() => import('../components/InputForm'));
 const InputOTP = React.lazy(() => import('../components/InputOTP'));

@@ -3,8 +3,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 export class EmailHelper {
   private client: MailosaurClient;
+
   private serverDomain: string;
-  public emailAddress: string;
+
+  public emailAddress: string = '';
 
   constructor(apiKey: string, serverDomain: string) {
     if (!apiKey) throw new Error('API key is required');
@@ -16,7 +18,7 @@ export class EmailHelper {
     this.generateNewEmail(this.serverDomain);
   }
 
-  async generateNewEmail(domain: string): Promise<string> {
+  async generateNewEmail(domain: string): Promise<void> {
     const uuid = uuidv4();
 
     this.emailAddress = `${uuid}@${domain}`;

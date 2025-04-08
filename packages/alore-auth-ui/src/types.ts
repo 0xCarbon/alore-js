@@ -32,6 +32,7 @@ export interface AuthProviderConfig {
   requireUsername?: boolean;
   passwordMinLength?: number;
   enablePasskeys?: boolean;
+  enablePasswords?: boolean;
   socialLoginEnabled?: boolean;
   privacyPolicyUrl?: string;
   termsOfServiceUrl?: string;

@@ -5,7 +5,6 @@ import {
   MAILOSAUR_API_KEY,
   MAILOSAUR_DOMAIN,
   MAILOSAUR_SERVER_ID,
-  TEST_NICKNAME,
   TEST_PASSWORD,
 } from './utils/constants';
 import { EmailHelper } from './utils/EmailHelper';
