@@ -234,11 +234,9 @@ export const Register = ({
 
   const finishPasskeyFirstAuth = async () => {
     const publicKey = RCRPublicKey?.publicKey;
-    console.log('publicKey', publicKey);
 
     if (!publicKey || !navigator.credentials) {
       sendAuth('BACK_TO_IDLE');
-      console.log('entrou');
       return;
     }
 
@@ -266,7 +264,6 @@ export const Register = ({
     }
 
     try {
-      console.log('chegou aqui antes');
       const firstLoginCredential = (await navigator.credentials.get({
         publicKey: {
           ...publicKey,
@@ -283,7 +280,6 @@ export const Register = ({
       })) as PublicKeyCredential;
 
       if (!firstLoginCredential) {
-        console.log('entrou 2');
         sendAuth('BACK_TO_IDLE');
         return;
       }
@@ -537,7 +533,14 @@ export const Register = ({
   }, [sendEmailCooldown]);
 
   function onClickSecureCodeSubmit() {
-    sendAuth({ type: 'VERIFY_EMAIL', payload: { secureCode } });
+    const nickname = registerUser ? registerUser.nickname : userInfoGetValues('nickname');
+    const email = registerUser ? registerUser.email : userInfoGetValues('email');
+    const device = hashUserInfo(window.navigator.userAgent);
+
+    sendAuth({
+      type: 'VERIFY_EMAIL',
+      payload: { secureCode, registerUser: { email, nickname, device } },
+    });
     setSecureCode('');
   }
 

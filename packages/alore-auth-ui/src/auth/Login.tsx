@@ -112,7 +112,7 @@ export const Login = ({
         scopes: ['user.read'],
       })
       .then((response) => {
-        console.log('Login success:', response);
+        console.info('Login success:', response);
       })
       .catch((error) => {
         console.error('Login failed:', error);
@@ -753,6 +753,7 @@ export const Login = ({
           )}
           {enablePasskeys &&
             !enablePasswords &&
+            !requireEmailVerification &&
             typeof window.PublicKeyCredential !== 'undefined' && (
               <Button
                 color="light"

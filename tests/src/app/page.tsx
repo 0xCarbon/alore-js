@@ -10,7 +10,7 @@ export const endpoint = process.env.NEXT_PUBLIC_ALORE_BACKEND_URL || 'https://ap
 const aloreConfigs: AuthProviderConfig = {
   locale: 'pt',
   enablePasskeys: true,
-  enablePasswords: true,
+  enablePasswords: false,
   rpDomain: 'http://localhost:3000',
   requireEmailVerification: true,
   requireUsername: true,

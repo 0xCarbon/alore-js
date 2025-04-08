@@ -83,12 +83,12 @@ export class AloreAuth {
         },
       );
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data?.message || data?.error || data);
-      } else {
+      if (response.ok) {
         return {};
       }
+
+      const data = await response.json();
+      throw new Error(data?.message || data?.error || data);
     },
     completeRegistration: async (
       context: AuthMachineContext,
@@ -314,7 +314,7 @@ export class AloreAuth {
       },
     ) => {
       const { rpDomain } = context.authProviderConfigs || {};
-      const { email, nickname, device } = event.payload || {};
+      const { email, nickname, device } = event.payload || context.registerUser;
 
       const startPasskeyRegistrationResponse = await this.fetchWithProgressiveBackoff(
         '/auth/v1/account-registration-passkey',
@@ -393,7 +393,7 @@ export class AloreAuth {
     ) => {
       const { rpDomain } = context.authProviderConfigs || {};
 
-      const email = event.type === 'START_PASSKEY_LOGIN' ? event.payload?.email : undefined;
+      const email = event.payload?.email;
 
       const searchParams = new URLSearchParams();
       const url = '/auth/v1/login-passkey';
@@ -413,6 +413,8 @@ export class AloreAuth {
       const data = await startAuthResponse.json();
 
       if (startAuthResponse.ok) return data;
+
+      throw new Error(data.message || data.error || data);
     },
     finishPasskeyAuth: async (
       context: AuthMachineContext,

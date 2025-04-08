@@ -201,7 +201,13 @@ export type AuthMachineEvents =
       };
     }
   | { type: 'CLOSE_TERMS_MODAL' }
-  | { type: 'VERIFY_EMAIL'; payload: { secureCode: string } }
+  | {
+      type: 'VERIFY_EMAIL';
+      payload: {
+        secureCode: string;
+        registerUser: { email: string; nickname: string; device: string };
+      };
+    }
   | {
       type: 'COMPLETE_REGISTRATION';
       payload: {
