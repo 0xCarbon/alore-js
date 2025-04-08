@@ -64,7 +64,7 @@ interface Props extends TextInputProps {
   name: string;
   label?: string;
   type?: string;
-  'data-test'?: string;
+  'data-testid'?: string;
   className?: string;
 }
 
@@ -76,7 +76,7 @@ const InputForm = ({
   label,
   errors,
   type = 'text',
-  'data-test': dataTest,
+  'data-testid': dataTest,
   className,
   ...rest
 }: Props) => (
@@ -99,7 +99,7 @@ const InputForm = ({
           type={type}
           color={errors[field.name] ? 'failure' : 'gray'}
           rightIcon={errors[field.name] && infoIcon}
-          data-test={dataTest}
+          data-testid={dataTest}
           helperText={
             errors[field.name] && (
               <InputErrorHelperText

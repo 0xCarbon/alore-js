@@ -37,6 +37,9 @@ const Auth = ({
   const { googleUser, sessionUser, registerUser, authProviderConfigs } = authState.context;
   const { locale } = authProviderConfigs || {};
 
+  console.log('state', authState.value);
+  console.log('context', authState.context);
+
   const [isClient, setIsClient] = useState(false);
 
   const msalConfig = {
@@ -83,43 +86,41 @@ const Auth = ({
     }
   }, [sessionUser]);
 
-  return (
-    isClient && (
-      <GoogleOAuthProvider clientId={googleId}>
-        <MsalProvider instance={msalInstance}>
-          <Suspense
-            fallback={
-              <div className="flex size-full min-h-screen flex-col items-center justify-center">
-                <Spinner className="m-auto !h-12 w-full !fill-gray-300" />
-              </div>
-            }
-          >
-            {authState.matches('active.login') && (
-              <Login
-                locale={locale}
-                authServiceInstance={authServiceInstance}
-                forgeId={forgeId}
-                cryptoUtils={cryptoUtils}
-                keyshareWorker={keyshareWorker}
-                logoImage={logoImage}
-              />
-            )}
-            {authState.matches('active.register') && (
-              <Register
-                locale={locale}
-                authServiceInstance={authServiceInstance}
-                forgeId={forgeId}
-                inviteToken={inviteToken}
-                cryptoUtils={cryptoUtils}
-                keyshareWorker={keyshareWorker}
-                logoImage={logoImage}
-              />
-            )}
-          </Suspense>
-        </MsalProvider>
-      </GoogleOAuthProvider>
-    )
-  );
+  return isClient ? (
+    <GoogleOAuthProvider clientId={googleId}>
+      <MsalProvider instance={msalInstance}>
+        <Suspense
+          fallback={
+            <div className="flex size-full min-h-screen flex-col items-center justify-center">
+              <Spinner className="m-auto !h-12 w-full !fill-gray-300" />
+            </div>
+          }
+        >
+          {authState.matches('active.login') && (
+            <Login
+              locale={locale}
+              authServiceInstance={authServiceInstance}
+              forgeId={forgeId}
+              cryptoUtils={cryptoUtils}
+              keyshareWorker={keyshareWorker}
+              logoImage={logoImage}
+            />
+          )}
+          {authState.matches('active.register') && (
+            <Register
+              locale={locale}
+              authServiceInstance={authServiceInstance}
+              forgeId={forgeId}
+              inviteToken={inviteToken}
+              cryptoUtils={cryptoUtils}
+              keyshareWorker={keyshareWorker}
+              logoImage={logoImage}
+            />
+          )}
+        </Suspense>
+      </MsalProvider>
+    </GoogleOAuthProvider>
+  ) : null;
 };
 
 export default Auth;

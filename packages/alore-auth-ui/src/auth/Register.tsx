@@ -158,6 +158,10 @@ export const Register = ({
           userVerification: 'required',
         },
         timeout: 10000,
+        pubKeyCredParams: [
+          { type: 'public-key', alg: -7 }, // ES256 (WebAuthn default)
+          { type: 'public-key', alg: -257 }, // RS256 (older devices)
+        ],
         // @ts-ignore
         extensions,
       },
@@ -624,7 +628,7 @@ export const Register = ({
 
   const UserInfo = useMemo(
     () => (
-      <>
+      <div data-testid="register-user-info-step">
         {inviteToken ? (
           <div className="flex flex-col gap-2.5">
             <h1 className="text-alr-grey mb-1 text-center text-[1.75rem] font-bold">
@@ -650,7 +654,7 @@ export const Register = ({
         <form
           onSubmit={userInfoHandleSubmit((data) => onSubmitUserData(data))}
           className="mb-1 flex flex-col gap-y-5"
-          data-test="register-new-account-step"
+          data-testid="register-new-account-step"
         >
           <InputForm
             control={userInfoControl}
@@ -662,7 +666,7 @@ export const Register = ({
                 ? `${registerDictionary?.emailInvitePlaceholder}`
                 : `${registerDictionary?.emailLabel}`
             }
-            data-test="register-email"
+            data-testid="register-email"
             icon={envelopIcon}
             autoFocus
             disabled={isLoading || !!inviteToken}
@@ -675,7 +679,7 @@ export const Register = ({
               name="nickname"
               type="text"
               placeholder={registerDictionary?.nicknameLabel}
-              data-test="register-first-name"
+              data-testid="register-first-name"
               disabled={isLoading}
             />
           )}
@@ -683,14 +687,14 @@ export const Register = ({
             className="flex items-center justify-center"
             control={userInfoControl}
             name="agreedWithTerms"
-            data-test="register-agreed-with-terms"
+            data-testid="register-agreed-with-terms-checkbox"
             label={
               <span className="text-xs font-light text-gray-400 md:text-sm md:font-normal">
                 {registerDictionary?.agreeTermsPart1}
                 <span
                   onClick={() => sendAuth('SHOW_TERMS_MODAL')}
                   className="text-alr-red cursor-pointer underline"
-                  data-test="terms-of-service"
+                  data-testid="terms-of-service"
                 >
                   {registerDictionary?.agreeTermsPart2}
                 </span>
@@ -699,7 +703,7 @@ export const Register = ({
           />
 
           <Button
-            data-test="register-button"
+            data-testid="register-button"
             type="submit"
             disabled={isUserInfoSubmitDisabled || isLoading}
             className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
@@ -758,7 +762,7 @@ export const Register = ({
             </Button>
           </>
         )}
-      </>
+      </div>
     ),
     [
       isUserInfoSubmitDisabled,
@@ -772,7 +776,7 @@ export const Register = ({
 
   const VerifyEmail = useMemo(
     () => (
-      <>
+      <div data-testid="register-verify-email-step">
         <BackButton
           disabled={isLoading}
           onClick={() => sendAuth('BACK')}
@@ -780,7 +784,7 @@ export const Register = ({
 
         <div
           className="flex w-full flex-col items-center"
-          data-test="register-verify-email-step"
+          data-testid="register-verify-email-step"
         >
           <span className="font-poppins text-alr-grey mb-6 text-2xl font-bold md:text-[1.75rem]">
             {registerDictionary?.verifyEmail}
@@ -795,7 +799,7 @@ export const Register = ({
               value={secureCode}
               onChange={(value) => setSecureCode(value)}
               inputLength={6}
-              data-test="secure-code"
+              data-testid="secure-code-input"
               errorMessage={
                 authError?.includes('wrong') ? `${registerDictionary?.wrongCode}` : undefined
               }
@@ -803,7 +807,7 @@ export const Register = ({
             />
           </div>
           <Button
-            data-test="secure-code-submit"
+            data-testid="secure-code-submit-button"
             onClick={() => onClickSecureCodeSubmit()}
             className="bg-alr-red hover:bg-alr-dark-red group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
             disabled={secureCode.length !== 6 || isLoading}
@@ -825,7 +829,7 @@ export const Register = ({
             }`}
           </span>
         </div>
-      </>
+      </div>
     ),
     [secureCode, sendEmailCooldown, isLoading],
   );
@@ -839,7 +843,7 @@ export const Register = ({
         />
         <div
           className="mt-2 flex w-full flex-col items-center"
-          data-test="register-method-selection-step"
+          data-testid="register-method-selection-step"
         >
           {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
           {authError?.toLocaleLowerCase().includes('passkey') && (
@@ -856,7 +860,7 @@ export const Register = ({
           <div className="flex flex-col gap-5">
             <div className="flex w-full gap-2">
               <Button
-                data-test="register-method-selection-password"
+                data-testid="register-method-selection-password"
                 onClick={() => setRegistrationMethod('password')}
                 color="light"
                 className={`${
@@ -879,7 +883,7 @@ export const Register = ({
               </Button>
               <Button
                 disabled={typeof window.PublicKeyCredential === 'undefined'}
-                data-test="register-method-selection-passkey"
+                data-testid="register-method-selection-passkey"
                 onClick={() => setRegistrationMethod('passkey')}
                 color="light"
                 className={`${
@@ -900,7 +904,7 @@ export const Register = ({
               </Button>
             </div>
             <Button
-              data-test="register-method-selection-submit"
+              data-testid="register-method-selection-submit"
               onClick={() => selectRegisterMethod()}
               className="bg-alr-red text-alr-white mb-6 flex w-full cursor-pointer items-center"
             >
@@ -915,7 +919,7 @@ export const Register = ({
 
   const Password = useMemo(
     () => (
-      <>
+      <div data-testid="register-password-step">
         <BackButton
           disabled={isLoading}
           onClick={() => sendAuth(inviteToken || registerUser ? 'BACK_TO_IDLE' : 'BACK')}
@@ -925,7 +929,7 @@ export const Register = ({
 
         <div
           className="flex w-full flex-col"
-          data-test="register-password-step"
+          data-testid="register-password-step"
         >
           <span className="font-poppins text-alr-grey mb-5 text-center font-bold">
             {registerDictionary?.createPassword}
@@ -942,7 +946,7 @@ export const Register = ({
               placeholder={registerDictionary?.passwordPlaceholder}
               label={registerDictionary?.passwordLabel}
               type="password"
-              data-test="register-password"
+              data-testid="register-password-input"
               disabled={isLoading}
             />
 
@@ -953,7 +957,7 @@ export const Register = ({
               placeholder={registerDictionary?.passwordConfirmPlaceholder}
               label={registerDictionary?.passwordConfirmLabel}
               type="password"
-              data-test="register-confirm-password"
+              data-testid="register-confirm-password-input"
               disabled={isLoading}
             />
 
@@ -965,7 +969,7 @@ export const Register = ({
             />
 
             <Button
-              data-test="password-submit"
+              data-testid="password-submit-button"
               type="submit"
               className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
               disabled={isPasswordSubmitDisabled || isLoading}
@@ -975,7 +979,7 @@ export const Register = ({
             </Button>
           </form>
         </div>
-      </>
+      </div>
     ),
     [
       isPasswordSubmitDisabled,
@@ -991,7 +995,7 @@ export const Register = ({
   return (
     <div
       className="flex size-full min-h-screen flex-col items-center justify-center gap-y-2 sm:gap-y-7"
-      data-test="register-page"
+      data-testid="register-page"
     >
       <TermsModal
         locale={locale}
@@ -1033,6 +1037,7 @@ export const Register = ({
           `md:child:!px-9 mx-5 flex min-w-[20rem] py-2 md:mx-7 md:w-96`,
           isLoading ? 'pointer-events-none opacity-50' : '',
         )}
+        data-testid="register-card"
       >
         {forgeId && authState.matches('active.web3Connector') && 'TODO'}
         {(authState.matches('active.register.idle') ||
@@ -1055,7 +1060,10 @@ export const Register = ({
           authState.matches('active.register.completingRegistration')) &&
           Password}
         {authState.matches('active.register.userCreated') && (
-          <div className="flex flex-col items-center justify-center gap-4">
+          <div
+            data-testid="register-user-created-step"
+            className="flex flex-col items-center justify-center gap-4"
+          >
             <div className="flex flex-row items-center justify-center gap-2">
               <span>Registration complete for</span>
               <span className="font-semibold">{sessionUser?.nickname}</span>

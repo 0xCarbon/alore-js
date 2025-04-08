@@ -8,7 +8,7 @@ interface Props extends CheckboxProps {
   control?: Control<FieldValues>;
   name: string;
   label?: ReactNode;
-  'data-test'?: string;
+  'data-testid'?: string;
   className?: string;
 }
 
@@ -17,7 +17,7 @@ const CheckboxForm = ({
   control,
   name,
   label,
-  'data-test': dataTest,
+  'data-testid': dataTest,
   ...rest
 }: Props) => (
   <Controller
@@ -31,7 +31,7 @@ const CheckboxForm = ({
             {...rest}
             value={String(field.value)}
             checked={field.value}
-            data-test={dataTest}
+            data-testid={dataTest}
             className="text-alr-red size-4 rounded border border-gray-300 bg-gray-50 focus:ring-2 focus:ring-cyan-600 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-cyan-600 dark:focus:ring-cyan-600"
           />
           <Label

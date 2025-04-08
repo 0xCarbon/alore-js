@@ -46,6 +46,7 @@ export class AloreAuth {
       },
     ) => {
       const { email } = event.payload;
+
       const response = await this.fetchWithProgressiveBackoff(`/auth/v1/salt/${email}`, {
         headers: {
           'Content-Type': 'application/json',
