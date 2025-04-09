@@ -2,6 +2,7 @@
   "accept": "Aceitar",
   "password": "Senha",
   "next": "Próximo",
+  "back": "Voltar",
   "formValidation": {
     "required": "Este campo é obrigatório",
     "invalidEmail": "E-mail inválido",

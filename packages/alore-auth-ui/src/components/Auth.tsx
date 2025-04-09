@@ -37,6 +37,8 @@ const Auth = ({
   const { googleUser, sessionUser, authProviderConfigs } = authState.context;
   const { locale } = authProviderConfigs || {};
 
+  console.info('context', authState.context);
+  console.info('state', authState.value);
   const [isClient, setIsClient] = useState(false);
 
   const msalConfig = {

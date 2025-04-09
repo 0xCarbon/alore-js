@@ -643,7 +643,7 @@ export const Register = ({
             </div>
           </div>
         ) : (
-          <h1 className="font-inter mb-1 text-center font-semibold text-gray-600 md:text-lg">
+          <h1 className="font-inter mb-3 text-center font-semibold text-gray-600 md:text-lg">
             {forgeId ? registerDictionary?.forgeTitle : registerDictionary?.title}
           </h1>
         )}
@@ -714,7 +714,7 @@ export const Register = ({
           </Button>
         </form>
         <div
-          className="flex w-full cursor-pointer flex-row items-center justify-center gap-1.5 text-sm text-gray-500"
+          className="mt-4 flex w-full cursor-pointer flex-row items-center justify-center gap-1.5 text-sm text-gray-500"
           onClick={() => {
             sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'LOGIN']);
           }}
@@ -779,9 +779,12 @@ export const Register = ({
     () => (
       <div data-testid="register-verify-email-step">
         <BackButton
+          className="mb-4"
           disabled={isLoading}
           onClick={() => sendAuth('BACK')}
-        />
+        >
+          {dictionary?.back}
+        </BackButton>
 
         <div
           className="flex w-full flex-col items-center"
@@ -839,9 +842,12 @@ export const Register = ({
     () => (
       <div>
         <BackButton
+          className="mb-4"
           disabled={isLoading}
           onClick={() => sendAuth('BACK')}
-        />
+        >
+          {dictionary?.back}
+        </BackButton>
         <div
           className="mt-2 flex w-full flex-col items-center"
           data-testid="register-method-selection-step"
@@ -1040,42 +1046,48 @@ export const Register = ({
         )}
         data-testid="register-card"
       >
-        {forgeId && authState.matches('active.web3Connector') && 'TODO'}
-        {(authState.matches('active.register.idle') ||
-          authState.matches('active.register.termsModal') ||
-          authState.matches('active.register.googleLogin') ||
-          authState.matches('active.register.sendingEmail')) &&
-          UserInfo}
-        {(authState.matches('active.register.emailValidation') ||
-          authState.matches('active.register.verifyingEmail') ||
-          authState.matches('active.register.resendingRegistrationEmail')) &&
-          VerifyEmail}
-        {(authState.matches('active.register.registerMethodSelection') ||
-          authState.matches('active.register.localCCRSign') ||
-          authState.matches('active.register.localRCRSign') ||
-          authState.matches('active.register.waitingForRCR') ||
-          authState.matches('active.register.sendingAuthPublicCredential') ||
-          authState.matches('active.register.sendingPublicCredential')) &&
-          SelectRegisterMethod}
-        {(authState.matches('active.register.createPassword') ||
-          authState.matches('active.register.completingRegistration')) &&
-          Password}
-        {authState.matches('active.register.userCreated') && (
-          <div
-            data-testid="register-user-created-step"
-            className="flex flex-col items-center justify-center gap-4"
-          >
-            <div className="flex flex-row items-center justify-center gap-2">
-              <span>Registration complete for</span>
-              <span className="font-semibold">{sessionUser?.nickname}</span>
-            </div>
-            <Button
-              className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
-              onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
-            >
-              LOGOUT
-            </Button>
-          </div>
+        {isLoading ? (
+          <Spinner className="my-20 !h-14 w-full !fill-red-300" />
+        ) : (
+          <>
+            {forgeId && authState.matches('active.web3Connector') && 'TODO'}
+            {(authState.matches('active.register.idle') ||
+              authState.matches('active.register.termsModal') ||
+              authState.matches('active.register.googleLogin') ||
+              authState.matches('active.register.sendingEmail')) &&
+              UserInfo}
+            {(authState.matches('active.register.emailValidation') ||
+              authState.matches('active.register.verifyingEmail') ||
+              authState.matches('active.register.resendingRegistrationEmail')) &&
+              VerifyEmail}
+            {(authState.matches('active.register.registerMethodSelection') ||
+              authState.matches('active.register.localCCRSign') ||
+              authState.matches('active.register.localRCRSign') ||
+              authState.matches('active.register.waitingForRCR') ||
+              authState.matches('active.register.sendingAuthPublicCredential') ||
+              authState.matches('active.register.sendingPublicCredential')) &&
+              SelectRegisterMethod}
+            {(authState.matches('active.register.createPassword') ||
+              authState.matches('active.register.completingRegistration')) &&
+              Password}
+            {authState.matches('active.register.userCreated') && (
+              <div
+                data-testid="register-user-created-step"
+                className="flex flex-col items-center justify-center gap-4"
+              >
+                <div className="flex flex-row items-center justify-center gap-2">
+                  <span>Registration complete for</span>
+                  <span className="font-semibold">{sessionUser?.nickname}</span>
+                </div>
+                <Button
+                  className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
+                  onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
+                >
+                  LOGOUT
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </Card>
     </div>

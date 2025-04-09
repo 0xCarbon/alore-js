@@ -2,6 +2,7 @@
   "accept": "Accept",
   "password": "Password",
   "next": "Next",
+  "back": "Back",
   "formValidation": {
     "required": "This field is required",
     "invalidEmail": "Invalid e-mail address",

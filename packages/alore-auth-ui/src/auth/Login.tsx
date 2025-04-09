@@ -84,7 +84,8 @@ export const Login = ({
     authProviderConfigs,
   } = authState.context;
 
-  const { enablePasskeys, requireEmailVerification, enablePasswords } = authProviderConfigs || {};
+  const { enablePasskeys, requireEmailVerification, enablePasswords, socialProviders } =
+    authProviderConfigs || {};
 
   const [currentDevice, setCurrentDevice] = useState('');
   const [loading, setLoading] = useState(false);
@@ -769,39 +770,43 @@ export const Login = ({
                 </div>
               </Button>
             )}
-          <div className="flex w-full flex-row gap-4">
-            <Button
-              color="light"
-              className="w-full"
-              onClick={handleGoogleLogin}
-              outline
-            >
-              <div className="flex flex-row items-center justify-center gap-2">
-                <img
-                  src={google}
-                  alt="google logo"
-                  width={16}
-                />
-                {dictionary?.auth.continueGoogle}
+          {socialProviders?.length && (
+            <>
+              <div className="flex w-full flex-row gap-4">
+                <Button
+                  color="light"
+                  className="w-full"
+                  onClick={handleGoogleLogin}
+                  outline
+                >
+                  <div className="flex flex-row items-center justify-center gap-2">
+                    <img
+                      src={google}
+                      alt="google logo"
+                      width={16}
+                    />
+                    {dictionary?.auth.continueGoogle}
+                  </div>
+                </Button>
+                <Button
+                  color="light"
+                  className="w-full"
+                  onClick={handleMicrosoftLogin}
+                  outline
+                >
+                  <div className="flex flex-row items-center justify-center gap-2">
+                    <img
+                      src={microsoftLogo}
+                      alt="microsoft logo"
+                      width={16}
+                    />
+                    {dictionary?.auth.continueMicrosoft}
+                  </div>
+                </Button>
               </div>
-            </Button>
-            <Button
-              color="light"
-              className="w-full"
-              onClick={handleMicrosoftLogin}
-              outline
-            >
-              <div className="flex flex-row items-center justify-center gap-2">
-                <img
-                  src={microsoftLogo}
-                  alt="microsoft logo"
-                  width={16}
-                />
-                {dictionary?.auth.continueMicrosoft}
-              </div>
-            </Button>
-          </div>
-          <div className="h-[0.5px] w-full bg-gray-300" />
+              <div className="h-[0.5px] w-full bg-gray-300" />
+            </>
+          )}
           {forgeId && (
             <Button
               color="light"
@@ -1270,50 +1275,56 @@ export const Login = ({
           isLoading ? 'pointer-events-none opacity-50' : '',
         )}
       >
-        {forgeId && authState.matches('active.web3Connector') && 'TODO'}
-        {(authState.matches('active.login.idle') ||
-          authState.matches('active.login.googleLogin') ||
-          authState.matches('active.login.retrievingSalt') ||
-          authState.matches('active.login.verifyingRegisterPublicKeyCredential')) &&
-          EmailInputStep}
-        {(authState.matches('active.login.loginMethodSelection') ||
-          authState.matches('active.login.signingCredentialRCR') ||
-          authState.matches('active.login.retrievingCredentialRCR')) &&
-          SelectLoginMethod}
-        {(authState.matches('active.login.inputPassword') ||
-          authState.matches('active.login.verifyingGoogleLogin') ||
-          authState.matches('active.login.verifyingLogin')) &&
-          PasswordInputStep}
-        {(authState.matches('active.login.email2fa') ||
-          authState.matches('active.login.resendingEmailCode') ||
-          authState.matches('active.login.verifyingEmail2fa')) &&
-          VerifyEmail}
-        {(authState.matches('active.login.hardware2fa') ||
-          authState.matches('active.login.verifyingHwAuth')) &&
-          VerifyHw2FAStep}
-        {(authState.matches('active.login.software2fa') ||
-          authState.matches('active.login.verifying2faCode')) &&
-          VerifySw2FAStep}
-        {(authState.matches('active.login.newDevice') ||
-          authState.matches('active.login.verifyingCode') ||
-          authState.matches('active.login.resendingConfirmationEmail')) &&
-          NewDeviceStep}
-        {authState.matches('active.login.successfulLogin') && (
-          <div
-            data-testid="login-successful-login-step"
-            className="flex flex-col items-center justify-center gap-4"
-          >
-            <div className="flex flex-row items-center justify-center gap-2">
-              <span>Login complete for</span>
-              <span className="font-semibold">{sessionUser?.nickname}</span>
-            </div>
-            <Button
-              className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
-              onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
-            >
-              LOGOUT
-            </Button>
-          </div>
+        {isLoading ? (
+          <Spinner className="my-20 !h-14 w-full !fill-red-300" />
+        ) : (
+          <>
+            {forgeId && authState.matches('active.web3Connector') && 'TODO'}
+            {(authState.matches('active.login.idle') ||
+              authState.matches('active.login.googleLogin') ||
+              authState.matches('active.login.retrievingSalt') ||
+              authState.matches('active.login.verifyingRegisterPublicKeyCredential')) &&
+              EmailInputStep}
+            {(authState.matches('active.login.loginMethodSelection') ||
+              authState.matches('active.login.signingCredentialRCR') ||
+              authState.matches('active.login.retrievingCredentialRCR')) &&
+              SelectLoginMethod}
+            {(authState.matches('active.login.inputPassword') ||
+              authState.matches('active.login.verifyingGoogleLogin') ||
+              authState.matches('active.login.verifyingLogin')) &&
+              PasswordInputStep}
+            {(authState.matches('active.login.email2fa') ||
+              authState.matches('active.login.resendingEmailCode') ||
+              authState.matches('active.login.verifyingEmail2fa')) &&
+              VerifyEmail}
+            {(authState.matches('active.login.hardware2fa') ||
+              authState.matches('active.login.verifyingHwAuth')) &&
+              VerifyHw2FAStep}
+            {(authState.matches('active.login.software2fa') ||
+              authState.matches('active.login.verifying2faCode')) &&
+              VerifySw2FAStep}
+            {(authState.matches('active.login.newDevice') ||
+              authState.matches('active.login.verifyingCode') ||
+              authState.matches('active.login.resendingConfirmationEmail')) &&
+              NewDeviceStep}
+            {authState.matches('active.login.successfulLogin') && (
+              <div
+                data-testid="login-successful-login-step"
+                className="flex flex-col items-center justify-center gap-4"
+              >
+                <div className="flex flex-row items-center justify-center gap-2">
+                  <span>Login complete for</span>
+                  <span className="font-semibold">{sessionUser?.nickname}</span>
+                </div>
+                <Button
+                  className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
+                  onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
+                >
+                  LOGOUT
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </Card>
 

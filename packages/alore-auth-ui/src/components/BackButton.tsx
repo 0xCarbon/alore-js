@@ -22,7 +22,7 @@ const BackButton = ({ onClick, disabled = false, children, className = '', ...pr
     )}
   >
     <ArrowLeftIcon className="size-4" />
-    {children}
+    <span className="ml-1 text-sm">{children}</span>
   </span>
 );
 
