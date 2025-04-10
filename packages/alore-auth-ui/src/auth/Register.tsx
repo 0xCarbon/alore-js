@@ -149,21 +149,56 @@ export const Register = ({
         ...publicKey,
         // @ts-ignore
         challenge: Buffer.from(publicKey.challenge, 'base64'),
+
         user: {
           // @ts-ignore
           id: Buffer.from(publicKey.user.id, 'base64'),
           name: email,
-          displayName: nickname,
+          displayName: email,
         },
         authenticatorSelection: {
-          requireResidentKey: true,
-          residentKey: 'required',
+          requireResidentKey: false,
+          residentKey: 'discouraged',
           userVerification: 'required',
         },
-        timeout: 10000,
+        timeout: 120000,
         pubKeyCredParams: [
-          { type: 'public-key', alg: -7 }, // ES256 (WebAuthn default)
-          { type: 'public-key', alg: -257 }, // RS256 (older devices)
+          {
+            type: 'public-key',
+            alg: -7,
+          },
+          {
+            type: 'public-key',
+            alg: -8,
+          },
+          {
+            type: 'public-key',
+            alg: -36,
+          },
+          {
+            type: 'public-key',
+            alg: -37,
+          },
+          {
+            type: 'public-key',
+            alg: -38,
+          },
+          {
+            type: 'public-key',
+            alg: -39,
+          },
+          {
+            type: 'public-key',
+            alg: -257,
+          },
+          {
+            type: 'public-key',
+            alg: -258,
+          },
+          {
+            type: 'public-key',
+            alg: -259,
+          },
         ],
         // @ts-ignore
         extensions,
@@ -174,7 +209,7 @@ export const Register = ({
       const _registerCredential = await navigator.credentials
         .create(credentialCreationOptions)
         .catch((err) => {
-          console.error('err', err);
+          console.error('Error creating passkey credential:', err);
         });
 
       if (!_registerCredential) {
@@ -273,6 +308,7 @@ export const Register = ({
           // @ts-ignore
           challenge: Buffer.from(publicKey.challenge, 'base64'),
           allowCredentials: allowCredentialsList, // Use the prepared list
+          timeout: 120000,
           extensions: {
             ...publicKey.extensions, // Include extensions from the server challenge
             // @ts-ignore - Spread our potentially modified extensions object
