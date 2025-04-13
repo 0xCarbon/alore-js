@@ -75,6 +75,7 @@ export const Register = ({
     CCRPublicKey,
     RCRPublicKey,
     authProviderConfigs,
+    socialProviderRegisterUser,
   } = authState.context;
 
   const { requireUsername, requireEmailVerification, enablePasskeys } = authProviderConfigs || {};
@@ -87,7 +88,10 @@ export const Register = ({
       resetUserInfo();
       sendAuth({
         type: 'GOOGLE_LOGIN',
-        googleToken: tokenResponse.access_token,
+        payload: {
+          accessToken: tokenResponse.access_token,
+          providerName: 'google',
+        },
       });
     },
   });
@@ -610,11 +614,15 @@ export const Register = ({
 
   async function onSubmitPassword(data: typeof passwordDefaultValues) {
     const { password } = data;
-    const email = registerUser ? registerUser.email : userInfoGetValues('email');
-    const nickname = registerUser ? registerUser.nickname : userInfoGetValues('nickname');
+    const email = registerUser
+      ? registerUser.email
+      : socialProviderRegisterUser?.email || userInfoGetValues('email');
+    const nickname = registerUser
+      ? registerUser.nickname
+      : socialProviderRegisterUser?.nickname || userInfoGetValues('nickname');
     const { userAgent } = window.navigator;
     const device = hashUserInfo(userAgent);
-    const saltWallet = registerUser ? registerUser.salt : salt || userSalt;
+    const saltWallet = salt || socialProviderRegisterUser?.salt || registerUser?.salt || userSalt;
 
     if (saltWallet) {
       if (keyshareWorker) {
@@ -651,7 +659,7 @@ export const Register = ({
 
   const isPasswordSubmitDisabled = useMemo(() => {
     const passwordValues = passwordGetValues();
-    const userInfoValues = registerUser || userInfoGetValues();
+    const userInfoValues = registerUser || socialProviderRegisterUser || userInfoGetValues();
     let isValid = true;
 
     passwordRules.forEach((rule) => {
@@ -964,6 +972,7 @@ export const Register = ({
     () => (
       <div data-testid="register-password-step">
         <BackButton
+          className="mb-4"
           disabled={isLoading}
           onClick={() => sendAuth(inviteToken || registerUser ? 'BACK_TO_IDLE' : 'BACK')}
         >
@@ -1008,7 +1017,7 @@ export const Register = ({
               locale={locale}
               className="!gap-y-1 md:!gap-y-2"
               passwordValues={passwordGetValues()}
-              userValues={registerUser || userInfoGetValues()}
+              userValues={registerUser || socialProviderRegisterUser || userInfoGetValues()}
             />
 
             <Button
@@ -1116,6 +1125,7 @@ export const Register = ({
                   <span className="font-semibold">{sessionUser?.nickname}</span>
                 </div>
                 <Button
+                  data-testid="logout-button"
                   className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
                   onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
                 >

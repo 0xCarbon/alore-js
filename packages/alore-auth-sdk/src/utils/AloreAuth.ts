@@ -723,17 +723,21 @@ export class AloreAuth {
       _: AuthMachineContext,
       event: {
         type: 'GOOGLE_LOGIN';
-        googleToken: string;
+        payload: {
+          accessToken: string;
+          providerName: string;
+        };
       },
     ) => {
-      const { googleToken } = event;
+      const { accessToken, providerName } = event.payload;
       const response = await this.fetchWithProgressiveBackoff('/auth/v1/google-login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          accessToken: googleToken,
+          accessToken,
+          provider: providerName,
         }),
       });
 
@@ -755,7 +759,7 @@ export class AloreAuth {
       if (response.status === 404) {
         return {
           isNewUser: true,
-          registerUser: {
+          socialProviderRegisterUser: {
             email: data.email,
             nickname: data.nickname,
             salt: data.salt,

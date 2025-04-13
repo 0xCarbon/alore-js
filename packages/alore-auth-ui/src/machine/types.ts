@@ -34,6 +34,7 @@ export interface AuthMachineContext {
   forgeData?: any;
   googleOtpCode?: string;
   googleUser?: { email: string; nickname: string };
+  socialProviderRegisterUser?: { email: string; nickname: string; salt?: string };
   sessionUser?: SessionUser;
   CCRPublicKey?: { publicKey: PublicKeyCredentialCreationOptions };
   RCRPublicKey?: {
@@ -55,7 +56,10 @@ export type AuthMachineEvents =
   | { type: 'SELECT_PASSWORD_METHOD'; payload: { email: string } }
   | {
       type: 'GOOGLE_LOGIN';
-      googleToken: string;
+      payload: {
+        accessToken: string;
+        providerName: string;
+      };
     }
   | {
       type: 'START_PASSKEY_LOGIN';

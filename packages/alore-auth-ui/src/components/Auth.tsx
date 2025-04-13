@@ -34,7 +34,8 @@ const Auth = ({
 }: AuthProps) => {
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
-  const { googleUser, sessionUser, authProviderConfigs } = authState.context;
+  const { googleUser, sessionUser, authProviderConfigs, socialProviderRegisterUser } =
+    authState.context;
   const { locale } = authProviderConfigs || {};
 
   console.info('context', authState.context);
@@ -62,12 +63,18 @@ const Auth = ({
   useEffect(() => {
     if (googleUser) {
       sendAuth([{ type: 'INITIALIZE', forgeId }, 'LOGIN', 'ADVANCE_TO_PASSWORD']);
-    } else sendAuth([{ type: 'INITIALIZE', forgeId }, 'LOGIN']);
+    }
 
-    return () => {
-      sendAuth('RESET');
-    };
+    if (!sessionUser) {
+      sendAuth(['RESET', 'INITIALIZE', 'LOGIN']);
+    }
   }, []);
+
+  useEffect(() => {
+    if (socialProviderRegisterUser) {
+      sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP', 'ADVANCE_TO_PASSWORD']);
+    }
+  }, [socialProviderRegisterUser]);
 
   useEffect(() => {
     if (

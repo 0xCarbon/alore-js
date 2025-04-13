@@ -105,7 +105,10 @@ export const Login = ({
       resetEmail();
       sendAuth({
         type: 'GOOGLE_LOGIN',
-        googleToken: tokenResponse.access_token,
+        payload: {
+          accessToken: tokenResponse.access_token,
+          providerName: 'google',
+        },
       });
     },
   });
@@ -117,6 +120,13 @@ export const Login = ({
       })
       .then((response) => {
         console.info('Login success:', response);
+        sendAuth({
+          type: 'GOOGLE_LOGIN',
+          payload: {
+            accessToken: response.accessToken,
+            providerName: 'microsoft',
+          },
+        });
       })
       .catch((error) => {
         console.error('Login failed:', error);
@@ -773,36 +783,29 @@ export const Login = ({
           {socialProviders?.length && (
             <>
               <div className="flex w-full flex-row gap-4">
-                <Button
-                  color="light"
-                  className="w-full"
-                  onClick={handleGoogleLogin}
-                  outline
-                >
-                  <div className="flex flex-row items-center justify-center gap-2">
-                    <img
-                      src={google}
-                      alt="google logo"
-                      width={16}
-                    />
-                    {dictionary?.auth.continueGoogle}
-                  </div>
-                </Button>
-                <Button
-                  color="light"
-                  className="w-full"
-                  onClick={handleMicrosoftLogin}
-                  outline
-                >
-                  <div className="flex flex-row items-center justify-center gap-2">
-                    <img
-                      src={microsoftLogo}
-                      alt="microsoft logo"
-                      width={16}
-                    />
-                    {dictionary?.auth.continueMicrosoft}
-                  </div>
-                </Button>
+                {socialProviders.map((provider) => (
+                  <Button
+                    key={provider.id}
+                    color="light"
+                    data-testid={`login-social-${provider.providerName}-button`}
+                    className="w-full"
+                    onClick={
+                      provider.providerName === 'google' ? handleGoogleLogin : handleMicrosoftLogin
+                    }
+                    outline
+                  >
+                    <div className="flex flex-row items-center justify-center gap-2">
+                      <img
+                        src={provider.providerName === 'google' ? google : microsoftLogo}
+                        alt={provider.providerName === 'google' ? 'google logo' : 'microsoft logo'}
+                        width={16}
+                      />
+                      {provider.providerName === 'google'
+                        ? dictionary?.auth.continueGoogle
+                        : dictionary?.auth.continueMicrosoft}
+                    </div>
+                  </Button>
+                ))}
               </div>
               <div className="h-[0.5px] w-full bg-gray-300" />
             </>
@@ -1317,6 +1320,7 @@ export const Login = ({
                   <span className="font-semibold">{sessionUser?.nickname}</span>
                 </div>
                 <Button
+                  data-testid="logout-button"
                   className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
                   onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
                 >

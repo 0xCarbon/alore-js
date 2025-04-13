@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - '8025:8025' # Web UI
+      - '1025:1025' # SMTP server
+    environment:
+      MH_STORAGE: maildir
+      MH_MAILDIR_PATH: /maildir
+    volumes:
+      - mailhog-maildir:/maildir
+
+volumes:
+  mailhog-maildir:

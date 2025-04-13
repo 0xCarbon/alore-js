@@ -1,10 +1,9 @@
 export interface SocialProvider {
   id: string;
-  authProviderConfigId: string;
   providerName: string;
   clientId: string;
   enabled?: boolean;
-  createdAt: string;
+  createdAt?: string;
   updatedAt?: string;
 }
 
