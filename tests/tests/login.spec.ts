@@ -4,15 +4,14 @@ import { registerUser } from './helpers';
 import { navigateTo } from './helpers/general';
 import {
   DEFAULT_ALORE_CONFIGS,
-  MAILOSAUR_API_KEY,
-  MAILOSAUR_DOMAIN,
-  MAILOSAUR_SERVER_ID,
   TEST_PASSWORD,
+  TESTMAIL_API_KEY,
+  TESTMAIL_NAMESPACE,
 } from './utils/constants';
-import { EmailHelper } from './utils/EmailHelper';
+import { TestMailHelper } from './utils/EmailHelper';
 
 // --- Mailosaur Email Helper ---
-const emailHelper = new EmailHelper(MAILOSAUR_API_KEY as string, MAILOSAUR_DOMAIN as string);
+const emailHelper = new TestMailHelper(TESTMAIL_API_KEY as string, TESTMAIL_NAMESPACE as string);
 
 // --- Test Suite ---
 test.describe('Login Page Authentication', () => {
@@ -41,7 +40,7 @@ test.describe('Login Page Authentication', () => {
     await page.getByTestId('login-submit').click();
 
     // 3. Enter Email Verification Code
-    const code = await emailHelper.get2FACode(MAILOSAUR_SERVER_ID as string);
+    const code = await emailHelper.get2FACode('login');
 
     await page.locator('.h-\\[2\\.56rem\\]').first().click();
     await page.locator('.h-\\[2\\.56rem\\]').first().fill(code);

@@ -2,11 +2,11 @@ import { test } from '@playwright/test';
 
 import { registerUser } from './helpers';
 import { navigateTo } from './helpers/general';
-import { DEFAULT_ALORE_CONFIGS, MAILOSAUR_API_KEY, MAILOSAUR_DOMAIN } from './utils/constants';
-import { EmailHelper } from './utils/EmailHelper';
+import { DEFAULT_ALORE_CONFIGS, TESTMAIL_API_KEY, TESTMAIL_NAMESPACE } from './utils/constants';
+import { TestMailHelper } from './utils/EmailHelper';
 
 // --- Mailosaur Email Helper ---
-const emailHelper = new EmailHelper(MAILOSAUR_API_KEY as string, MAILOSAUR_DOMAIN as string);
+const emailHelper = new TestMailHelper(TESTMAIL_API_KEY as string, TESTMAIL_NAMESPACE as string);
 
 // --- Test Suite ---
 test.describe('Register Page Authentication', () => {

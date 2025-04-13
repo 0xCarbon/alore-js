@@ -16,6 +16,7 @@
     "@alore/crypto-sdk": "workspace:*",
     "@heroicons/react": "2.0.16",
     "argon2-browser": "1.18.0",
+    "axios": "^1.8.4",
     "flowbite": "2.3.0",
     "flowbite-react": "0.7.2",
     "hpke-js": "1.2.7",

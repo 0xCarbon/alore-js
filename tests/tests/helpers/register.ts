@@ -1,10 +1,10 @@
 import { expect, Page } from '@playwright/test';
 
-import { MAILOSAUR_SERVER_ID, TEST_NICKNAME, TEST_PASSWORD } from '../utils/constants';
-import { EmailHelper } from '../utils/EmailHelper';
+import { TEST_NICKNAME, TEST_PASSWORD } from '../utils/constants';
+import { TestMailHelper } from '../utils/EmailHelper';
 
 // --- Standard Register Helper Function ---
-export async function registerUser(page: Page, emailHelper: EmailHelper) {
+export async function registerUser(page: Page, emailHelper: TestMailHelper) {
   // 1. Click Sign Up Button
   await expect(page.getByTestId('login-email-step')).toBeVisible({ timeout: 10000 });
   await page.getByTestId('sign-up-button').click();
@@ -22,7 +22,7 @@ export async function registerUser(page: Page, emailHelper: EmailHelper) {
   await page.getByTestId('register-button').click();
 
   // 5. Enter Email Verification Code
-  const code = await emailHelper.get2FACode(MAILOSAUR_SERVER_ID as string);
+  const code = await emailHelper.get2FACode('register');
 
   await page.locator('.h-\\[2\\.56rem\\]').first().click();
   await page.locator('.h-\\[2\\.56rem\\]').first().fill(code);
