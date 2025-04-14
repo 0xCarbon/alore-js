@@ -20,7 +20,7 @@ export interface AuthProps {
   inviteToken?: string;
   keyshareWorker?: Worker | null;
   onSuccess?: (_sessionUser: SessionUser) => void;
-  _onError?: (_error: string) => void;
+  onError?: (_error: string) => void;
 }
 
 const Auth = ({
@@ -30,7 +30,8 @@ const Auth = ({
   inviteToken,
   keyshareWorker,
   onSuccess,
-  _onError,
+  // eslint-disable-next-line no-unused-vars
+  onError,
 }: AuthProps) => {
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
@@ -38,8 +39,6 @@ const Auth = ({
     authState.context;
   const { locale } = authProviderConfigs || {};
 
-  console.info('context', authState.context);
-  console.info('state', authState.value);
   const [isClient, setIsClient] = useState(false);
 
   const msalConfig = {

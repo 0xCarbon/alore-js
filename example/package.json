@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "devDependencies": {
-    "@alore/auth-react-ui": "1.0.1-alpha",
+    "@alore/auth-react-ui": "workspace:*",
     "@alore/crypto-sdk": "workspace:*",
     "@0xcarbon/dkls23-wasm": "1.0.2",
     "@heroicons/react": "2.0.16",
