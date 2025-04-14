@@ -78,8 +78,8 @@ importers:
         specifier: 1.0.2
         version: 1.0.2
       '@alore/auth-react-ui':
-        specifier: 1.0.1-alpha
-        version: 1.0.1-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.3.1)
+        specifier: workspace:*
+        version: link:../packages/alore-auth-ui
       '@alore/crypto-sdk':
         specifier: workspace:*
         version: link:../packages/alore-crypto-sdk
@@ -378,51 +378,6 @@ packages:
   /@alloc/quick-lru@5.2.0:
     resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
     engines: {node: '>=10'}
-
-  /@alore/auth-react-sdk@1.0.1-alpha:
-    resolution: {integrity: sha512-BReQObcy0uxPOnfqcpHyJrj5kAB4t6QnAEk0TYlS4ekQfBuQoEuDTGOZGqHRoniIWfgI3Mx5TJ7SFSymeXmbNg==}
-    engines: {node: '>=20.0.0'}
-    dependencies:
-      '@simplewebauthn/browser': 7.4.0
-      argon2-browser: 1.18.0
-      ethers: 6.7.1
-      js-cookie: 3.0.5
-      jwt-decode: 4.0.0
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-    dev: true
-
-  /@alore/auth-react-ui@1.0.1-alpha(@types/react@18.2.79)(flowbite-react@0.7.2)(react-dom@18.3.1):
-    resolution: {integrity: sha512-3XVqjUqrUS7OKgY6MFsd43O21hdEQG9E6LgrzgzZFxZpxOMbvT5mA/X8WyBVKMXMsyKVxmHze7/fQsKKs1YH5w==}
-    engines: {node: '>=20.0.0'}
-    peerDependencies:
-      flowbite-react: 0.6.4
-    dependencies:
-      '@alore/auth-react-sdk': 1.0.1-alpha
-      '@heroicons/react': 2.0.16(react@18.2.0)
-      '@hookform/resolvers': 3.1.0(react-hook-form@7.54.2)
-      '@react-oauth/google': 0.12.1(react-dom@18.3.1)(react@18.2.0)
-      '@types/node': 20.4.8
-      '@xstate/react': 3.2.2(@types/react@18.2.79)(react@18.2.0)(xstate@4.38.2)
-      flowbite: 1.6.6
-      flowbite-react: 0.7.2(@types/react@18.2.79)(esbuild@0.24.2)(next@14.2.1)(react-dom@18.3.1)(react@18.2.0)(tailwindcss@3.4.3)
-      js-cookie: 3.0.5
-      jwt-decode: 3.1.2
-      react: 18.2.0
-      react-hook-form: 7.54.2(react@18.2.0)
-      tailwind-merge: 2.3.0
-      tailwindcss: 3.4.3
-      xstate: 4.38.2
-      yup: 1.1.1
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@xstate/fsm'
-      - bufferutil
-      - react-dom
-      - ts-node
-      - utf-8-validate
-    dev: true
 
   /@azure/msal-browser@4.8.0:
     resolution: {integrity: sha512-z7kJlMW3IAETyq82LDKJqr++IeOvU728q9lkuTFjEIPUWxnB1OlmuPCF32fYurxOnOnJeFEZxjbEzq8xyP0aag==}
@@ -1330,6 +1285,7 @@ packages:
       react-hook-form: ^7.0.0
     dependencies:
       react-hook-form: 7.54.2(react@18.2.0)
+    dev: false
 
   /@humanfs/core@0.19.1:
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -4613,6 +4569,7 @@ packages:
     dependencies:
       '@popperjs/core': 2.11.8
       mini-svg-data-uri: 1.4.4
+    dev: false
 
   /flowbite@2.3.0:
     resolution: {integrity: sha512-pm3JRo8OIJHGfFYWgaGpPv8E+UdWy0Z3gEAGufw+G/1dusaU/P1zoBLiQpf2/+bYAi+GBQtPVG86KYlV0W+AFQ==}
@@ -5575,6 +5532,7 @@ packages:
 
   /jwt-decode@3.1.2:
     resolution: {integrity: sha512-UfpWE/VZn0iP50d8cz9NrZLM9lSWhcJ+0Gt/nm4by88UL+J1SiKN8/5dkjMmbEzwL2CAe+67GsegCbIKtbp75A==}
+    dev: false
 
   /jwt-decode@4.0.0:
     resolution: {integrity: sha512-+KJGIyHgkGuIq3IEBNftfhW/LfWhXUIY6OmyVWjliu5KH1y0fw7VQ8YndE2O4qZdMSd9SqbnC8GOcZEy0Om7sA==}
@@ -7277,6 +7235,7 @@ packages:
       react: ^16.8.0 || ^17 || ^18 || ^19
     dependencies:
       react: 18.2.0
+    dev: false
 
   /react-icons@4.12.0(react@18.2.0):
     resolution: {integrity: sha512-IBaDuHiShdZqmfc/TwHu6+d6k2ltNCf3AszxNmjJc1KUfXdEeRJOKyNvLmAHaarhzGmTSVygNdyu8/opXv2gaw==}
