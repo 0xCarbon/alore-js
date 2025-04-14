@@ -51,7 +51,11 @@ export function ruleValidation(
       if (!userInfoValues) return true;
       return !passwordValues.password
         .toLowerCase()
-        .match(new RegExp(`${userInfoValues.nickname}|${userInfoValues.email}`));
+        .match(
+          new RegExp(
+            `${userInfoValues.nickname ? `${userInfoValues.nickname}|` : ''}${userInfoValues.email}`,
+          ),
+        );
     }
     return (rule?.regex && !!passwordValues.password.match(rule.regex)) || false;
   }

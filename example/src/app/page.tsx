@@ -1,17 +1,32 @@
 'use client';
 
-import { AuthProvider } from '@alore/auth-react-ui';
+import { AuthProvider, AuthProviderConfig } from '@alore/auth-react-ui';
 
 import AuthComponent from '@/components/AuthComponent';
-import { aloreAuth } from '@/config/authInstance';
 
-import KeyshareWorkerProvider from '../components/KeyshareWorker';
+import KeyshareWorkerProvider from '../components/KeyshareWorkerProvider';
+
+export const clientId = process.env.NEXT_PUBLIC_ALORE_CLIENT_ID || '';
+export const endpoint = process.env.NEXT_PUBLIC_ALORE_BACKEND_URL || 'https://api.bealore.com/v1';
+
+const aloreConfigs: AuthProviderConfig = {
+  locale: 'pt',
+  enablePasskeys: true,
+  rpDomain: 'http://localhost:3000',
+  requireEmailVerification: true,
+  requireUsername: false,
+  passwordMinLength: 8,
+};
 
 export default function Home() {
   return (
     <main>
       <KeyshareWorkerProvider>
-        <AuthProvider machineServices={aloreAuth.services}>
+        <AuthProvider
+          clientId={clientId}
+          aloreBaseUrl={endpoint}
+          config={aloreConfigs}
+        >
           <AuthComponent />
         </AuthProvider>
       </KeyshareWorkerProvider>

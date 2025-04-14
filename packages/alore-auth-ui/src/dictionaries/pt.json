@@ -2,6 +2,7 @@
   "accept": "Aceitar",
   "password": "Senha",
   "next": "Próximo",
+  "back": "Voltar",
   "formValidation": {
     "required": "Este campo é obrigatório",
     "invalidEmail": "E-mail inválido",
@@ -20,7 +21,8 @@
     "poweredBy": "Distribuído por",
     "continueWith": "Ou continue com:",
     "selectAnOption": "Selecione uma das opções",
-    "continueGoogle": "Continuar com o Google",
+    "continueGoogle": "Google",
+    "continueMicrosoft": "Microsoft",
     "signWithPasskey": "Entrar com uma passkey",
     "continueApple": "Continuar com a Apple",
     "layout": {

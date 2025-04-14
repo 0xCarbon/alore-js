@@ -1,7 +1,6 @@
-/** @type {import('next').NextConfig} */
-
 const path = require('path');
 
+/** @type {import('next').NextConfig} */
 module.exports = {
   eslint: {
     dirs: ['app', 'components'],
@@ -9,6 +8,7 @@ module.exports = {
   },
   reactStrictMode: true,
   swcMinify: true,
+  transpilePackages: ['@alore/auth-react-ui', '@alore/crypto-sdk'],
   webpack(config, { isServer }) {
     config.experiments = {
       asyncWebAssembly: true,

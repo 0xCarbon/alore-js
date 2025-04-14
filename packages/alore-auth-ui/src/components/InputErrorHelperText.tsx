@@ -9,7 +9,7 @@ interface Props {
 
 const InputErrorHelperText = ({ id, message }: Props) => (
   <span
-    data-test={id ? `${id}-helper-text` : undefined}
+    data-testid={id ? `${id}-helper-text` : undefined}
     className="text-alr-red text-sm font-semibold"
   >
     {message}

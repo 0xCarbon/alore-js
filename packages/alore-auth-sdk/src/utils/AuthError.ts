@@ -1,0 +1,43 @@
+/* eslint-disable no-unused-vars */
+
+export enum ErrorCodes {
+  BAD_REQUEST = 400,
+  FORBIDDEN = 403,
+  TOO_MANY_REQUESTS = 429,
+}
+
+export enum ErrorTypes {
+  CLIENT_ID_REQUIRED = 'CLIENT_ID_REQUIRED',
+  PASSKEY_NOT_SUPPORTED = 'PASSKEY_NOT_SUPPORTED',
+  USER_ALREADY_EXISTS = 'USER_ALREADY_EXISTS',
+  FAILED_TO_FETCH = 'FAILED_TO_FETCH',
+  SERVER_DOWN = 'SERVER_DOWN',
+  BAD_RESPONSE = 'BAD_RESPONSE',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+  INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
+  WRONG_2FA_CODE = 'WRONG_2FA_CODE',
+  INVALID_EMAIL_PASSWORD = 'INVALID_EMAIL_PASSWORD',
+  PUBLIC_KEY_CREATION_OPTIONS_UNDEFINED = 'PUBLIC_KEY_CREATION_OPTIONS_UNDEFINED',
+  CREATE_SECRET_FROM_CREDENTIAL_FAILED = 'CREATE_SECRET_FROM_CREDENTIAL_FAILED',
+  PASSKEY_GET_ERROR = 'PASSKEY_GET_ERROR',
+  PASSKEY_CREATE_ERROR = 'PASSKEY_CREATE_ERROR',
+  PRF_EXTENSION_NOT_SUPPORTED = 'PRF_EXTENSION_NOT_SUPPORTED',
+  LARGE_BLOB_EXTENSION_NOT_SUPPORTED = 'LARGE_BLOB_EXTENSION_NOT_SUPPORTED',
+  TOO_MANY_REQUESTS = 'TOO_MANY_REQUESTS',
+}
+
+export class AloreAuthError extends Error {
+  public type: ErrorTypes;
+
+  public code?: number;
+
+  constructor(type: ErrorTypes, message: string, code?: number) {
+    super(message);
+    this.name = 'AloreAuthError';
+
+    this.type = type;
+    this.code = code;
+
+    Object.setPrototypeOf(this, AloreAuthError.prototype);
+  }
+}

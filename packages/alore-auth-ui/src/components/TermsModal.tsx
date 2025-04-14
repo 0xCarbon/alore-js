@@ -32,13 +32,14 @@ const TermsModal = ({ locale, show, onClose, onSubmit }: Props) => {
       <Modal.Body className="scrollbar">
         <div className="flex flex-col px-8 pb-5 pt-2">
           <span
+            // eslint-disable-next-line react/no-danger
             dangerouslySetInnerHTML={{
               __html: dictionary?.auth.register.termsDescription || '',
             }}
             className="mb-16"
           />
           <Button
-            data-test="accept-terms"
+            data-testid="accept-terms"
             className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
             onClick={onSubmit}
           >

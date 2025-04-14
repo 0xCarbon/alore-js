@@ -1,3 +1,5 @@
+import { AuthProviderConfig } from '@alore/auth-react-sdk/dist/types';
+
 import { authService } from '.';
 
 type PublicKeyCredentialCreationOptions = globalThis.PublicKeyCredentialCreationOptions;
@@ -19,6 +21,7 @@ export type SessionUser = {
 };
 
 export interface AuthMachineContext {
+  authProviderConfigs?: AuthProviderConfig;
   salt?: string;
   error?: string;
   active2fa?: TwoFactorAuth[];
@@ -31,6 +34,7 @@ export interface AuthMachineContext {
   forgeData?: any;
   googleOtpCode?: string;
   googleUser?: { email: string; nickname: string };
+  socialProviderRegisterUser?: { email: string; nickname: string; salt?: string };
   sessionUser?: SessionUser;
   CCRPublicKey?: { publicKey: PublicKeyCredentialCreationOptions };
   RCRPublicKey?: {
@@ -49,10 +53,13 @@ export type AuthMachineEvents =
   | { type: 'BACK' }
   | { type: 'BACK_TO_IDLE' }
   | { type: 'SELECT_CONNECTOR' }
-  | { type: 'NEXT'; payload: { email: string } }
+  | { type: 'SELECT_PASSWORD_METHOD'; payload: { email: string } }
   | {
       type: 'GOOGLE_LOGIN';
-      googleToken: string;
+      payload: {
+        accessToken: string;
+        providerName: string;
+      };
     }
   | {
       type: 'START_PASSKEY_LOGIN';
@@ -69,8 +76,8 @@ export type AuthMachineEvents =
   | {
       type: 'START_PASSKEY_REGISTER';
       payload: {
-        device: string;
-        email: string;
+        device?: string;
+        email?: string;
         nickname?: string;
       };
     }
@@ -198,7 +205,13 @@ export type AuthMachineEvents =
       };
     }
   | { type: 'CLOSE_TERMS_MODAL' }
-  | { type: 'VERIFY_EMAIL'; payload: { secureCode: string } }
+  | {
+      type: 'VERIFY_EMAIL';
+      payload: {
+        secureCode: string;
+        registerUser: { email: string; nickname: string; device: string };
+      };
+    }
   | {
       type: 'COMPLETE_REGISTRATION';
       payload: {

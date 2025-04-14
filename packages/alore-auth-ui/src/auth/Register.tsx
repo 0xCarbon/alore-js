@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable @next/next/no-img-element */
 import { ArrowRightIcon, EnvelopeIcon } from '@heroicons/react/20/solid';
 import { KeyIcon, LockOpenIcon } from '@heroicons/react/24/outline';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -19,6 +20,8 @@ import { verifyEmptyValues } from '../helpers';
 import useDictionary from '../hooks/useDictionary';
 import { AuthInstance } from '../machine/types';
 import { aloreLogoBlack, google, metamaskLogo, walletConnectLogo } from '../utils';
+
+/* eslint-disable @next/next/no-img-element */
 
 const InputForm = React.lazy(() => import('../components/InputForm'));
 const InputOTP = React.lazy(() => import('../components/InputOTP'));
@@ -71,7 +74,12 @@ export const Register = ({
     sessionUser,
     CCRPublicKey,
     RCRPublicKey,
+    authProviderConfigs,
+    socialProviderRegisterUser,
   } = authState.context;
+
+  const { requireUsername, requireEmailVerification, enablePasskeys } = authProviderConfigs || {};
+
   const [userSalt, setUserSalt] = useState('');
   const [registrationMethod, setRegistrationMethod] = useState('password');
 
@@ -80,7 +88,10 @@ export const Register = ({
       resetUserInfo();
       sendAuth({
         type: 'GOOGLE_LOGIN',
-        googleToken: tokenResponse.access_token,
+        payload: {
+          accessToken: tokenResponse.access_token,
+          providerName: 'google',
+        },
       });
     },
   });
@@ -142,18 +153,57 @@ export const Register = ({
         ...publicKey,
         // @ts-ignore
         challenge: Buffer.from(publicKey.challenge, 'base64'),
+
         user: {
           // @ts-ignore
           id: Buffer.from(publicKey.user.id, 'base64'),
           name: email,
-          displayName: nickname,
+          displayName: email,
         },
         authenticatorSelection: {
-          requireResidentKey: true,
-          residentKey: 'required',
+          requireResidentKey: false,
+          residentKey: 'discouraged',
           userVerification: 'required',
         },
-        timeout: 10000,
+        timeout: 120000,
+        pubKeyCredParams: [
+          {
+            type: 'public-key',
+            alg: -7,
+          },
+          {
+            type: 'public-key',
+            alg: -8,
+          },
+          {
+            type: 'public-key',
+            alg: -36,
+          },
+          {
+            type: 'public-key',
+            alg: -37,
+          },
+          {
+            type: 'public-key',
+            alg: -38,
+          },
+          {
+            type: 'public-key',
+            alg: -39,
+          },
+          {
+            type: 'public-key',
+            alg: -257,
+          },
+          {
+            type: 'public-key',
+            alg: -258,
+          },
+          {
+            type: 'public-key',
+            alg: -259,
+          },
+        ],
         // @ts-ignore
         extensions,
       },
@@ -163,7 +213,7 @@ export const Register = ({
       const _registerCredential = await navigator.credentials
         .create(credentialCreationOptions)
         .catch((err) => {
-          console.error('err', err);
+          console.error('Error creating passkey credential:', err);
         });
 
       if (!_registerCredential) {
@@ -234,15 +284,26 @@ export const Register = ({
 
     const largeBlob = new Uint8Array(randomBytes(32));
 
+    // Prepare the allowCredentials list by decoding the IDs
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const allowCredentialsList = publicKey.allowCredentials?.map((cred: any) => ({
+      ...cred,
+      id: Buffer.from(cred.id, 'base64'),
+    }));
+
     const extensions: {
       prf?: { eval: { first: Uint8Array } };
-      largeBlob?: { write: Uint8Array };
+      largeBlob?: { write?: Uint8Array }; // Make write optional here
     } = {
       prf: { eval: { first: new TextEncoder().encode('Alore') } },
-      largeBlob: {
-        write: largeBlob,
-      },
     };
+
+    // Conditionally add largeBlob.write only if exactly one credential is allowed
+    if (allowCredentialsList?.length === 1) {
+      extensions.largeBlob = {
+        write: largeBlob,
+      };
+    }
 
     try {
       const firstLoginCredential = (await navigator.credentials.get({
@@ -250,14 +311,11 @@ export const Register = ({
           ...publicKey,
           // @ts-ignore
           challenge: Buffer.from(publicKey.challenge, 'base64'),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          allowCredentials: publicKey.allowCredentials?.map((cred: any) => ({
-            ...cred,
-            id: Buffer.from(cred.id, 'base64'),
-          })),
+          allowCredentials: allowCredentialsList, // Use the prepared list
+          timeout: 120000,
           extensions: {
-            ...publicKey.extensions,
-            // @ts-ignore
+            ...publicKey.extensions, // Include extensions from the server challenge
+            // @ts-ignore - Spread our potentially modified extensions object
             ...extensions,
           },
         },
@@ -268,7 +326,6 @@ export const Register = ({
         sendAuth('BACK_TO_IDLE');
         return;
       }
-
       const extensionResults = firstLoginCredential.getClientExtensionResults();
 
       // @ts-ignore
@@ -343,6 +400,23 @@ export const Register = ({
   };
 
   useEffect(() => {
+    if (
+      authState.matches('active.register.registerMethodSelection') &&
+      !requireEmailVerification &&
+      enablePasskeys
+    ) {
+      const device = hashUserInfo(window.navigator.userAgent);
+
+      sendAuth({
+        type: 'START_PASSKEY_REGISTER',
+        payload: {
+          device,
+        },
+      });
+    }
+  }, [authState.matches('active.register.registerMethodSelection')]);
+
+  useEffect(() => {
     if (authState.matches('active.register.localCCRSign')) {
       finishPasskeyRegistration();
     }
@@ -371,11 +445,13 @@ export const Register = ({
         .string()
         .required(dictionary?.formValidation.required)
         .email(dictionary?.formValidation.invalidEmail),
-      nickname: yup
-        .string()
-        .matches(/^[a-zA-Z].*$/, dictionary?.formValidation.validName)
-        .max(40)
-        .required(dictionary?.formValidation.required),
+      nickname: requireUsername
+        ? yup
+            .string()
+            .matches(/^[a-zA-Z].*$/, dictionary?.formValidation.validName)
+            .max(40)
+            .required(dictionary?.formValidation.required)
+        : yup.string().nullable(),
       agreedWithTerms: yup.boolean().isTrue(dictionary?.formValidation.agreeTerms),
     })
     .required();
@@ -389,7 +465,7 @@ export const Register = ({
 
   const userInfoDefaultValues: FieldValues = {
     email: '',
-    nickname: '',
+    nickname: null,
     agreedWithTerms: false,
   };
   const {
@@ -427,8 +503,6 @@ export const Register = ({
       authState.matches('active.register.verifyingEmail') ||
       authState.matches('active.register.resendingRegistrationEmail') ||
       authState.matches('active.register.googleLogin') ||
-      authState.matches('active.register.retrievingCCR') ||
-      authState.matches('active.register.retrievingRCR') ||
       authState.matches('active.register.localCCRSign') ||
       authState.matches('active.register.localRCRSign') ||
       authState.matches('active.register.waitingForRCR') ||
@@ -438,12 +512,6 @@ export const Register = ({
       authState.matches('active.web3Connector.verifyingEmailEligibility'),
     [authState.value],
   );
-
-  useEffect(() => {
-    if (registerUser) {
-      sendAuth([{ type: 'INITIALIZE', forgeId }, 'SIGN_UP', 'ADVANCE_TO_PASSWORD']);
-    } else sendAuth([{ type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
-  }, []);
 
   useEffect(() => {
     if (inviteToken) {
@@ -503,7 +571,14 @@ export const Register = ({
   }, [sendEmailCooldown]);
 
   function onClickSecureCodeSubmit() {
-    sendAuth({ type: 'VERIFY_EMAIL', payload: { secureCode } });
+    const nickname = registerUser ? registerUser.nickname : userInfoGetValues('nickname');
+    const email = registerUser ? registerUser.email : userInfoGetValues('email');
+    const device = hashUserInfo(window.navigator.userAgent);
+
+    sendAuth({
+      type: 'VERIFY_EMAIL',
+      payload: { secureCode, registerUser: { email, nickname, device } },
+    });
     setSecureCode('');
   }
 
@@ -529,7 +604,7 @@ export const Register = ({
         type: 'SEND_REGISTRATION_EMAIL',
         payload: {
           email,
-          nickname,
+          nickname: nickname || null,
           isForgeClaim: !!forgeId,
           locale,
         },
@@ -539,11 +614,15 @@ export const Register = ({
 
   async function onSubmitPassword(data: typeof passwordDefaultValues) {
     const { password } = data;
-    const email = registerUser ? registerUser.email : userInfoGetValues('email');
-    const nickname = registerUser ? registerUser.nickname : userInfoGetValues('nickname');
+    const email = registerUser
+      ? registerUser.email
+      : socialProviderRegisterUser?.email || userInfoGetValues('email');
+    const nickname = registerUser
+      ? registerUser.nickname
+      : socialProviderRegisterUser?.nickname || userInfoGetValues('nickname');
     const { userAgent } = window.navigator;
     const device = hashUserInfo(userAgent);
-    const saltWallet = registerUser ? registerUser.salt : salt || userSalt;
+    const saltWallet = salt || socialProviderRegisterUser?.salt || registerUser?.salt || userSalt;
 
     if (saltWallet) {
       if (keyshareWorker) {
@@ -566,14 +645,21 @@ export const Register = ({
     }
   }
 
-  const isUserInfoSubmitDisabled = useMemo(
-    () => verifyEmptyValues(userInfoGetValues()),
-    [userInfoGetValues(), userInfoDirtyFields],
-  );
+  const isUserInfoSubmitDisabled = useMemo(() => {
+    const values = userInfoGetValues();
+
+    if (!values) return true;
+
+    if (!requireUsername) {
+      delete values.nickname;
+    }
+
+    return verifyEmptyValues(values) || !values.agreedWithTerms;
+  }, [userInfoGetValues(), userInfoDirtyFields, requireUsername]);
 
   const isPasswordSubmitDisabled = useMemo(() => {
     const passwordValues = passwordGetValues();
-    const userInfoValues = registerUser || userInfoGetValues();
+    const userInfoValues = registerUser || socialProviderRegisterUser || userInfoGetValues();
     let isValid = true;
 
     passwordRules.forEach((rule) => {
@@ -587,7 +673,7 @@ export const Register = ({
 
   const UserInfo = useMemo(
     () => (
-      <>
+      <div data-testid="register-user-info-step">
         {inviteToken ? (
           <div className="flex flex-col gap-2.5">
             <h1 className="text-alr-grey mb-1 text-center text-[1.75rem] font-bold">
@@ -601,7 +687,7 @@ export const Register = ({
             </div>
           </div>
         ) : (
-          <h1 className="font-inter mb-1 text-center font-semibold text-gray-600 md:text-lg">
+          <h1 className="font-inter mb-3 text-center font-semibold text-gray-600 md:text-lg">
             {forgeId ? registerDictionary?.forgeTitle : registerDictionary?.title}
           </h1>
         )}
@@ -613,7 +699,7 @@ export const Register = ({
         <form
           onSubmit={userInfoHandleSubmit((data) => onSubmitUserData(data))}
           className="mb-1 flex flex-col gap-y-5"
-          data-test="register-new-account-step"
+          data-testid="register-new-account-step"
         >
           <InputForm
             control={userInfoControl}
@@ -625,33 +711,35 @@ export const Register = ({
                 ? `${registerDictionary?.emailInvitePlaceholder}`
                 : `${registerDictionary?.emailLabel}`
             }
-            data-test="register-email"
+            data-testid="register-email"
             icon={envelopIcon}
             autoFocus
             disabled={isLoading || !!inviteToken}
           />
 
-          <InputForm
-            control={userInfoControl}
-            errors={userInfoErrors}
-            name="nickname"
-            type="text"
-            placeholder={registerDictionary?.nicknameLabel}
-            data-test="register-first-name"
-            disabled={isLoading}
-          />
+          {requireUsername && (
+            <InputForm
+              control={userInfoControl}
+              errors={userInfoErrors}
+              name="nickname"
+              type="text"
+              placeholder={registerDictionary?.nicknameLabel}
+              data-testid="register-first-name"
+              disabled={isLoading}
+            />
+          )}
           <CheckboxForm
             className="flex items-center justify-center"
             control={userInfoControl}
             name="agreedWithTerms"
-            data-test="register-agreed-with-terms"
+            data-testid="register-agreed-with-terms-checkbox"
             label={
               <span className="text-xs font-light text-gray-400 md:text-sm md:font-normal">
                 {registerDictionary?.agreeTermsPart1}
                 <span
                   onClick={() => sendAuth('SHOW_TERMS_MODAL')}
                   className="text-alr-red cursor-pointer underline"
-                  data-test="terms-of-service"
+                  data-testid="terms-of-service"
                 >
                   {registerDictionary?.agreeTermsPart2}
                 </span>
@@ -660,7 +748,7 @@ export const Register = ({
           />
 
           <Button
-            data-test="register-button"
+            data-testid="register-button"
             type="submit"
             disabled={isUserInfoSubmitDisabled || isLoading}
             className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
@@ -670,7 +758,7 @@ export const Register = ({
           </Button>
         </form>
         <div
-          className="flex w-full cursor-pointer flex-row items-center justify-center gap-1.5 text-sm text-gray-500"
+          className="mt-4 flex w-full cursor-pointer flex-row items-center justify-center gap-1.5 text-sm text-gray-500"
           onClick={() => {
             sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'LOGIN']);
           }}
@@ -719,7 +807,7 @@ export const Register = ({
             </Button>
           </>
         )}
-      </>
+      </div>
     ),
     [
       isUserInfoSubmitDisabled,
@@ -733,15 +821,18 @@ export const Register = ({
 
   const VerifyEmail = useMemo(
     () => (
-      <>
+      <div data-testid="register-verify-email-step">
         <BackButton
+          className="mb-4"
           disabled={isLoading}
           onClick={() => sendAuth('BACK')}
-        />
+        >
+          {dictionary?.back}
+        </BackButton>
 
         <div
           className="flex w-full flex-col items-center"
-          data-test="register-verify-email-step"
+          data-testid="register-verify-email-step"
         >
           <span className="font-poppins text-alr-grey mb-6 text-2xl font-bold md:text-[1.75rem]">
             {registerDictionary?.verifyEmail}
@@ -756,7 +847,7 @@ export const Register = ({
               value={secureCode}
               onChange={(value) => setSecureCode(value)}
               inputLength={6}
-              data-test="secure-code"
+              data-testid="secure-code-input"
               errorMessage={
                 authError?.includes('wrong') ? `${registerDictionary?.wrongCode}` : undefined
               }
@@ -764,7 +855,7 @@ export const Register = ({
             />
           </div>
           <Button
-            data-test="secure-code-submit"
+            data-testid="secure-code-submit-button"
             onClick={() => onClickSecureCodeSubmit()}
             className="bg-alr-red hover:bg-alr-dark-red group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
             disabled={secureCode.length !== 6 || isLoading}
@@ -786,7 +877,7 @@ export const Register = ({
             }`}
           </span>
         </div>
-      </>
+      </div>
     ),
     [secureCode, sendEmailCooldown, isLoading],
   );
@@ -795,12 +886,15 @@ export const Register = ({
     () => (
       <div>
         <BackButton
+          className="mb-4"
           disabled={isLoading}
           onClick={() => sendAuth('BACK')}
-        />
+        >
+          {dictionary?.back}
+        </BackButton>
         <div
           className="mt-2 flex w-full flex-col items-center"
-          data-test="register-method-selection-step"
+          data-testid="register-method-selection-step"
         >
           {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
           {authError?.toLocaleLowerCase().includes('passkey') && (
@@ -817,7 +911,7 @@ export const Register = ({
           <div className="flex flex-col gap-5">
             <div className="flex w-full gap-2">
               <Button
-                data-test="register-method-selection-password"
+                data-testid="register-method-selection-password"
                 onClick={() => setRegistrationMethod('password')}
                 color="light"
                 className={`${
@@ -840,7 +934,7 @@ export const Register = ({
               </Button>
               <Button
                 disabled={typeof window.PublicKeyCredential === 'undefined'}
-                data-test="register-method-selection-passkey"
+                data-testid="register-method-selection-passkey"
                 onClick={() => setRegistrationMethod('passkey')}
                 color="light"
                 className={`${
@@ -861,7 +955,7 @@ export const Register = ({
               </Button>
             </div>
             <Button
-              data-test="register-method-selection-submit"
+              data-testid="register-method-selection-submit"
               onClick={() => selectRegisterMethod()}
               className="bg-alr-red text-alr-white mb-6 flex w-full cursor-pointer items-center"
             >
@@ -876,8 +970,9 @@ export const Register = ({
 
   const Password = useMemo(
     () => (
-      <>
+      <div data-testid="register-password-step">
         <BackButton
+          className="mb-4"
           disabled={isLoading}
           onClick={() => sendAuth(inviteToken || registerUser ? 'BACK_TO_IDLE' : 'BACK')}
         >
@@ -886,7 +981,7 @@ export const Register = ({
 
         <div
           className="flex w-full flex-col"
-          data-test="register-password-step"
+          data-testid="register-password-step"
         >
           <span className="font-poppins text-alr-grey mb-5 text-center font-bold">
             {registerDictionary?.createPassword}
@@ -903,7 +998,7 @@ export const Register = ({
               placeholder={registerDictionary?.passwordPlaceholder}
               label={registerDictionary?.passwordLabel}
               type="password"
-              data-test="register-password"
+              data-testid="register-password-input"
               disabled={isLoading}
             />
 
@@ -914,7 +1009,7 @@ export const Register = ({
               placeholder={registerDictionary?.passwordConfirmPlaceholder}
               label={registerDictionary?.passwordConfirmLabel}
               type="password"
-              data-test="register-confirm-password"
+              data-testid="register-confirm-password-input"
               disabled={isLoading}
             />
 
@@ -922,11 +1017,11 @@ export const Register = ({
               locale={locale}
               className="!gap-y-1 md:!gap-y-2"
               passwordValues={passwordGetValues()}
-              userValues={registerUser || userInfoGetValues()}
+              userValues={registerUser || socialProviderRegisterUser || userInfoGetValues()}
             />
 
             <Button
-              data-test="password-submit"
+              data-testid="password-submit-button"
               type="submit"
               className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
               disabled={isPasswordSubmitDisabled || isLoading}
@@ -936,7 +1031,7 @@ export const Register = ({
             </Button>
           </form>
         </div>
-      </>
+      </div>
     ),
     [
       isPasswordSubmitDisabled,
@@ -952,7 +1047,7 @@ export const Register = ({
   return (
     <div
       className="flex size-full min-h-screen flex-col items-center justify-center gap-y-2 sm:gap-y-7"
-      data-test="register-page"
+      data-testid="register-page"
     >
       <TermsModal
         locale={locale}
@@ -994,42 +1089,51 @@ export const Register = ({
           `md:child:!px-9 mx-5 flex min-w-[20rem] py-2 md:mx-7 md:w-96`,
           isLoading ? 'pointer-events-none opacity-50' : '',
         )}
+        data-testid="register-card"
       >
-        {forgeId && authState.matches('active.web3Connector') && 'TODO'}
-        {(authState.matches('active.register.idle') ||
-          authState.matches('active.register.termsModal') ||
-          authState.matches('active.register.googleLogin') ||
-          authState.matches('active.register.sendingEmail')) &&
-          UserInfo}
-        {(authState.matches('active.register.emailValidation') ||
-          authState.matches('active.register.verifyingEmail') ||
-          authState.matches('active.register.resendingRegistrationEmail')) &&
-          VerifyEmail}
-        {(authState.matches('active.register.registerMethodSelection') ||
-          authState.matches('active.register.retrievingCCR') ||
-          authState.matches('active.register.retrievingRCR') ||
-          authState.matches('active.register.localCCRSign') ||
-          authState.matches('active.register.localRCRSign') ||
-          authState.matches('active.register.waitingForRCR') ||
-          authState.matches('active.register.sendingAuthPublicCredential') ||
-          authState.matches('active.register.sendingPublicCredential')) &&
-          SelectRegisterMethod}
-        {(authState.matches('active.register.createPassword') ||
-          authState.matches('active.register.completingRegistration')) &&
-          Password}
-        {authState.matches('active.register.userCreated') && (
-          <div className="flex flex-col items-center justify-center gap-4">
-            <div className="flex flex-row items-center justify-center gap-2">
-              <span>Registration complete for</span>
-              <span className="font-semibold">{sessionUser?.nickname}</span>
-            </div>
-            <Button
-              className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
-              onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
-            >
-              LOGOUT
-            </Button>
-          </div>
+        {isLoading ? (
+          <Spinner className="my-20 !h-14 w-full !fill-red-300" />
+        ) : (
+          <>
+            {forgeId && authState.matches('active.web3Connector') && 'TODO'}
+            {(authState.matches('active.register.idle') ||
+              authState.matches('active.register.termsModal') ||
+              authState.matches('active.register.googleLogin') ||
+              authState.matches('active.register.sendingEmail')) &&
+              UserInfo}
+            {(authState.matches('active.register.emailValidation') ||
+              authState.matches('active.register.verifyingEmail') ||
+              authState.matches('active.register.resendingRegistrationEmail')) &&
+              VerifyEmail}
+            {(authState.matches('active.register.registerMethodSelection') ||
+              authState.matches('active.register.localCCRSign') ||
+              authState.matches('active.register.localRCRSign') ||
+              authState.matches('active.register.waitingForRCR') ||
+              authState.matches('active.register.sendingAuthPublicCredential') ||
+              authState.matches('active.register.sendingPublicCredential')) &&
+              SelectRegisterMethod}
+            {(authState.matches('active.register.createPassword') ||
+              authState.matches('active.register.completingRegistration')) &&
+              Password}
+            {authState.matches('active.register.userCreated') && (
+              <div
+                data-testid="register-user-created-step"
+                className="flex flex-col items-center justify-center gap-4"
+              >
+                <div className="flex flex-row items-center justify-center gap-2">
+                  <span>Registration complete for</span>
+                  <span className="font-semibold">{sessionUser?.nickname}</span>
+                </div>
+                <Button
+                  data-testid="logout-button"
+                  className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
+                  onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
+                >
+                  LOGOUT
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </Card>
     </div>

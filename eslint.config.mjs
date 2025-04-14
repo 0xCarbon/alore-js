@@ -170,7 +170,7 @@ export default [
       'no-console': [
         1,
         {
-          allow: ['warn'],
+          allow: ['info', 'error'],
         },
       ],
 

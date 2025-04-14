@@ -6,7 +6,7 @@ import { twMerge } from 'tailwind-merge';
 export type Props = {
   inputLength: number;
   value: string;
-  'data-test'?: string;
+  'data-testid'?: string;
   errorMessage?: string;
   // eslint-disable-next-line no-unused-vars
   onChange: (value: string) => void;
@@ -19,7 +19,7 @@ const RE_DIGIT = /^\d+$/;
 const OTPInput = ({
   value,
   inputLength,
-  'data-test': dataTest = '',
+  'data-testid': dataTest = '',
   errorMessage,
   onChange,
   className,
@@ -133,7 +133,7 @@ const OTPInput = ({
 
   return (
     <div
-      data-test={dataTest}
+      data-testid={dataTest}
       className={twMerge('flex flex-col items-center gap-y-6', className)}
     >
       <div className="flex w-full gap-x-5">

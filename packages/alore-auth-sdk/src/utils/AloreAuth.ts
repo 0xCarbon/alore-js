@@ -1,118 +1,95 @@
 import { startAuthentication } from '@simplewebauthn/browser';
-import argon2 from 'argon2-browser';
-import crypto from 'crypto';
 
-export function hashUserInfo(userInfo: string) {
-  const hash = crypto.createHash('sha256');
-  hash.update(userInfo);
-  return hash.digest('hex');
-}
-
-type KeyDerivationFunction = 'argon2d' | 'pbkdf2';
-
-export async function generateSecureHash(
-  password: string,
-  salt: string,
-  keyDerivationFunction: KeyDerivationFunction = 'argon2d',
-): Promise<string> {
-  if (keyDerivationFunction === 'argon2d') {
-    const result = await argon2.hash({
-      pass: password,
-      salt,
-      type: argon2.ArgonType.Argon2d,
-      hashLen: 32,
-      mem: 32768,
-      time: 3,
-      parallelism: 2,
-    });
-
-    return result.encoded;
-  }
-  throw new Error('Unsupported key derivation function');
-}
+import {
+  AuthMachineContext,
+  AuthProviderConfig,
+  FetchWithProgressiveBackoffConfig,
+  ForgeData,
+} from '../types';
+import { AloreAuthError, ErrorTypes } from './AuthError';
 
 const DEFAULT_URL = 'https://alpha-api.bealore.com/v1';
 
-export interface AloreAuthConfiguration {
-  endpoint?: string;
-  emailTemplate?: string;
-}
-
-type FetchWithProgressiveBackoffConfig = {
-  maxAttempts?: number;
-  initialDelay?: number;
-};
-
-type SessionUser = {
-  createdAt: string;
-  device: string;
-  deviceCreatedAt: string;
-  email: string;
-  id: string;
-  lastLogin: string | null;
-  lastTransaction: string | null;
-  nickname: string;
-  status: string;
-  accessToken: string;
-  refreshToken: string;
-};
-
-export type TwoFactorAuth = {
-  id: string;
-  name: string | null;
-  twoFaTypeId: number;
-};
-
-interface ForgeData {
-  tokenAddress: string;
-  name: string;
-  symbol: string;
-  contractType: string;
-  id: string;
-  mintMethod: string;
-  maxSupply: number;
-  endTime: string;
-  contractAddress: string;
-  chainId: number;
-}
-
-interface AuthMachineContext {
-  salt?: string;
-  error?: string;
-  active2fa?: TwoFactorAuth[];
-  sessionId?: string;
-  registerUser?: {
-    email: string;
-    nickname: string;
-    salt?: string;
-  };
-  forgeData?: ForgeData;
-  googleOtpCode?: string;
-  googleUser?: { email: string; nickname: string };
-  sessionUser?: SessionUser;
-  // eslint-disable-next-line no-undef
-  CCRPublicKey?: { publicKey: PublicKeyCredentialCreationOptions };
-  // eslint-disable-next-line no-undef
-  RCRPublicKey?: { publicKey: PublicKeyCredentialRequestOptions };
-  credentialEmail?: string;
-}
-
 export class AloreAuth {
-  protected readonly endpoint: string;
+  protected readonly aloreBaseUrl: string;
 
   protected readonly emailTemplate: string;
 
-  constructor(
-    public readonly apiKey: string,
-    options?: AloreAuthConfiguration,
-  ) {
-    if (!apiKey) throw new Error('API_KEY is required');
+  protected readonly clientId: string;
 
-    this.endpoint = options?.endpoint || DEFAULT_URL;
-    this.emailTemplate = options?.emailTemplate || '';
+  constructor(clientId: string, aloreBaseUrl?: string, config?: AuthProviderConfig) {
+    if (!clientId) throw new AloreAuthError(ErrorTypes.CLIENT_ID_REQUIRED, 'Client ID is required');
+
+    this.clientId = clientId;
+    this.aloreBaseUrl = aloreBaseUrl || DEFAULT_URL;
+    this.emailTemplate = config?.emailTemplate || '';
   }
 
   services = {
+    healthCheck: async () => {
+      try {
+        await this.verifyBackendStatus();
+      } catch (error) {
+        throw new AloreAuthError(ErrorTypes.SERVER_DOWN, 'Server is down');
+      }
+
+      return { data: true };
+    },
+    // Email and password flow
+    retrieveSalt: async (
+      context: AuthMachineContext,
+      event: {
+        type: 'SELECT_PASSWORD';
+        payload: {
+          email: string;
+        };
+      },
+    ) => {
+      const { email } = event.payload;
+
+      const response = await this.fetchWithProgressiveBackoff(`/auth/v1/salt/${email}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const salt: string = await response.json();
+        return { salt };
+      }
+      return { error: response?.statusText };
+    },
+    verifyEmail: async (
+      context: AuthMachineContext,
+      event: {
+        type: 'VERIFY_EMAIL';
+        payload: {
+          secureCode: string;
+        };
+      },
+    ) => {
+      const { secureCode } = event.payload;
+      const response = await this.fetchWithProgressiveBackoff(
+        '/auth/v1/registration-code-verification',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            emailCode: secureCode,
+            sessionId: context.sessionId,
+          }),
+        },
+      );
+
+      if (response.ok) {
+        return {};
+      }
+
+      const data = await response.json();
+      throw new Error(data?.message || data?.error || data);
+    },
     completeRegistration: async (
       context: AuthMachineContext,
       event: {
@@ -126,7 +103,7 @@ export class AloreAuth {
       },
     ) => {
       const { email, nickname, passwordHash, device } = event.payload;
-      const response = await this.fetchWithProgressiveBackoff('/auth/account-registration', {
+      const response = await this.fetchWithProgressiveBackoff('/auth/v1/account-registration', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -156,7 +133,7 @@ export class AloreAuth {
       },
     ) => {
       const { email, passwordHash } = event.payload;
-      const response = await this.fetchWithProgressiveBackoff(`/auth/password-creation`, {
+      const response = await this.fetchWithProgressiveBackoff(`/auth/v1/password-creation`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -197,7 +174,7 @@ export class AloreAuth {
     ) => {
       const { email, nickname, locale } = event.payload;
       const searchParams = new URLSearchParams();
-      const url = '/auth/confirmation-email';
+      const url = '/auth/v1/confirmation-email';
 
       if (locale) {
         searchParams.append('locale', locale);
@@ -234,28 +211,6 @@ export class AloreAuth {
 
       return { error: response?.statusText };
     },
-    retrieveSalt: async (
-      context: AuthMachineContext,
-      _event: {
-        type: 'SELECT_PASSWORD';
-        payload: {
-          email: string;
-        };
-      },
-    ) => {
-      const { credentialEmail: email } = context;
-      const response = await this.fetchWithProgressiveBackoff(`/auth/salt/${email}`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const salt: string = await response.json();
-        return { salt };
-      }
-      return { error: response?.statusText };
-    },
     sendCode: async (
       context: AuthMachineContext,
       event: {
@@ -279,144 +234,6 @@ export class AloreAuth {
       if (!response.ok) return { error: response?.statusText };
 
       return {};
-    },
-    startRegisterPasskey: async (
-      _context: AuthMachineContext,
-      event: {
-        type: 'START_PASSKEY_REGISTER';
-        payload: {
-          device: string;
-          email: string;
-          nickname?: string;
-        };
-      },
-    ) => {
-      const { email, nickname, device } = event.payload;
-
-      const startPasskeyRegistrationResponse = await this.fetchWithProgressiveBackoff(
-        `/auth/account-registration-passkey`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userEmail: email,
-            userNickname: nickname,
-            userDevice: device,
-          }),
-        },
-      );
-
-      const data = await startPasskeyRegistrationResponse.json();
-
-      return data;
-    },
-    finishRegisterPasskey: async (
-      context: AuthMachineContext,
-      event: {
-        type: 'FINISH_PASSKEY_REGISTER';
-        payload: {
-          passkeyRegistration: {
-            id: string;
-            rawId: string;
-            response: {
-              attestationObject: string;
-              clientDataJSON: string;
-            };
-            type: string;
-          };
-          email: string;
-          nickname: string;
-          device: string;
-        };
-      },
-    ) => {
-      const { email, nickname, device, passkeyRegistration } = event.payload;
-      const response = await this.fetchWithProgressiveBackoff(
-        `/auth/account-registration-passkey-finish`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userEmail: email,
-            userNickname: nickname,
-            userDevice: device,
-            passkeyRegistration,
-            sessionId: context.sessionId,
-          }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (response.ok) return data;
-    },
-    finishPasskeyAuth: async (
-      context: AuthMachineContext,
-      event:
-        | {
-            type: 'FINISH_PASSKEY_LOGIN';
-            payload: {
-              passkeyAuth: {
-                id: string;
-                rawId: string;
-                response: {
-                  authenticatorData: string;
-                  clientDataJSON: string;
-                  signature: string;
-                  userHandle?: string;
-                };
-                type: string;
-              };
-            };
-          }
-        | {
-            type: 'FINISH_PASSKEY_AUTH';
-            payload: {
-              passkeyAuth: {
-                id: string;
-                rawId: string;
-                response: {
-                  authenticatorData: string;
-                  clientDataJSON: string;
-                  signature: string;
-                  userHandle?: string;
-                };
-                type: string;
-              };
-            };
-          },
-    ) => {
-      const { passkeyAuth } = event.payload;
-      const response = await this.fetchWithProgressiveBackoff(`/auth/login-passkey-finish`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ passkeyAuth, sessionId: context.sessionId }),
-      });
-      const data = await response.json();
-      if (response.ok) return data;
-    },
-    startPasskeyAuth: async (
-      _: AuthMachineContext,
-      event: {
-        type: 'START_PASSKEY_LOGIN';
-        payload: {
-          email: string;
-        };
-      },
-    ) => {
-      const email = event.type === 'START_PASSKEY_LOGIN' ? event.payload?.email : undefined;
-      const url = `/auth/login-passkey${email ? `?email=${encodeURIComponent(email)}` : ''}`;
-      const startAuthResponse = await this.fetchWithProgressiveBackoff(url);
-
-      const data = await startAuthResponse.json();
-
-      if (startAuthResponse.ok) return data;
     },
     verifyLogin: async (
       _: AuthMachineContext,
@@ -445,7 +262,7 @@ export class AloreAuth {
     ) => {
       const { email, passwordHash, device, locale } = event.payload;
       const searchParams = new URLSearchParams();
-      const url = '/auth/login-verification';
+      const url = '/auth/v1/login-verification';
 
       if (locale) {
         searchParams.append('locale', locale);
@@ -484,6 +301,178 @@ export class AloreAuth {
         return data;
       }
     },
+    // Passkey registration flow
+    startRegisterPasskey: async (
+      context: AuthMachineContext,
+      event: {
+        type: 'START_PASSKEY_REGISTER';
+        payload: {
+          device: string;
+          email: string;
+          nickname?: string;
+        };
+      },
+    ) => {
+      const { rpDomain } = context.authProviderConfigs || {};
+      const { email, nickname, device } = event.payload || context.registerUser;
+
+      const startPasskeyRegistrationResponse = await this.fetchWithProgressiveBackoff(
+        '/auth/v1/account-registration-passkey',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userEmail: email || null,
+            userNickname: nickname || null,
+            userDevice: device,
+            rpOrigin: rpDomain,
+          }),
+        },
+      );
+
+      const data = await startPasskeyRegistrationResponse.json();
+
+      return data;
+    },
+    finishRegisterPasskey: async (
+      context: AuthMachineContext,
+      event: {
+        type: 'FINISH_PASSKEY_REGISTER';
+        payload: {
+          passkeyRegistration: {
+            id: string;
+            rawId: string;
+            response: {
+              attestationObject: string;
+              clientDataJSON: string;
+            };
+            type: string;
+          };
+          email: string;
+          nickname: string;
+          device: string;
+        };
+      },
+    ) => {
+      const { rpDomain } = context.authProviderConfigs || {};
+      const { email, nickname, device, passkeyRegistration } = event.payload || {};
+
+      const response = await this.fetchWithProgressiveBackoff(
+        '/auth/v1/account-registration-passkey-finish',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userEmail: email || null,
+            userNickname: nickname || null,
+            userDevice: device,
+            passkeyRegistration,
+            sessionId: context.sessionId,
+            rpOrigin: rpDomain,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (response.ok) return data;
+    },
+    // Passkey login flow
+    startPasskeyAuth: async (
+      context: AuthMachineContext,
+      event: {
+        type: 'START_PASSKEY_LOGIN';
+        payload: {
+          email: string;
+        };
+      },
+    ) => {
+      const { rpDomain } = context.authProviderConfigs || {};
+
+      const email = event.payload?.email;
+
+      const searchParams = new URLSearchParams();
+      const url = '/auth/v1/login-passkey';
+
+      if (rpDomain) {
+        searchParams.append('rp_origin', rpDomain);
+      }
+
+      if (email) {
+        searchParams.append('email', encodeURIComponent(email));
+      }
+
+      const urlWithParams = `${url}?${searchParams.toString()}`;
+
+      const startAuthResponse = await this.fetchWithProgressiveBackoff(urlWithParams);
+
+      const data = await startAuthResponse.json();
+
+      if (startAuthResponse.ok) return data;
+
+      throw new Error(data.message || data.error || data);
+    },
+    finishPasskeyAuth: async (
+      context: AuthMachineContext,
+      event:
+        | {
+            type: 'FINISH_PASSKEY_LOGIN';
+            payload: {
+              passkeyAuth: {
+                id: string;
+                rawId: string;
+                response: {
+                  authenticatorData: string;
+                  clientDataJSON: string;
+                  signature: string;
+                  userHandle?: string;
+                };
+                type: string;
+              };
+            };
+          }
+        | {
+            type: 'FINISH_PASSKEY_AUTH';
+            payload: {
+              passkeyAuth: {
+                id: string;
+                rawId: string;
+                response: {
+                  authenticatorData: string;
+                  clientDataJSON: string;
+                  signature: string;
+                  userHandle?: string;
+                };
+                type: string;
+              };
+            };
+          },
+    ) => {
+      const { rpDomain } = context.authProviderConfigs || {};
+      const { passkeyAuth } = event.payload;
+      const response = await this.fetchWithProgressiveBackoff(`/auth/v1/login-passkey-finish`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          passkeyAuth,
+          sessionId: context.sessionId,
+          rpOrigin: rpDomain,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) return data;
+
+      throw new AloreAuthError(ErrorTypes.FAILED_TO_FETCH, data.message || data.error || data);
+    },
+    // Hardware 2FA flow
     verify2faCode: async (
       _context: AuthMachineContext,
       event: {
@@ -498,7 +487,7 @@ export class AloreAuth {
     ) => {
       const { email, passwordHash, device, otp } = event.payload;
 
-      const response = await this.fetchWithProgressiveBackoff('/auth/sw-2fa-verification', {
+      const response = await this.fetchWithProgressiveBackoff('/auth/v1/sw-2fa-verification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -532,7 +521,7 @@ export class AloreAuth {
       const { email, passwordHash, device, authId } = event.payload;
 
       const optionsResponse = await this.fetchWithProgressiveBackoff(
-        '/auth/hw-2fa-start-verification',
+        '/auth/v1/hw-2fa-start-verification',
         {
           method: 'POST',
           headers: {
@@ -557,19 +546,22 @@ export class AloreAuth {
         throw new Error(err);
       });
 
-      const response = await this.fetchWithProgressiveBackoff('/auth/hw-2fa-finish-verification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await this.fetchWithProgressiveBackoff(
+        '/auth/v1/hw-2fa-finish-verification',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email,
+            passwordHash,
+            device,
+            credential,
+            sessionId: optionsData.sessionId,
+          }),
         },
-        body: JSON.stringify({
-          email,
-          passwordHash,
-          device,
-          credential,
-          sessionId: optionsData.sessionId,
-        }),
-      });
+      );
 
       const data = await response.json();
 
@@ -592,7 +584,7 @@ export class AloreAuth {
       const { email, passwordHash, device, secureCode } = event.payload;
 
       const response = await this.fetchWithProgressiveBackoff(
-        '/auth/device-ownership-verification',
+        '/auth/v1/device-ownership-verification',
         {
           method: 'POST',
           headers: {
@@ -614,37 +606,6 @@ export class AloreAuth {
 
       throw new Error(data.message || data.error || 'Authentication failed');
     },
-    verifyEmail: async (
-      context: AuthMachineContext,
-      event: {
-        type: 'VERIFY_EMAIL';
-        payload: {
-          secureCode: string;
-        };
-      },
-    ) => {
-      const { secureCode } = event.payload;
-      const response = await this.fetchWithProgressiveBackoff(
-        '/auth/registration-code-verification',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            emailCode: secureCode,
-            sessionId: context.sessionId,
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data?.message || data?.error || data);
-      } else {
-        return {};
-      }
-    },
     verifyEmail2fa: async (
       context: AuthMachineContext,
       event: {
@@ -658,7 +619,7 @@ export class AloreAuth {
     ) => {
       const { email, passwordHash, secureCode } = event.payload;
 
-      const response = await this.fetchWithProgressiveBackoff('/auth/email-2fa-verification', {
+      const response = await this.fetchWithProgressiveBackoff('/auth/v1/email-2fa-verification', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -689,7 +650,7 @@ export class AloreAuth {
       const { email } = event;
 
       const response = await this.fetchWithProgressiveBackoff(
-        '/auth/email-eligibility-verification',
+        '/auth/v1/email-eligibility-verification',
         {
           method: 'POST',
           headers: {
@@ -720,7 +681,7 @@ export class AloreAuth {
       const { email, emailCode } = event.payload;
 
       const response = await this.fetchWithProgressiveBackoff(
-        '/auth/eligible-email-code-verification',
+        '/auth/v1/eligible-email-code-verification',
         {
           method: 'POST',
           body: JSON.stringify({
@@ -757,21 +718,26 @@ export class AloreAuth {
 
       return data;
     },
+    // Google login flow
     googleLogin: async (
       _: AuthMachineContext,
       event: {
         type: 'GOOGLE_LOGIN';
-        googleToken: string;
+        payload: {
+          accessToken: string;
+          providerName: string;
+        };
       },
     ) => {
-      const { googleToken } = event;
-      const response = await this.fetchWithProgressiveBackoff('/auth/google-login', {
+      const { accessToken, providerName } = event.payload;
+      const response = await this.fetchWithProgressiveBackoff('/auth/v1/google-login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          accessToken: googleToken,
+          accessToken,
+          provider: providerName,
         }),
       });
 
@@ -793,7 +759,7 @@ export class AloreAuth {
       if (response.status === 404) {
         return {
           isNewUser: true,
-          registerUser: {
+          socialProviderRegisterUser: {
             email: data.email,
             nickname: data.nickname,
             salt: data.salt,
@@ -818,7 +784,7 @@ export class AloreAuth {
     ) => {
       const { email, passwordHash, otp } = event.payload;
 
-      const response = await this.fetchWithProgressiveBackoff('/auth/google-2fa-verification', {
+      const response = await this.fetchWithProgressiveBackoff('/auth/v1/google-2fa-verification', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -863,7 +829,8 @@ export class AloreAuth {
       credentials: 'include',
       headers: {
         ...options?.headers,
-        'X-API-KEY': this.apiKey,
+        'X-CLIENT-ID': this.clientId,
+        'CF-Connecting-IP': '127.0.0.1',
       },
     };
 
@@ -877,7 +844,7 @@ export class AloreAuth {
       attempt += 1;
       try {
         // eslint-disable-next-line no-await-in-loop
-        const response = await fetch(new URL(`${this.endpoint}${url}`), init);
+        const response = await fetch(new URL(`${this.aloreBaseUrl}${url}`), init);
 
         if (response.ok || attempt === maxAttempts || response.status !== 500) {
           return response;
@@ -903,7 +870,7 @@ export class AloreAuth {
 
   private async verifyBackendStatus() {
     try {
-      const res = await fetch(`${this.endpoint}/health-check`);
+      const res = await fetch(`${this.aloreBaseUrl}/health-check`);
 
       if (!res.ok) {
         throw new Error('Failed to fetch');

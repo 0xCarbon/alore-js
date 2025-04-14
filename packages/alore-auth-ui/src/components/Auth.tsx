@@ -1,48 +1,59 @@
 'use client';
 
+import { generateSecureHash, hashUserInfo } from '@alore/auth-react-sdk';
+import { PublicClientApplication } from '@azure/msal-browser';
+import { MsalProvider } from '@azure/msal-react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useActor } from '@xstate/react';
 import { Spinner } from 'flowbite-react';
-import { Locale } from 'get-dictionary';
 import React, { Suspense, useEffect, useState } from 'react';
 
-import { Login } from './auth/Login';
-import { Register } from './auth/Register';
-import useAuthServiceInstance from './hooks/useAuthServiceInstance';
-import { SessionUser } from './machine/types';
+import { Login } from '../auth/Login';
+import { Register } from '../auth/Register';
+import useAuthServiceInstance from '../hooks/useAuthServiceInstance';
+import { SessionUser } from '../machine/types';
 
 export interface AuthProps {
-  locale?: Locale;
   googleId: string;
   forgeId?: string;
   logoImage?: React.ReactNode;
   inviteToken?: string;
   keyshareWorker?: Worker | null;
-  cryptoUtils: {
-    hashUserInfo: (_userInfo: string) => string;
-    generateSecureHash: (
-      _data: string,
-      _salt: string,
-      _keyDerivationFunction: 'argon2d' | 'pbkdf2',
-    ) => Promise<string>;
-  };
   onSuccess?: (_sessionUser: SessionUser) => void;
+  onError?: (_error: string) => void;
 }
 
 const Auth = ({
-  locale = 'pt',
   googleId,
   forgeId,
   logoImage,
   inviteToken,
   keyshareWorker,
-  cryptoUtils,
   onSuccess,
+  // eslint-disable-next-line no-unused-vars
+  onError,
 }: AuthProps) => {
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
-  const { googleUser, sessionUser, registerUser } = authState.context;
+  const { googleUser, sessionUser, authProviderConfigs, socialProviderRegisterUser } =
+    authState.context;
+  const { locale } = authProviderConfigs || {};
+
   const [isClient, setIsClient] = useState(false);
+
+  const msalConfig = {
+    auth: {
+      clientId: process.env.NEXT_PUBLIC_MICROSOFT_ID || '',
+      authority: 'https://login.microsoftonline.com/common',
+    },
+  };
+
+  const msalInstance = new PublicClientApplication(msalConfig);
+
+  const cryptoUtils = {
+    generateSecureHash,
+    hashUserInfo,
+  };
 
   useEffect(() => {
     setIsClient(true);
@@ -51,18 +62,18 @@ const Auth = ({
   useEffect(() => {
     if (googleUser) {
       sendAuth([{ type: 'INITIALIZE', forgeId }, 'LOGIN', 'ADVANCE_TO_PASSWORD']);
-    } else sendAuth([{ type: 'INITIALIZE', forgeId }, 'LOGIN']);
+    }
 
-    return () => {
-      sendAuth('RESET');
-    };
+    if (!sessionUser) {
+      sendAuth(['RESET', 'INITIALIZE', 'LOGIN']);
+    }
   }, []);
 
   useEffect(() => {
-    if (registerUser) {
+    if (socialProviderRegisterUser) {
       sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP', 'ADVANCE_TO_PASSWORD']);
     }
-  }, [registerUser]);
+  }, [socialProviderRegisterUser]);
 
   useEffect(() => {
     if (
@@ -74,9 +85,9 @@ const Auth = ({
     }
   }, [sessionUser]);
 
-  return (
-    isClient && (
-      <GoogleOAuthProvider clientId={googleId}>
+  return isClient ? (
+    <GoogleOAuthProvider clientId={googleId}>
+      <MsalProvider instance={msalInstance}>
         <Suspense
           fallback={
             <div className="flex size-full min-h-screen flex-col items-center justify-center">
@@ -106,9 +117,9 @@ const Auth = ({
             />
           )}
         </Suspense>
-      </GoogleOAuthProvider>
-    )
-  );
+      </MsalProvider>
+    </GoogleOAuthProvider>
+  ) : null;
 };
 
 export default Auth;

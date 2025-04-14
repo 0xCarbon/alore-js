@@ -10,7 +10,6 @@
   },
   "devDependencies": {
     "@alore/auth-react-ui": "workspace:*",
-    "@alore/auth-react-sdk": "workspace:*",
     "@alore/crypto-sdk": "workspace:*",
     "@0xcarbon/dkls23-wasm": "1.0.2",
     "@heroicons/react": "2.0.16",

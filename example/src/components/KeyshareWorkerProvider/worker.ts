@@ -1,6 +1,7 @@
 import { AloreCrypto, KeyshareWorkerMessage, SimpleCredential } from '@alore/crypto-sdk';
 
-import { apiKey, endpoint } from '@/config/authInstance';
+const apiKey = process.env.NEXT_PUBLIC_ALORE_API_KEY || '';
+const endpoint = process.env.NEXT_PUBLIC_ALORE_BACKEND_URL || 'https://api.bealore.com/v1';
 
 export const aloreCrypto = new AloreCrypto(apiKey, {
   endpoint,

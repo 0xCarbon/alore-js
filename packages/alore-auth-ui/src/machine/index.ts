@@ -10,6 +10,7 @@ const initialContext: AuthMachineContext = {
   active2fa: undefined,
   sessionId: undefined,
   registerUser: undefined,
+  socialProviderRegisterUser: undefined,
   googleOtpCode: undefined,
   googleUser: undefined,
   sessionUser: undefined,
@@ -20,7 +21,7 @@ const initialContext: AuthMachineContext = {
 
 export const authMachine = createMachine(
   {
-    /** #no-spell-check @xstate-layout N4IgpgJg5mDOIC5QEMCuAXAFgWWQY0wEsA7MAYgCUBRAZSoBUB9AYQHkA5eqgDXoG0ADAF1EoAA4B7WIXSEJxUSAAeiALQBGACwA2bQDoArACYjAZgDsRgQA5tp6+YA0IAJ6JTR9XtPGAnL6NrdT9tIwBfMOc0LFwCEjA9EnxZADdyAEl2dPp0gEEAGXSALSpBESQQSWlZeUUVBA0BbS91a19TdW0DAU1fcw9nNwQDXT1W8wFTAItA+wiojBx8IlJE4mTCNLJM7LzCkr51cvEpGTkFCvrVX3VzPXNzXwEn8xH2o0HETX69Iz6PARafoTXwGeYgaJLOKrDZbah0fjCRRVM61S5qdRNTS-EE3HSaaymGyfBrqeyGIyaQGaVoeayU8KRCGLWIrBKw8g0dIAcXYjAAqgAFMrI041C6geqWbFPHoBHrBYwfVxqR56LrmKndUGYymmcGQ1nxPQcsj5VjczIiioo8V1dy+bFUwJtAzGczaTSUkmaAx6TQeP7WAxaawOWwGlnLY2mgBirAo3NYTEFuRoNAA6gmACLWk7Vc724ZkvSg0xEtraIK3Xwk1Q+f0GTS9QJdIzaR3aSMxaMwvCpBIAdzAACNTMx5KR+xIAE56PCTsD9khQMhsdix9IUbCMDNUABCpkY5st7DzlTFhfRCD+ll+tnUJj+7W0mpJ9NMv3U4wDj6pQW7KE2RNZc0j0YcxwnYgp3QWc9DAABbZBCAAG3SYgxAwMgADUqAodJYwATUYKhsFydJ8hIwpLX3CjskI89bSvSVED+V972aJ9-FMV9NBJB4-U8H8OkpGx1EAo0+wHcDR3HRdpznNIZ0IAAzFwVyoJDUKoFDCCgQgR1QmQXDICB5ASEgUgkABrdko2hdlQKHWSoJguClNU9TiCgTTkJQnS9IMoz0BcBBLIkPBkHFMpGMvNEWIQCsnQMR4+mfHi3xVBB2k-cxvwcX9RIAplDV7RzpIguToKXWDFLAZS1I0rT-N0-TDN0kKyHqmc4LEFCopU2cEJNezgI5GTIPk2q9A8xrvN87TWqCjrQvCyLouEWKC3i5R3BsZLUssbjeJJbiv2Ev8BEeCSypAiqXKmuDEL8owVOQCcIHIXD8KIlh8nIncNyYUjyMooxY1yLbUQlXab18No9CCYETGOzKhkxYx7nyzURKpa6StGmMnImqq3LqhqvKgZh+sIBD2BU9AFpQ17kFM8y1is2yRp7By7s2ZzJuqhSZvqzyV2p5C6YZpmWbC4grPW84YqRG04ph+oOkBRHAU1I6XzRxBv2Cc6Ctxq7fBu3nxsq1yavc0W5qpmmpcZ5qWa6mcernPqBqG7mgKJ+7BbJkWKfF536ddl63rlhWoqVzaVfzaGi01rxrB1750pOrLv01LGLtE-GFh5sbiZtx650ICAUM5Kh8ioZgmHXdhG-oBMobta92z6QxXmCIkbkmdR33Y3xQimSZdHbNpLbL6SUIkfTiDIBEhUYahLRoLgKAFOgKE75jYasT1vHLekbn6IkjAMEkzG0AQ9AEK76QMBxAhGaw58D-m9EX5fEg13IK3Xgh8dr1HvncXUokb62BGHfV4n5Qhek1GGHQoJv5SV-v-EggDa5mgtJkXc2QAASu4Dzjg4K3JuHck4Xm2urQ249-QEhviGfotJb650eJ+BwRJgjNEBH+TB5VsFL1wdXfBSYLQN2PIQs8dCmLgNYn8Lw48Rj2EdCfV4d8XhP2bJ6MkbROiaBEXzMCODiB4PILkbM2FcjsGYFQRg7dGCpnTFmCguZFFqyLJSL0-pQT+BSgJB4pg77NGsGMKYxgRg9BvsEMx41LHWNXjyPkRCMykLcWmGgABpKgDEfEML8QSR+KUvS0kiX8LhQwaRv0RuoPomIng+EJEk4mKTJEJEXpFFCgpkCwFgLZFwNA9Ir03FkGgZD3H5MKXI08YDGE3iJIJAI8MeIn1aLUtQRgxi6Dyt8TUD9ggOA6QvcRVjul-wisgfpgzhlgFGeMsg+5cjMDyUsvxqzfjrMJKEJo2y6x7M6K+IExzARv3MOcsRADrm9LuQMoZIyxlQBXrMgpxF2DJkYDQIUgoExcG8ccehKdu4-L+EGTZgLgwkkxHcT0KVgwmAMFMawNIYUWMudYvQ0g0UZhkJgJFjyTKTPSNMnJ6ZMULKtMUslCUzBawzqYLUFgfCsLvsbZ+IYH4srZaYgmpcf5crhUA3l4yBVYGFSM157zPlyq7gq-h2sVUCFZf0Js9JNV+m1Z0AQer4YGpLgHLBJqJFmr5cQS1QqHk2oxfM7FTA8WCgJRQIlXzyVKsmKqj1GqspGA9I0j0uqb76s5T07l1zIQ0DwDOMAYAV4IhYBwbMuwOAFAFOkSVcyikkqUcskwD9fisoCN+LZtKsr2GxLcCYPgA3svLTc01td-Y1rrQ2sgYqJXxuIieWVfbfHd3bI-Uto7Hw0p2QgZsfp4ZliVCOhdhqQ2iLDVcs11ba31vRbk6VibcX4sJVQYlooSlHqHaeoS47L3XtLK6Odp7H3Bski+ity6EjdVnJunY26f3zL3Qog9oGFUmC8G6B+TR-ATEJHxLKbpPwquMf6hDQbmRGtDah8NK6MMzjIDuxgf7k2pvTQ6o+ECSOGDiRRvoNgVUkjo94AkQ950sdKlbTp3LLHYDAFgCQEAaBgFrsueQq965t27Z44DqsiPH38F4Z+wYPCegBNYEkbTfBPzMB0ZojomiBEXSkzT2nMC6f04Z8Uq96C5DTd26V+GM0Kp6HcHiZJ-BtBPjfVzhI-Q8RmKCN4EYn3IfMRxqxgWdN6YMzVc4tqPnxePoqbwwRx40hsD3cJk7vhRL9QyJsPgej+e5XW9AykwApBXDQO56A2arHClzVT89YW4KGyNsb3kJsoXQLHW5G0hB1Ygcq0s7YoUZVk-mvLvw3VCNsD4DwA2AHLcIKN8bk2PZez0D7dAg0ZzDXm8akregHtPbW5Nrbit5DK0I-K2GTSHCIzdD3W4BhHQ0aGGxOzBJzBBFCIEF0d2JEYQwMKwcs4IA1ftZDx1x8QxeGS2YR07xMco9Yq+fQ-RyN08pGcwrt1kmVoJ+gInJO1ysGwIKBuXBGDSO5LIrkvJGD7pA1DiBo7EY0gZEdwkkxXNmD2b6DOWhIVen1NztTFy4X88FzOUn30CK7vkXt9wKNEZdFCKEJps6nD5o9HshnAkUoFspHjqxs1Kb5EudNiy8sbJ2TYyhpduCQ8rjD8vUH8dweJwp6J9wtgT3NkBGqpHOgIlPFLJiewBbjABhU4Tdj8fg8O1D+HsyM2o9zZr3HlJifvLJ5IKnnbhxM-KMSsGfQj5QSTHhoEAICDgzqhx22PwTRoUm4W6+0OYtu9N-ZrNmPz7it1-X47HvxA+8J120YQfyz7AjDGDUif9I0t3zaI-DsV0F9-CX0Hw-jfl4R45tH-2IrXnABLvKAY-U-dPXbUwS-VOWwKJYMaTJHWwLoU7IYVZO4QvPEVlAtFVL-UA4-V7XqfqT7P2X7WvTvBvJPS5CA4gCHRXSnfbEwL8UEHGV-R0S9SkN0RGIIJHP4HwKsPoL-WAVAPAPAOAWAFSVAFCAg6gWMeEMhd5JxdMFxVgApAjegrPBAdleGMYRLJsSFOBCJG+QwOwajB4FrQPFfP7A-WACQBmQcZAOtd2dcTcbcXFDMZtbMUoETIfOwVoe4FVG4DwCwAQiJKsM+TA3QDoXoIQuw9ABwpwt6MgfkOgRgEhKLbMDMKLZxcGSGHw5ZJHTGfKa9Qo54T3VHHQEFDsbAnwSwcsMEKw8g7lWw+wxwsAd2N5WrfIosHQO8N+Z0MwToFVdrVHOwT8f1XozHHLXAxojvblUAlmD6cgZvSPTmXfIA9TEAyg7yRY3TMAGgugqzJXRACYAke4PoMMZ4EYPOO+JHdzARX0N0N+TwZfJDHnTYhPbYqAXYz6P-HfQA94s3T4sOHYt6JYg4zaI4DQofCYG-THYJJjF0FzL3Hie4WBKwMfeo43N403RbevEE74sEvYwg72Ygr7H7dvffCggkn4-YtaNPWgjPaE5ZOwMwM+AIBwOwf4ZUVHY5BTMkZ4FGMJL-TARwiABI9opIlI5xGgVgWMegLI6gRgXIh3YYMsHEHQB+PGQEZE1HFKfQMMD8DoDOOwSYEUsUiU92G3X6EhDw3IfkegEhVU1krwMwB4R0DoG4O+dsXXZHAtMkX0ZsavWPKk7lUUq3S0pIzo8nZk2AqwRpKYBjTUK47Qb014bwAIJsPKXg2eWY0MgBUgQcbMJ7MQ4XDcLcHcLw7CdIJxTw7wmA68B4dsdUfoKkHUZsW4J-AtMYEMcsR4T0GkRDVjPfYA3BQs4ssbUs+EKgdgbMOs1UyweMpHKsb3ZoKYXRTHUsJslAxBdoBonE1ff7UApYv41vdYwEvE7-cWPYiE3bbo68ekXoJ+anAtdoJpVlJ-Z4J+eGUIDOIIGePAr4k87jd7Mk0gyk0c-EjfKmG8+k-ve8hKbcjzSkDsdsT0R0J-H4NhanAkCwDZL-OtWABtCAa84gFSQgb7BkpmU8tYgE3EtfQi4i0i8iyi8UJmW8hcq6UjJ4AMNlSwOwVzSYP0BwEMSo30SwGwL-Z6VCd2ac2c+chC2Gfo-QQdFGAcso1zRze4DsE0tpJpbE4cjYoEqxaS5mJI604iEGCiZUiGZ0sdX5LQGeNsPoVzVofQV8MMW4bVfEKSt2KMu1VUnQVlOfD0J4-wF8Vy5hSkJ4Owf8N4AysguYrYgkmWJIlY--NvEMyCq8+aPy5ADixS+oaowSI2B4aoh+XUx3R8QwQEQFLzZ8fcwyi8tfUA1K1mECj7ckuiw8g-VqvKgqhshKZoY2fKJ4VlKYNhQSlKQwenLQbA1sgiuAJi3KvyE89K-4xK-MpbJa4gEila1CcEuCs-Z0nWbwC+d1B4Z+JnRKH5XrH054ZsKwRkA86w6k6CkhQcXIRYGigAza7K0Aj6r6rAAa2Mxs30PZdlZMgIXQSYEYlRQkQwIkfoDOAIPzPM-6r4wG769as87q16+YzGz6xYDiqEo4hgxADOYwpAnhFgvLb0hG1lK6ewQUtGl6po5K96omrAEk0C32b7PG9m4EzmoGzAEGsmzQ003Xao6IlpLQO+CwKJf8YJTkzHfrdGj4qxFSbTaEKAWMWcGAbMKKVmHG2iv6jWvQLW9AHWvWmcA2o2sW5OcmhANyvZIkf1J4EwFVT0CJX0X5CwXoXs8MRqs24yi27WlYXW-WsAQ29Adqz2IgvmikrK82y262qOmO-Ko6yA1UppTodUAkAMKwFVPXco1iQo7wUIEJN8qYV4QCgk7kCQJeWuAgk236iC820AhupusAcArOxku8wa2GewQtcsRMjoD0bZa6+oqJRmnwMkHiV+BK9u0OzuxuqAZu8PDqsC-mkOy81e7u3uqPMHfu1U1RdzWwR6ssNXHk9wHibEAQr0HQeDV8L-KANeje3-VuzKkc82t+g+6gvuw4x2zQllc+rUDsDoRmyqxKTwdzZM0FARbNJe5O0Ov+9enurfFvU25ey8tBj+3vQByEweiBSu-Zf1N3RM-obXJpe4KkQI3oNpFKV+9+jB3-LexOgWpK3BPB1hgho+hkoB0lJ2mHH1enBJKsR8ToQShG1W+kS6oxcSdW0OwHVbKmOtT6YgWQO5CgZgCgH67+oyy8lR8WdRhtLRlCHRigB2oRkB1oUjEMEYE5EMPoUuq9GedUQMFpIS9pJRox7TFbExyAMxwgbR3Rnmzq8ClBvx4bR7VR5gUxzRkJix3R6x-tPxOxiTARJx93VxgMO8DZMJOht+ZBn+0OyNQJjR8xyxrDKZGZXDO3RZQq1iToLwZoXQcjZ4c+a65sB4CI+o1pYpoQ8ZCp4J0JvR6M0+lp9UUFDpnKdlH0EdMYTrHwAZnxtmrhqxcp7yeJoJxJsZ3jep-jHFQTQDSzYBofTwZoaZ9p5+TpqdH0cjUsB+fp7xkpwxhi-x2Jlcapr+88+i-7Yx7ySx1Jw9J1LQRrCFVlKkZ4VMydenDM5+MwIpj8RamJoHKAap9hkgnenBj5tF1R4Fwhge0Gp1J86KwU7UFMn0N1J0CRgu7xswOu6CigMAfSWAdAeqQUVAEcXSPAPJJ5HZyppJ-Rv5nqt6x2FltljlmcLlnlwgPlgVhJ8xkF6zDWCR6JMjcsToBA2FtA+FyeOkFKF8HwJliV1lwgdlzl7l3l-llwQV0ZlCEVzhraqCs1qVq1uVhVu1pVpJkm4h9wdp0sGwcMY5LM6l7oUsDwTHZVOwQvU1ymSVi16V2Vm1xV3Z8xp13elqr4xNy1mV61+V21+1vZlCDii-Eloe18O4Wq7oEwJGWGn0MkP0R+gPEwTHRl3x7Ngk3N5Ngtr14tjN3551jG7t81vNlNwttNoVu5Di6AitjWCYOzXSzob3L2n0S534Z8N-HiK6YM0pvenNsd3tz1otn1u5cJ7epO-drt5lo9j11N719N31ol1UiwfwlG74PEaKt0VzJ4GnVpD+HhWN+N75u9-Nk9qdh1i9jhrNo8w9918Dh9gd59-h-vUm85q-PKc+h4FdgUh4Vx6-ejAD4MIDk1zt-7MQWNJ5bkVAMUsgJQdlqKdkBmeqAACgEAAEoyBYOD9KPkVqPaOrdJm3VEZ1VMRn45numqNGtmlnhXmv8+ORUaO6OGPY6OWTQWOZxWPxOuOeOUlFORllOhOmmbwMZROmxxO7n5mspvh2I-x9V5PyOAcwPUlplWAPCd5sAaBGBsBWBswChJmEaVVbgH8JG35dWMQ-hsRn5dAQxIUawuwnO60EPXOZy5zN5xV6AKBcgcgOASIyIKIc74YokiQ77FRPAi8spVAkZYMdAkYPQWxXimr-nnOUvukyBbF7FHFnFXFZkLNT7h7kKstojvgR4qvP5SxcLWhLitBOhF1kuk36pUl8NiFHTyFDwW425aF-Wbw3UfcnLegR8l86VqR-Q+D+43VugmueOFu83Uv6B14Mvt48I948IiudDcLNY4EsPrqNArBH4UEehX8kdkb5uXP2updZE4sTOkXPxz0glWh-vXGNBbg9kkXNQOTOgkCweUvpWEJYBsBdNz3mBzRUjPPvPfP-P8hJmb9n8mV0LLApGqvHwVUAjcLlV9KMEkuXOiLdqmo-JM3cWEhbvpXeVlqfJmoVXji4ZMRolKl6Vj0xuhhVBdAolHhYHHg6iLBruhfWvFu5xee9qJeBesWuqbuefxf2KX2TPOgS90EmU4CQeb6Ghiv87jWtAqw6Gcf9f4JmpsI7lq4GScI8Jbd8vQZX2rAZQdWWehiTA6x2hH59ocZegCQ34LZueUvTL-fdIIAg+JmYffQvB+5UoHNx4XKqvCQ9ldVn4Yluhezve7us+A-c-ws5K5y2AvDX3JhE+iQqRkF3hgg6xxPBIfAmUQwCp2wG-Re+qBeh3zeUuZ-UIpenb7AphfheLNRug2huJ4-yx1RYv1eszvwp+lvF-HXTfInr3heXOz-l-NDgvsQVUTAaWHx9S6x3TEZ-u+heIbghz5+ffP0THS3KTjYCi5xcziJ7llxy7pAOAgVDsmMHaDMo56TmXfn6FBQpR7M2-KYCfznCACOWwAsnCoXlzZgG4gVJrMOh9Ihcb4oIIflYD9DFMmwkfceGSGerNceqIvJbngLAAED8+O3YunAy8qBAA6BaIfntyeZdBJ8yCSGjgPnASAEIfUbTKBylYzgg+c-XXhwNwFyCFBsgIFkexUHig7+Q+XoDoSJASNB0sXJXmoByj78XcTlR4Ewwz4ACtBtcHQRiz0FB8L+OLKJmBA0GyD5BLgpQUm30HnBDByyb4DoCeadAGQ4YHiEPzzhPxc60NceMci-iOC7uqAIijOB2ZMdScsheQowEUK0BvO7cNQqqShbVs2USMCQfYFEFBBvAVKPCsPTVrrN98vgxinz10HKCqKzUQXt4Ov4pd2hRvHtsEPkBW9UOx1GHpYDuAT1UEIXPhPHy6CHZXyt4XrMHXUEuceGLdbfLjX-53dNhADcYdnRM7GkGUZgN0JcUHi2A4hmMCYDSzbD541hfQvXnsJYZbCsGbdJ4b4P2Ep4X26HGxkPmNLuYpgHYZsIGmfC0DmwonSkIuTfjXZEuLQ8aF8NeGb146pJGDusJS7fC+GcceCjt38Ss4Yk48CYqFTiFskVUxgTEAbjGJvNmq-Qn3oCyphhM1BnwlzgyOYApNreO3GkNVU5LXxggiCa6t+EfgqpN+-CYeEDxkFsiwmngq9u8zpF3cpRVjTkfOwdD5wP40NGkMWmd6qAjsW5MjCWkxDBgZBCKFCOyIoCooJk2GOplKnmSQC3uilNArDjVxxcAQc1ZwBAmCrBAy8WgR0FSNYG7DReJos0RaIOY2isUxzADGmiAyn1PRLon0TSD77O9yw7mZ0WXgxK+hjRtyU0boxDG8CVRN4WMd6JT5+ifQZLG+LVVdEZi0hgYrMZYxDFbprRPaAoQ6SdIw9Cxw8YsYmLkzfgn4FgF0emMeFX9nhNYvpHWJeTRkiB6QEgfWXzGloeyRY30V2Nox3hgwz8NMdSEHFyjhxS3E0WOLRShimxAmSMcJjxHtjoii43zCSFir78EkkwAcTIIcJnBvINtaptvCiwphDm0PPEaEG8BA8RK-EAJP6mm7YENxMgw3iuAnZ4BkO57ZkUON8HgTvIkE6CaW2VHi0jBfJfiqFRGCgif2zPLgiYCpAEgwwFVTHIowRHEx4J4vJCWe3P6ojea2LWUbSO3EG8qJfbZCaEJ6IDxvAHoHoDXWMHAoksmyLoLqELxuhJRYHLTOVlCxVZjMdABuE3HMw5hAqsNQJBjGaz9AgeqA-ZFETgSmDMc4khDpJOCwVYws1WN8dFj4x2iD4xwx4I-38CxtOStnOsNeKRzBtbOr4MagZP15GSQslWIzCvDzFoSr8udRGP4C4rGkA8dYcur6CaDBsC0AhTcUxLaGfN0WPzbYdgxZEDCUpBLDkYcJPomda2j-NtuhTDDttaBc+JAnSAzjuhHQ4k-Ft82lF0SImXguCayOykNSlReUwRmk2vC2cX8Fw3iHOg4I3B-Qj4fsaBOrFLcEJUAEWtRKfYwT0pHw1qSl2mmzS2JNEjideChZOg+g9SPspUmcnkhr4-ZUwizlSHkTpIlEjoTNMWBzTp2tEt7M1MYktcrpRvNaZ63YmoSMORYKFmgOqL+J-alXZXh4HczMC4uy5d8ldEXRfY36AuB5MTitypd5KHfGcUFKLB1EKQ8MNMbZmJBZQPQvCeGIClZQTwOUTnGGRIDhlDIEZEAVJNOQ-EeIlJBUp8jYGaCWBww34ASllBuD6Ajc48eKdSG+DQz9aFM4AWL2ulrVFpBjJieTMpmwBqZYso3odS6lMk0Z14R8BnHuDHIZ0yYtnPxDsDaxXgkNVoPhTJnCzZZ8s6acBSamXth2xMGWaLMtmwVlZxLVWQlEfLflkaZfewQMCyhyN7gV0OLpjlV46AhZttEWfDJJx6BCyBAlwhWUUleIFytgINpmTyg+llUJ3BsDFKDCakmUoc2GQ7OQCqMCBsErcfbIjmIzYAhciCeXIgCbSEoZIW4E8zbLwMPe0DXUGr30IdAV27YQWabLDnmzI5lcouTXOg4MTbZ0kMuVTMHlVzEJNcuubDHV4SYcOzwMaRPRO6Oh-ZeFNSc2DmDghiAexeABUESr5iNAolCkG6SsDXYHAQ-PKC0CxnVJmwRovMkkCcgnzsY6oC4qvN77Wc0CkI82ORhio0h2m5aE+ePCH4TxEYrwAGYSFsDjxF0FcIWLVFnHoU+4DjQeN6KvE-jdAioPrFu39G68EFIcBcIgpXCzjkaOIOUHrAyjXVkhJsHGJdGLhsDrChCu2HOFMroRMI6AMheSALSULs4BsZ2pSILimwGF6fC6b-BYXCwz+AUNqMFCGDfTu45C3hb0CoU5x0Y98OhYVDxhiKmFteSRdNFMq0luFUSZRWlFRiCjNRwi+hUXB0U8d9F9sAkhLFpiRw2qxiihSov4WCj4cmis2IwrsUPREFT0ZqFBBYoIRIAbi0xaooEW3A9+t8kRTYvgUBKQ43SMhb7QHgFpYSiqHoABNBnsojc4ldoAGCDz5jWgz8f0LYODBeiXGwKZhJUgfBjVgg1IL-CktdnQ5v+fcT3oEFzQTpleZIFSsEnGCR8LO8I3RRsx5QmjrUTyC0bOImIdL2UXS9VD0r2j+pI2GS14P7n6DNKI0FqQVJMvkX-CB0sy-UvMr4SepL0HQCwGdzOHMCeKzQ0ZS6x5Qfp10MMHqQlkpBzKvQpy1Ptrjyil4mkQCv8pJSc5dIzU3GGZe8uOWfLul5yvvv6EhRukvQKUEYF-jKzGTpJ-kshaCA8YrN2UlfDsK5ihSazywTQT0s4xGV6dBs7U4HBtlnH+51+bORxqFR-msR2CFIb2bZOVTNKLcNc2cePHgKnJ-UWZKNggh-HvAbg2oJsF0BA6b5l4+Y+DKWH8B05-UYYZHAgm7JVgP8Hk3iVznEVr5hCohcQpIWkKXJ8x2hVnAnyrYpYmevJSEUjgBDuhV+rKWIq0USLIB8xSBdzA9TL4Ap1UCCH4I8DvEJ9guOq+5SO2gpGLWlRVXWDVWYE9xwqzvY9CVxQSdZtWpU80hGTaIsx3V8MatnJxQK3oro3pH8Snz7EoJSuX+cciWTAD5jDkuuJmjMAga9An8G81hPpUA52BpVMFT6DWvaW8RYk+HfxJ+X0AMZK6nvC5YtUdlkUKKSENis1BrUgzIFGq3dqYXOXxJ6hWgNpNrwCA68nhKSQxW9GzVflksXoCYoSCoaTo3KLZOAtPC1aWFdVcHFKnlXzFtgVKDXZ4NvwniuVYc3QMdB6HsEgiJ1lvYJXsXdUgjNZsST9jrmgZe07gCBIMiYmKb4Ld1BNAkljSwDPrGeMa0bu7XbBw0bwsCRGru3+C0hbgX+VOhHRtp21Y6JS3FeUpGAfwqlDwO+HrnOL0hPQsUz1DSJa7itKYXddBsfjlXatdCKUFpo5mLqaVuyb8GHChQFIFZ71B+LES8tBZU4Ow-oBwNSE1AbqPQ0jV0k2HUTdBIGti3XikjZE0TLGNGs4kFV-IOMcmPoESJuzCn4yH4moIZmihGYltzNkaw2LRqs0MbnGTGmzs40MDGzF2O7FzcCspX1SgWujGZdVWMEUs5OoICLolBuA05t+ntHKOqk7U9t72k7R9vdLlW3g1NTbBMd+3OWpazqeWRxtQI9AKcqOLgIzhAAs2K0KlNm6pTZy6DRcbA8Od3PMpwEnyCQQ-YmRJh1wgiPAjAmQS0oUXEZG5kjJrEGV8y-dMQ7EN+O6Cfp2rywMgvHgTyJ4oRZx-3M6jgRGB5R2UugIfs6FGmggUYu0wEOSoxE+9ppTMEpWBt6AdhnNu7DRHWGDBOhTtbwZBCnxkFN8c+DJOVUJVY11caktwLoPHzzprb3QSMLQHuy3G+Cz+cq0IO5hB6Y7HilgePr8vabPFegsmozZlIAF1ogBPKrzW4z37zK+Zbk5LdcAbDoDCi42+nDIIXD+DFBnQoISDsp3fAPA9wIID+Wowdhkee5bSWRiiGlpzpoaiiS5wyH1RshHLJrZTuJmu16ktgLDlqV35QJZQN8HXBNWJ3LT6RO1IYe4NnV+RZxbZMYF5R3YrlIaogvfj0B3nEyDcSGo3S8P-qyrKdvC3XKYKrA2AA52m5njOn9lupEemodMXVICbbMYtlO+wLLwDA3BnwTSf1CdyiS7smMJaRBHdpJ13cgxOY8ZPmIECZY7gqYu8RNPk2+DdxBetFEXrkyeAg2VgaYILsfA573dovR8a4JfGx7ptsMYvVlBdwZkV2QZBeoCDAmsSPpNE-MXnlHxpY-1LxIbaXt2nnjjZk+LyXmx8kmSZJSm1VtniujaUNVDcuRt6Ar5sl-gwXRgc6C43sC2pUWjFj3oOU9E+S3QBUFiFaS1hme2Ibfk-QBV-gyJMuy6Rb2unvTeWyE91caVLDKVKij5S9KoGMEfzfQq-OUOWCR3SyzZwA91VrBZmo92ZUQ5LbxFq6egugy5DsnnPDlTzEZU2x-VtKTmvhPAXFL0HqA-1DB8ZoUk0mxFbJvwyDA8iueLyWIlKZMLZP1JdhL56zXagekSnhVql9z85Nc2QZ9H0yaMSlOqe8CRnQr6lOZLBn8UjX1IKhuRiUlrpPLlmRzo5FO3vUVW7JultesNFNRnOxD-dId-BKYIbtLnoG5DQ86uRQeV3mHDYvmVXIXybBhtc42aC7O7V7IaJ-A3B0WYp2pkTY0g3h6g-XMcblLTSuoO+s8BO6WH9CBmrkr3IiBAA */
+    /** #no-spell-check @xstate-layout N4IgpgJg5mDOIC5QEMCuAXAFgWWQY0wEsA7MAYgCUBRAZSoBUB9AYQHkA5eqgDXoG0ADAF1EoAA4B7WIXSEJxUSAAeiALQBmAIwCAdAHYATHoCcANnUAOUwBYLevQBoQATzUGDmzTuMWB603oWBuohpgC+YU5oWLgEJGA6JPiyAG7kAJLs6fTpAIIAMukAWlSCIkggktKy8ooqCBrW1jrq1vaaBkECVqaaAKxOrg2adhY6pgJtHkZWbeoRURg4+ESkicTJhGlkmdl5hSV8muXiUjJyChX1qpp6pjqavbfGBn161sYvji5qI5M6QXsfQMAhefjsCxA0WWcTWm221Do-GEiiq51qV0Q2jGI0+QWmrT6AlMgzcAk8LWsrWM5NMPjakOhsVWCXh5Bo6QA4uxGABVAAKZVRZxql1A9QMVOM+iammswVMNgC3yGqncHW8NJpfWMJnUr0ZS2Z8R0bLIHO5fMFx2F1QudUQkvU0ve1jlCqV9lJDWmfQegVaHwsWluhpiKxNZvyrE5mSFFTRoodCHcFj9-RMwPspgM5gs3rV2l01gE3V1bxeboMYZhLNNeFS5AAYqwKJzWEx+bkaDQAOqtgAi8dOdox4sdAj6YzsRJMk0+NmsBc0xj692MthCmnUdwstj6NeNcIbWwSAHcwAAjdTMeSkBsSABOOjwd7AJ+IUDIbHYTfSFGwRheyoAAhdRGGjWN2GHSoRXtTEEEeOwHgMHwvlzHd5W9dw1x0PprGBKwp1GatIihI0I2PRsdAva9b2Ie90CfHQwAAW2QQgABt0mIMQMDIAA1KgKHSJsAE1GCobBcnSfJJMKWMQNk7IxJgxN4PHRDTCCFC0KMDD3gMbCQTGfDCNMYjAlIxZw1hVkTzSGirxvN8H2fNJH0IAAzZwSCgKh2K4qhOMIKBCEvLiZGcMgIHkBISBSCQAGtWQouz62o2iXIY98mPcsBPJ8vyAo4zjgtC8LIvQZwEASiQ8GQUUyjUuCx2ULETGldRyTuewDKwn4U38PQdEmczLKCQ9KPszLnPoxjmI87zfM-EqgpCsKIpC6qyAKx9mLETjGq8p9WNNNK6zZJy6NcvKdCWorVsCsqNsq7aarqhqmuEFrRzFdrEM6loeuVfqjMGyVczwgjOgsiwSKm9Krqy+bcuYtjSoMLzkFvCByCEkTxJYfIZMA38mCkmS5IMJtcl+9F-vqW5-kVTx5UMcxDOw2x7jG2GJus8jbMuhzzzm27FoK5a-OYI7CFY9gvPQNbOKx5AYri9ZEpS87hcjUXruyhb8sKlaoFljiFaVlW1dq4hEq+i5mpRBNWsZrELEecYCL6W4Ocw8GhleWxofG+GrMRkXZpunK3PuqXHvNuWreV561d2x99ufQ7jtO3Xa316OjbRk3pc-C35cV1PMexu2Hcap2fpdkcGeTEYvZsPpfb6zmBqDiYxj5ojw8msimWmjLT0N1G48ICBOPZKh8ioZgmB-dgV-oVt6aTBC5Q1N0LBedRfd8SxsO6rxUKnARc3lGx5jHi7C6nziJDC4hzQYAVGGoWMaC4BQPkdAKA7w0gDEsbQ8Kggss8E+HQSSDXlH6EE7g8SeEnBZA8T89ZUVfu-Eg5p6C5AoJ2bsNAADSVAJKQTjM3WCf1kzOlePoNc+ozABjsEuQatwLL6D0F3N0jxnQjEji-Ryb8P6JHnuQWhPJezZAABJAVAjeDgG9V7b3oepNqTMqReHeDqTwPh3gjHzDwncuhVyLiPsgkI1gxF4IkQQ4g0iF5kHbDGZeEEYx0JOAw1uCF2bpjdNYXoa53CBG9LqAwOhgjGE8H0fUeh-CtEcTNfBUi57uNyAOASuR2DMCoIwLejAuw9n7BQIc2i3bJiaCwgI7dgy6kCOYoY2l1AtBCJ8Vc8oCKhhwQXJxCRJEkDceyLkPJMhASUWU8hVDVI1MYQhIwegvC2BLAI4EjxtLehGHw7S3QiQ0hBBs9Jk9nFZJkV-Zeq85kVMHIwbADBFGsGqf4nR7sUyGBdPhSUt9SzkgIns4IzQBGPHlPqI+wJwiDKPBky5YzsmL1uWQh5VSnkvLeUcD5tSEJaElOMCYJgOi2BBOoPZoS8IpPsLqJU25zlXVGa45FNzN73L7I8559BXlDgMLi5Zml9TyjwrqUsntDJym4UMfozoARWBCJYX2U5BbjyRgbZl4ydBvwapxfkyBYCwBSs4GgoVP5-iyDQZR5TKHUJ8VBMBujECWH8N7cwpZupWD3NhN4sTOj4mOQINZehGUapcVqnVyA9UGqNWAE1ZqyAgVyMwChjqvmtCMOMfwBELLmG0MYClEMqTNCCF3E+ayj5H1DdRTVyLtX1Sjfqw1xrTVQE-jahZjB2AdkYDQAU-JWxcHebaQJQq3S6CPo8HppYEkCOwoEXQcNTHaSaJA6tmSkUyJ0NINtvYZCYCbbG6KFr0hWo5Z2uRaamFJPuJDT25JnRvCaNhbozR-A5h1JYEs2CbJDIRSM8Ndad3ED3VgQ9xrE3JtTUs0dANOgirlL4FJVJDDnwhq+h4NhdQdDpWkuFE8mWAa3cB0DB6Y0QY7Xa7tTA+38gHaQqgw7XaCrg8CTpCSXhvGIq8AYENJRXz0KCPcZjiSTnXYillW7oQ0DwI+MAYBP5IhYBwAcewOAFD5Okc91Cr34tBM0DoqFupUlvp0FUjosMtDWfUzouI0ziYA1che+cZNyYU2QE9Z7KM0N8dBGDu8hVjQBB8CY2h3iGUQUHN0I1i1-DsB4I+qrn7DPrU51KWBXPyfbfMqjPbaP0aHbpzS197grjuLiAiupgzzt8OMKcAQzDWKDQ51Lm7nN7SfB53YXmcs+Ydf58B9QtyxMwdpWl8NyTYW0H6SwG5u7+G6HKFrtat0dcfGQbzXa8v9sHYxorrHgjeBXK8AR8MeMXypC0P5NIT50iCI-X98KLmObGcy7AYAsASAgDQMAC8TzyDZXcm1lSmMtwCxAgRI3PYEXnDOyLWJFSxK7mzbS8NFTOmW+Gt7H3MBfZ+390UkGU37fqG0KBeYUnqjTC8PZZb+FygzVZDcIb8PqpreGuT6BPJgBSH5GgUb0AazWHVHWaqo4btcZz7nvPPz884ugOuDbvpCBJ4gNoXcATAlCZ7VCxg9mTi8Fh+pQQC3B0x1IqXhAed84FxnLOOgc7oBOo+M6YvxEvclx96XNv5eK8dvIZ2ArYOk-6OmQItx7GKlLLxoYhgDM6h8P0RL2lzdIt4hgQ9Z4nwQCJ9BoP4PScn2aK8EeYSTfejTJ01mtw1wnOQanll6f0CZ+z7nnFI6C9q5C9S-o2gOmWHMwgZnXTL4hGJIY2Fj2CNhqyU3lvj4c9sGwPyZeXBGCeM5N4i0Uy-P58G2rxUzQcylg6bKkYezCR4TpB0W4R8xUPaFn+57rXG98WbzGrPC-BLCVEn1vxHf98EAPhDBvYmhgRcwONC0hg7BeYqR4YkktAuhNAG945TY-J8gXEhd4p7Zkp0sn9CMpEHozYMCP4-cG4A8m498nUEA1w-BRpUxnRAh8IQgY9EBfBmhb45RtQIDPYH83cUtNUiD0DMDYphccDRdkt-0X9UCy4oASCSAyDld29mNg9EAu4fBvBugx8-Bgg2k2CNCUkC0Ulb5DEqQUChDPx5DP5RDsDtY8CnsCCxkLC5CXFFDG4Vd+UADqD1CxgaRgxuodC0MZUPUARyQ7BuojACIzDWdxcJMZDE4rCsCtZcD84HCZ8nCE5iDXDPpyDiBmp1AqCvk1wKQ8wklyVeg+4sRmZ9BRN3BupDBeDzDMjhCP47cDojonc85+CpDBDmjLDsicD-c8jKCvCvkc1mg8QSxJgRgpwoC1DtJNQjBSw1lb5-BjAUDYBUA8A8A4BYAvJUBOJEjqAmxERlFk0ikewSlWAqFd9Ri25b4Sx5UT5fBiQkl8JvQUkxgAgPhkEeYQsNiJAlYzxkA5N04fw-wAJe1exlMBxSgBtqDfBeg8JtxDCzNb8PjPYdAmhBMn0dw6QLIASgSQSwB05eQ6BGBFESEBxewSFikaY6Z4Svk7gNwAQYk1lFx6tvQuM4lESSxtxb8OhCT0BgTQTsY29GTkwbB+gWgcw9xgw4Z9QPiwkHhy00xehuhPZJ9H80j2dCC+ioA1ZcZyAbDkiJDcEejw1nDDSvswA3CKCVcJSEI7AQD3QNlekIUlT1kM1LAPBtxoip82cJd4izZrS8YkiRd7Dp9dSMi0DPxQzbScilCbQVDO8h9yRdBOpphv1KiEATARoBF-BZVYZJg+DJDn9ejYyDTsYjS2js4OjndXcyzHDXErTqybS7ThiHTCjkxETSt25txtIXgPAK8dQsStdmYSyQQf1tSoygzMAQSIARSSSxSyTikaBWAmx6AaTqBGB6TVdcz8TRokk-i1xZxvRBzNQC0SxVxu4LAUD5yF8lz04CZf8KToTcheQeV9zeTRodlyi0wj5vQdw-QJgy0PhQRQQQQtTujyzw0HzFziT04k1idHTNIu5zBRUjAJhj4pxpVnV4ZoF-B8IC0XUCSYj3dpDSAzwBxrcdjvwOAITAJYSBJ0gikYS4TuyEINwvZQQNwAjNS5ih9Lt2Z9RLBtxgK7zyKBDw0qKaLec6LEQqB2ABx2LvyzBOlgLBNghsQ9DEJILRp4YdwtAPgNxmspKLS9TKyayTSIzUjZy4jnCjSOzA87iuLPgvATdVxnRoccyhy4lQQUkpwu5PYpwmirKbTayHd6yuimz0iWz9SnLEz3D9zmdOlw87h2E6RUJ9d9QHg8QNxYFTCUC5NYAFMIAZZ5AvJCAXdciVZwzxDIzAy4iSqyqKriAqqarRQVZnKRiUzAD4ZlSqQtBiINxUw9kpUAQVxegM1gwxNzLYKpEMYuJ05FLlLVLUKAZTtpRo9Jxa9nj4dEIpR5VQR95kk3QUClrVYxSXyiZKZZJdzaZ9ymC-Qg1b5gQEk2grAQVPh9A79JQF1yR+gLq04xTkK89XLNJzAzAsTiRbAIVRrWDEJuoupQs1kRgQwWcAzYiPdgzioQb1YbKGq7KmqcbnCbZa4kr7Tvy6QRpPhAVMJjlB9twGkb86QIK9wAgwrZDyb1Y1sorc4XdibsbpCyb8aequyIbNq0wRoj57AtBLAuE8LEJqjBMJg6ig1bNSzzSFqxkWriByqnpSprLNZbKYLmydA9aDb-JnpErBjciXK+rqDsxdBHg-YfA74aceFD46sqQ7tByV0ubE5FEzxcglh6q7ChaKKKzZDg7Q6sBxaUqVwQLcxggklQ93AgLoapS9x6ttJVlA6zZY6w7CaI6za4rcbPwi747KbOzlCwdAC6Uxgdw7gQRljV1M77hs6CIehARMaZySaRb9Sq7MBIrHcGzI7pLLKY6Q6lgE6Nr6h2CUFNwn0JgSxBKPgvBgR0yiLmbPYUCvIPtYQoAmwnwYABxGoCaTaiay7ozXED70Aj6T7Hwz6L657OKhUAxfrPhLFD9YYPiQgYbwLv1Aq3h97D7Vhj7T6wBz70BebM52iBbGztbzb77H6oGYHkA37Jahs+KARegBFpjcw51BopTQicTug2bSxkD5rzbnDOQJB34F5EiS6Uib6gy6GGGoAmGBj64lD575iVwHgOgBEhy1x3hKU1lvY5QjFPAdxcwC6-J6HGGwBEi+ax6YrkHy6OHlGrCsHHaxi3hB417Ft6QvqvaiR9BbgeMFwj4tb8Dy6oBOHuHWiWGzT7Hb6dBHGdGeGldkr+GaDEk4kytrFcxiQDrtwkkWhVwuDhqGt1iaGHGnGVGRCr7S7YqPGvGuHknSCa7mpkz67vC+TvBDGSx4DPVEaOgj4HggVDAn1DAjAUDMnnHCE1HorBa2G4imnsmFDcneqCmxj7s4lfZX15tHgQViR9AxL3AbAgQkliqvcrcZdzY5M8ZiBZAo0KBmAKBw7WH0mgzLdrdy4VmFN1nOJNmKA9H+m6knhRpj9Vag0yU9k9wrEZjDA2ZEN5mudFmZZjm1nCANmtnR62mkH3H9mFnDnlnIATn-mzmtnLmAlUywkKRKc06RGcM9lBNOkg1kdPh9IsKNizUfmoW-mAXtnPNrVet7V-99G6kObRoFtnRzAcx+gX0KROhSx+klVSUCW20iXVnTnznxT36AZ3rmgmhMFUJsQEknmcwVSdR3hFshq+6OmcbgM+XoXSW298mEXACb0PL4NJx-Aj5b49kzAwVOgT5fZlRhqeXiB1WSXYXtnNtqNe0dsGNQcdXvDJgwU6RV1vWImMXtx6XyR8quNpyVXpC1WjniWBXAXnXts6NdshxtXPlkxfYeKYF8QTJS09lQKiUQ28xJhbEFHPwKAwAwpYB0ACp+RUBLwQo8AKE41mBfnTmdm3GdT2H9Sy2K2q3Hwa263CAG2m2W2YX4XU2gkrADFUMZmwkC1NBjINQiQByRGKxHgS2oBu3CBK3q3a363G3nBm2Y2YW23Grhbo7E5N3t2+3d3B393D3+XR3emVcU28VNIN7YkcNIVpblVjIdI9RS0uXXg7GO2HKu3y2t3e3+293h2j2o0T2J6LKYzZDL3IOb2h2D2R2o0E7PCaWgkzBB4pS8yPAdxdLU77gvVXQg0C112UOd2B30P72NXOJ4OI3z2zZaPr36O73MPOIE6CjsG1CqOs03QnhdQwlBLIYvBljWZiRDKktNGPHnCOOoPb2YOH24PWnEGEOdb4rKzlO0PuPYPeOn39zQl7h+ltIiQklDWX1ughm-T+Ttw-BgP7LSawOe26PoOMOjOgWtPWPLT3OIPPPVPvP1PjO7akzhWhsvVNdFQGsabPaZV-CsTmS4CTqOgXOB65MPPnxWUrVWBoTAFsAaAnk3kCh9yiRDselkcdxpHB81Q3qhnFQVUrAwnJKsaKLsugvcvrk6A1q-5T16AKBcgcgOBJJpJZJTOghfCKiixBEwDlxiK4lWhBzJhPiWsuur3xkyBcl8lClilSlgdBwKv3AMzmYrBUJw9Eabhup2MTAPAYVEt8INvwOtvWU5EZkeUVEwJ15N4tEouPY7O3nghAUaQQtadcIYFnPJwpQu4XucvtukQf4BuAFhJgFhIpu5V94qO1iepruVwtBxh7AYfeFJ3w29nHJNve3tuN9vFL1-HT40rAhDBdxrP8ebssS9wBEsFg53h4fuudBe3WJYBsAvs4PmBoxySiuSvsAyv8hTPPgRp8Jgw2hZUQ3lwzA-RTGCIIighOaEnqIqeCpt1WrDauIWOKeEgjfnxSr9a8bSox3X2RXwssSRFc0c0WXBobgpjRp5QpynQcJ+etvbera6rNPOj2nLeLbXvqeQ-7euJHeWNSc06UJkMaVcR8e1lpQ79LFosWf2v+7hbreWJnoBIo055cjv9CYJI7r5f-HV631TF6Rbhz8vedlSsAwU6dQQsC+I3i-Lqy+QoIBK+waTuXgYbrFgxfUAhFuMK0wQRPAcIC0IQDep5+-S-y-h-CdVqVK2BYSKu7BF14Zbh1dcwVxlwUlzO0wgrAh1Kg-qfRbSoLeFO1+Y-jfH+E+TP6+1wxhLvcLL-Zgy4KfjKB8CAhfUHge-u-31J1VXGp7Trm-1LiJxuqJnF9kn0QCH4-Q+iLuGuDdAK0NeQaKJp8Bxb7JbAkAxAWbBgGpNdmL-SnggIrrW0HeJnHDlcwQgBAkSVgNZF3DW5hIDqNwekJhm4rXwc0JgMgfQLD7wM6yfnKPsXw-7hdeGfjAHggA-QTEekhhWxGuEW4UhXq2gH4jfFAar9aBCPWTGAEahgB58i+VgMvlXzFIUeQ3EbukA4BPVbMmuR4CZGIpuhlwcXLEo8DeCBVQBDKAwVbzoHGDTB5g3PFcUYDpABwy8J6toFiRIYVUxiEwMCi94eBFQo0UsKgllpvVRBIQqtmENH7+NBMIBPwFYyDSNITWqQ8od4ElDu0twR8GwLkIkCsRDoH2PyCh0fCV9YB2nK6MX1fAtCF4sgUtjH06GihE+qhXMsGBm7d1yhnwD4J4JsBHZc0RA3cFoCaEDC2hwwntqMIuC+cI+ILEDkEKMHNDWhQwjdiMNyLjDUyp2EaL0ALRfAEkfpIASHAgIrgFwGVBxIEOj4I9UApVR8Ie1ME55jipxRgOcVoAlct4Nxb8iMFuF0pKuWVfwEAMXYmBhMsNU7KIMtrtCLhXVZ6M-1BaGCBemIrYRBx2HyBkBEXBQQJxoI-9vB0TRUEEFuCeDdQ-odlg8XMDuBPhHXFLMXy6bMMqB7bVzt8IF68ifGQxB2iwMhq3xf+vBIwN1Chr1czE7GKzkkhJSmZ5O+Io4cKKSZ8ixCaTGgZqK24iicmFIqmqgImETBuoR5VXq0BnBmANedwAyv9VXB-9ugogo0S0wkH819hPQg2DyO1Gij7afTT1kUTMxRNL+MMREoHF+BphmgOobZKYn6BTkMR4LJZswEBbdC++dAg5qmLhZf9FBdISJseVepR5gw87L3sfk0I8Z74k4ewMmK+YQs0x2zcPuPUzEI9sxMsXMSaNrr19oc3gX2huDBCrg9cXvRXnEh4yU4XgRA+JlyKkLF9I0nERsa2nNTdYKWPYTtLYIx7+NkanSXwHYB6RicB8BYVoDuMwiNZZwfSTLkXzoHzjFxCaeNjRjdaFZ-GuuJHMwnMDHirGBYD4OxhBA0hyQkMfXjOOfxziG0C4rZkuI2yUsXW+WJNnXWDHJhdc9wHEmDxeLOkCwOAgEKJXvhvAo81DICb0OvGgTbxbaIVlSO3GhE9xqguAvV06AjZahZ4h5k6FEHzjzmEE8ltpgkgfkvyW479PS0nGw02gWCAsJKBQSkoTEMCQyJyML7wCEeLE8CQmjBoRCohMQrcaCB3HdBOoivaiYtybr7iCxjE-0tJO5F0DgS5wT8E-UFYAISEaKW1H-luK4dAsCSOJC3T16rhDC2EaUNsj3FGtxi6ow4UKOD6m8oAKnPAIxwdZ4j-JxfOPp+BClhTTmVwwAjcJaA51Wg4+PUAWDRwpdv04SGmsCFEHRTgpaHOKce2bEaMNRAU2PkFNik8cEp1BOkCyWc465Pq-qAsKdjwgXdUMyGUePhN9FZiEB72T7N9l+y5RdhdAVFByhBz7lLOI2MJA+iLZGBPBAiYpseSwSwIq0Xw4vtbwGm44hpBOUacQlIQcTf4VAf+IAimnmBMBfgdygONOzLgoUlIDUvcJeBnxkxOXbaXjmGn-ZP4hQ-MToTwg-9vKD3OkHdKhiCZiQjwITL4LrHe5S26Y-kXAOMltiUx7QzsfIKppFDZg3gXwAgQ+AmRWpl2W0dqCnCmU-JgozacjNhlNjPR6jSPvqIqnG92xlM2qUyVCyUg9BkoPOoJVUBHVgw7wBiZJMvEySBeBUuOgeiKk8cIpZMugSLKWDVSjOzMnsjMQeDI4phmyJOndLpD-T2WzoUEDgMFmIzhZQU0WXLLC57CWx0g6WUbNlniz5ZeYqkZ7DTAAh9Ik4zZFSGXDgygmveQIAEG6CSgWszuRxu-kNSf4IAiPJSrvzeQcUqR1mTQpUw5q39fYwkjLkIwJ7pt-xDIL4QHIkBBzYAIc7bopRsmTSGejxAiHcGGau0T89o3QPVkakXclsmc0+tnPMEm87e5cCKhmKj5Zyc5ecgqbbTRndjFBwjD9rNNXB2Ak6ulQsIdlQRCIvgeJf2Y3O7nZ4W5VtGsqVNpnlSu5zc3ue2TtkOSAYIVLEqjgCBT8jCStBrqOQiL7hqc3xaCp3IXnNyqKYQ8Ev+EAhHcqkT1QIDySDQnw74d8CeTMU3o6g7szwBdL3zvnP0m5H+JebAGQBLMwhHcumZvKgUL5t0sCvyOYIVl7xkaXSLuFshEQEogBU4IZkAvwhzgNwUkiNkguDnQK0FMU5BTnjXkHDBRVC3OTQrgX0LMFmkT+pONxCThMEk4C-uPzlFTl6sCSbBGRGIA2l4AFQbolSI0BCK2gayWiRQ3CTCSyc-CAas6GvL4lzkSQUWHIslaTMDcl3O4TPyqEnwDK+JRJOSl1AOYqRq6McmXO0AVziQwkgfGOVXrMkH4+sqQijAliPgqRA5MVriFTp-AgiE4VcJqDhrRZggBoL4X4tjh3RXwiSvyIEp15CN74PcAONzFLChx+YI8UmQPQSXGwS+pUHiG-jSWRM2YRDf2FzAhhvFfeYcBGPEvFiJLJYlZFWOVE2hVQhgEogGNI06TVLQYvcKMSmEVCeSIxcMZpT1KLgzw7ol1eMpUsGXuhhl2SiGGmCk6TKBYLWYpSXHoEVwU4PNJZRkpqVgwPJjssyPkumVGTfFrSkpZdXogdVWIkAY5UMqyV1KhgWgAII0quURwWlMcEpcikqXShFe3AvUBrSmzBgWgt+ctMeIoYN4qRkMWmsdi4xnYu4U2TeiuDJxkojAZgW+XTJWwLxEV6uI7JxlOyloKmKSTerYBMKH4cwTQFAnWnnHgY40S4sif0jwYhV8OhIYcf3A+D0tcVrwOUEGjwk3KdOWqEjPuhZW9L4JKyPqNUwSTggLRWYU1uP1bpFh7uC-RlVJiWCZYFMiK-EDUUQy2BamYzCGJZmh5hJ5Q4kihVH0JUJA1sBqy0b6mJnPMegStaZlXiSQvA6Qt3ezF8M1TY5Bp+OEaW1HHZvscIHi6zF8tlqUpgQ3gY+UByiJEgwFBKjnBTKgBy50A9iogRkKwT4RLOBafXJmlmxhMtFc4cnmmtnxv5zB9itGqKjCSdAgFIVCvA6O9amZD+-45VnaoC6VkrCVImFH6HsCIlZwUw14BXkeLJCgUOAnwI0IDXhpNi2xXYvsUOIuJAlt8DQgSmZqWdjx0SPcL9TuBUgiQySYkEKSfLYx7ZUFGosgmmZ+ATAtOQTCl1HnE9Mhvsddosr3kL1wKPJPcAPh+KewPiHgMckqnUIM58V5UzVPBXPXIBo5PyA9ZOiaDNJEawFcYDD2DAL80wro+dVIlkq0UwA9s+Ag8EnbvjFRulDVaKjHx95ShfgddkaSpHYZpQOveBHrxSSCUOMY5XUPYmIjEp5m289qtVXYg4jSo9GjWnVhwENYpw4jHhKHld7BxCyoKUEMDRrgwbP1iAO4JOHpYs9wstBXlViC+UeLfa4BHMLYuw1IckB+NS9ZrN2qp0Bxi-C-Lkt6B1EzIQiO4LxqCkqw6Nqm3MpCl+pRF4CYMpWhmHNa7UIZPhVNRBt7XT1RZ9sq1T+su5BoZwoy2rlI2-bEgdw04sVSg3AZ+Qn6L9WBmRNLFSN+kETUplySq6zzOoXCcLf5LY6KN-RH8exXrx5L9BmcjWcsJSiDbYVeC+IMTpWoi1SJ3R-0cNSK2GqYYjAU1X8T4PGqPE3hJYJfjSttVVrdaGa4qaS3sUZo6sGtbpP+MEo15dAjBN5v0Ashy1bW9rWNhQAHW0hfezpbED-102IRJ2+gGJOOmEQM4aOCAkKYZzC72KVwxYGmpYAeKA0psFjZmETK-RmAyBiK+7nVmzCYb2EE8kHi7THxn9AwHwUQUCq81Wd8yt-XFXMF4HPBpwP8z2DSDzqirWxAvIXiLzF6cRLtboX3nwuiy+xn0qQ8SkSi8q3w8660mZa-wR4FSVY9ihpf0CmAvAws7xNvkFUmY8DIUiqFPBtLoED9N+uRAdTAQ8UKgURZOfHjM34TvAJgk4UJqIjl0I9ZBVImZr4QTlvU7gvQC-rfEmp3DbEWgBLbkLkyhD6F0ch5tAm-mThZ0bwBYeZx8H0i-AZKHxcBOCEnDBhWI7YUrq80CIUkrvcsAgU6ia70hInNhENX3iFKrxPwv4QCKrYQBL1NunpJa3cDZU2+9IrElMX1DHr2WGeoWVtyJHnDI9QmriAOtqH8IFtvqX2Rf0WGoRV0GEVMCZu50EjDR9WkgAOuYIGVf1cMbKfgN8JWcqxKajLeTrr0ratmJu2BKNHw70g6irfVUDmEGUiMOa2kRzcxKInyS20Bqx4sdtZ46EfAR4gmaeP0kCyT9uqViWagv2LpfBlnG-QjtBCUgSUtgeGGJysCiDTJZwiyavq80GsYd1++HfjM1z+FaJhgDWtVqlm86qpNs77dHo5nBZBMMMeifV3hhjBws1EnMMzxr0Gzl9b0nHB9L2lhqne9QQ-GMD6SuqHuCo7AWOPsTH8oUA+zLb1KRn1ilm5zaOewizQXcqsjLa7qvU54zBxKvgchflKtlgYMDTHe2S1vGCuCtww1N2W3xB59jk1qKiAQ3IgWLyF8Oa2JKXNgS0giwvA9UHRO2QroNwe4eecYebkY6+l9QQxr72eKEQO1XMgkCnJIoNYH0zhwOVvKCmeb3DWIbFl4YS2dx3aZ8rMjUX4w471Ci2jeffPoUvgbSP2NZoEtnB1Y1i4nYCgIpZ2EotK8oUTD8RSQhHIF1ClBY-Nd1ebegXxDUsjmsx77CF8QgKuSGGZZ9yDUhFhT3NoXBTGjkRvSvhCCYJ4T4Pq39Z0dCJipe8Iql4DUZMOhyxA9C-nGkDz1ebQ8MtZuiSl6AfouZMxX5N31lL8ZSIEQIAA */
     id: 'authMachine',
 
     predictableActionArguments: true,
@@ -31,8 +32,6 @@ export const authMachine = createMachine(
       services: {} as AuthMachineServices,
       events: {} as AuthMachineEvents,
     },
-
-    context: initialContext,
 
     states: {
       inactive: {
@@ -48,6 +47,7 @@ export const authMachine = createMachine(
         exit: assign({
           error: () => undefined,
           sessionId: () => undefined,
+          credentialEmail: () => undefined,
         }),
       },
 
@@ -72,6 +72,7 @@ export const authMachine = createMachine(
                   googleOtpCode: () => undefined,
                   googleUser: () => undefined,
                   registerUser: () => undefined,
+                  socialProviderRegisterUser: () => undefined,
                   salt: () => undefined,
                   sessionId: () => undefined,
                 }),
@@ -153,7 +154,9 @@ export const authMachine = createMachine(
                     on: {
                       FINISH_PASSKEY_LOGIN:
                         '#authMachine.active.login.verifyingRegisterPublicKeyCredential',
+
                       BACK: '#authMachine.active.login.idle.error',
+
                       PASSKEY_NOT_SUPPORTED: {
                         target: '#authMachine.active.login.idle.authScreen',
                         actions: assign({
@@ -167,8 +170,10 @@ export const authMachine = createMachine(
                       SET_CONDITIONAL_UI_PASSKEY: {
                         target: '#authMachine.active.login.idle.localPasskeySign',
                       },
+
                       FINISH_PASSKEY_LOGIN:
                         '#authMachine.active.login.verifyingRegisterPublicKeyCredential',
+
                       PASSKEY_NOT_SUPPORTED: {
                         target: '#authMachine.active.login.idle.authScreen',
                         actions: assign({
@@ -193,23 +198,33 @@ export const authMachine = createMachine(
                 initial: 'authScreen',
 
                 on: {
-                  NEXT: {
-                    target: '#authMachine.active.login.loginMethodSelection',
-                    actions: assign({
-                      googleOtpCode: () => undefined,
-                      googleUser: () => undefined,
-                      registerUser: () => undefined,
-                      sessionId: () => undefined,
-                      CCRPublicKey: () => undefined,
-                      RCRPublicKey: () => undefined,
-                      credentialEmail: (_, event) => event.payload.email,
-                    }),
-                  },
-
                   LOGIN_WITH_WEB3CONNECTOR: '#authMachine.active.web3Connector',
                   GOOGLE_LOGIN: 'googleLogin',
                   ADVANCE_TO_PASSWORD: 'inputPassword',
                   SIGN_IN_WITH_PASSKEY: '#authMachine.active.login.idle.signWithPasskey',
+
+                  SELECT_PASSWORD_METHOD: [
+                    {
+                      target: '#authMachine.active.login.loginMethodSelection',
+
+                      actions: assign({
+                        googleOtpCode: () => undefined,
+                        googleUser: () => undefined,
+                        registerUser: () => undefined,
+                        socialProviderRegisterUser: () => undefined,
+                        sessionId: () => undefined,
+                        CCRPublicKey: () => undefined,
+                        RCRPublicKey: () => undefined,
+                      }),
+
+                      cond: 'isPasswordAndPasskeyEnabled',
+                    },
+                    {
+                      target: 'retrievingCredentialRCR',
+                      cond: 'isPasskeyEnabled',
+                    },
+                    'retrievingSalt',
+                  ],
                 },
 
                 exit: assign({
@@ -220,12 +235,13 @@ export const authMachine = createMachine(
               loginMethodSelection: {
                 on: {
                   SELECT_PASSWORD: 'retrievingSalt',
-                  START_PASSKEY_LOGIN: '#authMachine.active.login.retrievingCredentialRCR',
+
                   BACK: {
                     target: '#authMachine.active.login',
                     actions: assign({
                       googleUser: () => undefined,
                       registerUser: () => undefined,
+                      socialProviderRegisterUser: () => undefined,
                       error: () => undefined,
                     }),
                   },
@@ -255,14 +271,21 @@ export const authMachine = createMachine(
 
               inputPassword: {
                 on: {
-                  BACK: {
-                    target: '#authMachine.active.login.loginMethodSelection',
-                    actions: assign({
-                      googleUser: () => undefined,
-                      registerUser: () => undefined,
-                      error: () => undefined,
-                    }),
-                  },
+                  BACK: [
+                    {
+                      target: '#authMachine.active.login.loginMethodSelection',
+
+                      actions: assign({
+                        googleUser: () => undefined,
+                        registerUser: () => undefined,
+                        socialProviderRegisterUser: () => undefined,
+                        error: () => undefined,
+                      }),
+
+                      cond: 'isPasskeyEnabled',
+                    },
+                    'idle',
+                  ],
 
                   COMPLETE_GOOGLE_SIGN_IN: 'verifyingGoogleLogin',
                   VERIFY_LOGIN: 'verifyingLogin',
@@ -314,6 +337,7 @@ export const authMachine = createMachine(
                 entry: assign({
                   googleUser: () => undefined,
                   registerUser: () => undefined,
+                  socialProviderRegisterUser: () => undefined,
                 }),
 
                 on: {
@@ -522,7 +546,8 @@ export const authMachine = createMachine(
                       target: 'idle',
 
                       actions: assign({
-                        registerUser: (_, event) => event.data?.registerUser,
+                        socialProviderRegisterUser: (_, event) =>
+                          event.data?.socialProviderRegisterUser,
                       }),
 
                       cond: 'isNewUser',
@@ -549,6 +574,7 @@ export const authMachine = createMachine(
                 entry: assign({
                   googleUser: () => undefined,
                   registerUser: () => undefined,
+                  socialProviderRegisterUser: () => undefined,
                 }),
               },
 
@@ -567,7 +593,7 @@ export const authMachine = createMachine(
                     }),
                   },
                   onError: {
-                    target: '#authMachine.active.login.retrievingSalt',
+                    target: 'idle',
                     actions: assign({
                       error: (_context, event) =>
                         event.data?.error || event.data?.message || event.data,
@@ -580,37 +606,25 @@ export const authMachine = createMachine(
                 on: {
                   FINISH_PASSKEY_LOGIN:
                     '#authMachine.active.login.verifyingRegisterPublicKeyCredential',
-                  BACK: '#authMachine.active.login.loginMethodSelection',
-                  PASSKEY_NOT_SUPPORTED: {
-                    target: '#authMachine.active.login.loginMethodSelection',
-                    actions: assign({
-                      error: (_, event) => event.payload.error,
-                    }),
-                  },
-                },
-              },
+                  BACK: [
+                    {
+                      target: '#authMachine.active.login.loginMethodSelection',
+                      cond: 'isPasswordAndPasskeyEnabled',
+                    },
+                    'idle.authScreen',
+                  ],
+                  PASSKEY_NOT_SUPPORTED: [
+                    {
+                      target: '#authMachine.active.login.loginMethodSelection',
 
-              retrievingRCR: {
-                entry: assign({
-                  error: () => undefined,
-                }),
+                      actions: assign({
+                        error: (_, event) => event.payload.error,
+                      }),
 
-                invoke: {
-                  src: 'startPasskeyAuth',
-                  onDone: {
-                    target: '#authMachine.active.login.idle.authScreen',
-                    actions: assign({
-                      RCRPublicKey: (_context, event) => event.data.requestChallengeResponse,
-                      sessionId: (_, event) => event.data.sessionId,
-                    }),
-                  },
-                  onError: {
-                    target: 'idle',
-                    actions: assign({
-                      error: (_context, event) =>
-                        event.data?.error || event.data?.message || event.data,
-                    }),
-                  },
+                      cond: 'isPasswordAndPasskeyEnabled',
+                    },
+                    'idle',
+                  ],
                 },
               },
 
@@ -656,25 +670,17 @@ export const authMachine = createMachine(
                   ],
                 },
               },
-
-              passkeyGuard: {
-                after: {
-                  0: {
-                    target: '#authMachine.active.login.idle.authScreen',
-                    cond: (context) => !!context.RCRPublicKey,
-                  },
-                  100: { target: 'retrievingRCR' },
-                },
-              },
             },
 
-            initial: 'passkeyGuard',
+            initial: 'idle',
 
             on: {
               SETUP_REGISTER_USER: {
                 target: '.idle',
                 actions: 'setupRegisterUser',
               },
+
+              START_PASSKEY_LOGIN: '.retrievingCredentialRCR',
             },
             entry: assign({
               error: () => undefined,
@@ -699,6 +705,7 @@ export const authMachine = createMachine(
                       googleOtpCode: () => undefined,
                       googleUser: () => undefined,
                       registerUser: () => undefined,
+                      socialProviderRegisterUser: () => undefined,
                     }),
                   },
 
@@ -750,7 +757,12 @@ export const authMachine = createMachine(
 
               emailValidation: {
                 on: {
-                  VERIFY_EMAIL: 'verifyingEmail',
+                  VERIFY_EMAIL: {
+                    target: 'verifyingEmail',
+                    actions: assign({
+                      registerUser: (_, event) => event.payload?.registerUser,
+                    }),
+                  },
                   BACK: {
                     target: 'idle',
                     actions: assign({
@@ -764,7 +776,17 @@ export const authMachine = createMachine(
               verifyingEmail: {
                 invoke: {
                   src: 'verifyEmail',
-                  onDone: 'registerMethodSelection',
+                  onDone: [
+                    {
+                      target: 'registerMethodSelection',
+                      cond: 'isPasswordAndPasskeyEnabled',
+                    },
+                    {
+                      target: 'retrievingCCR',
+                      cond: 'isPasskeyEnabled',
+                    },
+                    'createPassword',
+                  ],
                   onError: {
                     target: 'emailValidation',
                     actions: assign({
@@ -785,11 +807,12 @@ export const authMachine = createMachine(
                     actions: assign({
                       googleUser: () => undefined,
                       registerUser: () => undefined,
+                      socialProviderRegisterUser: () => undefined,
                       error: () => undefined,
                     }),
                   },
                   BACK: {
-                    target: 'emailValidation',
+                    target: '#authMachine.active.login',
                     actions: assign({
                       error: () => undefined,
                     }),
@@ -819,6 +842,7 @@ export const authMachine = createMachine(
                 entry: assign({
                   googleUser: () => undefined,
                   registerUser: () => undefined,
+                  socialProviderRegisterUser: () => undefined,
                 }),
 
                 on: {
@@ -877,6 +901,7 @@ export const authMachine = createMachine(
                 entry: assign({
                   googleUser: () => undefined,
                   registerUser: () => undefined,
+                  socialProviderRegisterUser: () => undefined,
                 }),
               },
 
@@ -909,12 +934,18 @@ export const authMachine = createMachine(
               localCCRSign: {
                 on: {
                   FINISH_PASSKEY_REGISTER: '#authMachine.active.register.sendingPublicCredential',
-                  PASSKEY_NOT_SUPPORTED: {
-                    target: '#authMachine.active.register.registerMethodSelection',
-                    actions: assign({
-                      error: (_, event) => event.payload.error,
-                    }),
-                  },
+                  PASSKEY_NOT_SUPPORTED: [
+                    {
+                      target: '#authMachine.active.register.registerMethodSelection',
+
+                      actions: assign({
+                        error: (_, event) => event.payload.error,
+                      }),
+
+                      cond: 'isPasswordAndPasskeyEnabled',
+                    },
+                    'idle',
+                  ],
                   BACK: {
                     target: '#authMachine.active.register.registerMethodSelection',
                   },
@@ -925,12 +956,6 @@ export const authMachine = createMachine(
                 on: {
                   FINISH_PASSKEY_AUTH: '#authMachine.active.register.sendingAuthPublicCredential',
                   BACK_TO_IDLE: '#authMachine.active.register.idle',
-                  PASSKEY_NOT_SUPPORTED: {
-                    target: '#authMachine.active.register.idle',
-                    actions: assign({
-                      error: (_, event) => event.payload.error,
-                    }),
-                  },
                 },
               },
 
@@ -969,6 +994,7 @@ export const authMachine = createMachine(
                     actions: assign({
                       googleUser: () => undefined,
                       registerUser: () => undefined,
+                      socialProviderRegisterUser: () => undefined,
                       error: () => undefined,
                     }),
                   },
@@ -1084,7 +1110,16 @@ export const authMachine = createMachine(
 
         on: {
           RESET: 'inactive',
-          SIGN_UP: '.register',
+          SIGN_UP: [
+            {
+              target: '.register',
+              cond: 'requireEmailVerification',
+            },
+            {
+              target: '.register.retrievingCCR',
+              cond: 'isPasskeyEnabled',
+            },
+          ],
           LOGIN: '.login',
           FORGOT_PASSWORD: '.forgotPassword',
         },
@@ -1216,6 +1251,7 @@ export const authMachine = createMachine(
         forgeData: () => undefined,
         CCRPublicKey: () => undefined,
         RCRPublicKey: () => undefined,
+        authProviderConfigs: () => undefined,
       }),
     },
   },
@@ -1239,8 +1275,14 @@ if (stateDefinition) {
   resolvedState = authMachine.resolveState(previousState);
 }
 
-export const authService = (services: {}) =>
-  interpret(
+export const authService = (services: {}, context: AuthMachineContext) => {
+  const mergedContext = {
+    ...authMachine.context,
+    ...initialContext,
+    ...context,
+  };
+
+  return interpret(
     authMachine.withConfig(
       {
         services,
@@ -1248,7 +1290,7 @@ export const authService = (services: {}) =>
           // @ts-ignore
           isNewUser: (_, event) => !!event.data.isNewUser,
           forgeClaim: (_, event) => !!event.forgeId,
-          hasHardware2FA: (context, event) => {
+          hasHardware2FA: (ctx, event) => {
             const { data } = event;
             const HARDWARE = 1;
             // @ts-ignore
@@ -1278,11 +1320,22 @@ export const authService = (services: {}) =>
               return data?.active2fa?.find((item: any) => item?.twoFaTypeId === SOFTWARE);
             return false;
           },
+          isPasskeyEnabled: (ctx, _) => !!ctx.authProviderConfigs?.enablePasskeys,
+          isPasswordEnabled: (ctx, _) => !!ctx.authProviderConfigs?.enablePasswords,
+          isPasswordAndPasskeyEnabled: (ctx, _) =>
+            !!ctx.authProviderConfigs?.enablePasswords && !!ctx.authProviderConfigs?.enablePasskeys,
+          requireEmailVerification: (ctx, _) => {
+            return !!ctx.authProviderConfigs?.requireEmailVerification;
+          },
+
+          requireUsername: (ctx, _) => {
+            return !!ctx.authProviderConfigs?.requireUsername;
+          },
         },
         actions: {
           updateAccessToken: assign({
-            sessionUser: (context, event) => ({
-              ...context.sessionUser!,
+            sessionUser: (ctx, event) => ({
+              ...ctx.sessionUser!,
               accessToken: event.newAccessToken,
             }),
           }),
@@ -1300,6 +1353,7 @@ export const authService = (services: {}) =>
             error: () => undefined,
             active2fa: () => undefined,
             registerUser: () => undefined,
+            socialProviderRegisterUser: () => undefined,
             googleOtpCode: () => undefined,
             googleUser: () => undefined,
             sessionUser: () => undefined,
@@ -1310,7 +1364,7 @@ export const authService = (services: {}) =>
           }),
         },
       },
-      authMachine.context,
+      mergedContext,
     ),
   )
     .onTransition((state) => {
@@ -1327,3 +1381,4 @@ export const authService = (services: {}) =>
       }
     })
     .start(resolvedState);
+};
