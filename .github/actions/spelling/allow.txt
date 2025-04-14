@@ -382,3 +382,10 @@ ssword
 testid
 testuser
 viewports
+inbox
+microsoftonline
+networkidle
+screenshot
+Skype
+testmail
+textbox
