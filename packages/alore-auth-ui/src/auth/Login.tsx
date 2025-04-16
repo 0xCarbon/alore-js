@@ -832,7 +832,7 @@ export const Login = ({
             {loginDictionary?.dontHaveAccount}
             <div
               data-testid="sign-up-button"
-              className="text-alr-red cursor-pointer"
+              className="cursor-pointer text-[var(--primary-color)] hover:text-[var(--primary-hover)]"
               onClick={() => {
                 sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
               }}
@@ -1272,7 +1272,7 @@ export const Login = ({
         )}
       >
         {isLoading ? (
-          <Spinner className="my-20 !h-14 w-full !fill-red-300" />
+          <Spinner className="my-20 !h-14 w-full !fill-[var(--primary-color)]" />
         ) : (
           <>
             {forgeId && authState.matches('active.web3Connector') && 'TODO'}

@@ -32,7 +32,6 @@ const CheckboxForm = ({
             value={String(field.value)}
             checked={field.value}
             data-testid={dataTest}
-            className="text-alr-red size-4 rounded border border-gray-300 bg-gray-50 focus:ring-2 focus:ring-cyan-600 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-cyan-600 dark:focus:ring-cyan-600"
           />
           <Label
             className="text-sm font-normal text-gray-500"

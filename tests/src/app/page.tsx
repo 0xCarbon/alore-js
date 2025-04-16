@@ -34,6 +34,9 @@ export default function Home() {
       >
         <Auth
           keyshareWorker={keyshareWorker}
+          styles={{
+            primaryColor: '#E64848',
+          }}
           googleId={process.env.NEXT_PUBLIC_GOOGLE_ID || ''}
           onSuccess={(user) => {
             console.info('User logged in:', user);

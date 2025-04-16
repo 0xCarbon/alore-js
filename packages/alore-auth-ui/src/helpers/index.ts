@@ -28,3 +28,26 @@ export default { verifyEmptyValues };
 export interface NewDeviceInfo {
   coordinates?: [latitude: number, longitude: number];
 }
+
+export function darkenHexColor(hex: string, amount: number = 20): string {
+  hex = hex.replace(/^#/, '');
+
+  if (hex.length === 3) {
+    hex = hex
+      .split('')
+      .map((char) => char + char)
+      .join('');
+  }
+
+  if (hex.length !== 6) {
+    throw new Error('Invalid HEX color.');
+  }
+
+  const r = Math.max(0, parseInt(hex.slice(0, 2), 16) - amount);
+  const g = Math.max(0, parseInt(hex.slice(2, 4), 16) - amount);
+  const b = Math.max(0, parseInt(hex.slice(4, 6), 16) - amount);
+
+  const toHex = (n: number) => n.toString(16).padStart(2, '0');
+
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}

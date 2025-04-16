@@ -731,7 +731,7 @@ export const Register = ({
                 </span>
                 <span
                   onClick={() => sendAuth('SHOW_TERMS_MODAL')}
-                  className="text-alr-red cursor-pointer underline"
+                  className="cursor-pointer text-[var(--primary-color)] underline hover:text-[var(--primary-hover)]"
                   data-testid="terms-of-service"
                 >
                   {registerDictionary?.agreeTermsPart2}
@@ -750,13 +750,15 @@ export const Register = ({
           </Button>
         </form>
         <div
-          className="mt-4 flex w-full cursor-pointer flex-row items-center justify-center gap-1.5 text-sm text-gray-500"
+          className="group mt-4 flex w-full cursor-pointer flex-row items-center justify-center gap-1.5 text-sm text-gray-500"
           onClick={() => {
             sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'LOGIN']);
           }}
         >
-          <span className="font-inter font-semibold">{registerDictionary?.alreadyHaveAccount}</span>
-          <ArrowRightIcon className="size-4" />
+          <span className="font-inter font-semibold duration-300 group-hover:text-[var(--primary-hover)]">
+            {registerDictionary?.alreadyHaveAccount}
+          </span>
+          <ArrowRightIcon className="size-4 duration-300 group-hover:text-[var(--primary-hover)]" />
         </div>
         {forgeId && (
           <>
@@ -823,7 +825,12 @@ export const Register = ({
         <p className="text-alr-grey mb-6 w-full text-center text-gray-600">
           {registerDictionary?.passkeyCreatedButNotAuthenticatedDescription}
         </p>
-        <Button onClick={() => sendAuth('BACK_TO_IDLE')}>{registerDictionary?.backToLogin}</Button>
+        <Button
+          className="flex w-full items-center justify-center"
+          onClick={() => sendAuth('BACK_TO_IDLE')}
+        >
+          {registerDictionary?.backToLogin}
+        </Button>
       </div>
     ),
     [],
@@ -867,7 +874,7 @@ export const Register = ({
           <Button
             data-testid="secure-code-submit-button"
             onClick={() => onClickSecureCodeSubmit()}
-            className="bg-alr-red hover:bg-alr-dark-red group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
+            className="mb-6 flex w-full items-center justify-center"
             disabled={secureCode.length !== 6 || isLoading}
           >
             {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
@@ -1101,7 +1108,7 @@ export const Register = ({
         data-testid="register-card"
       >
         {isLoading ? (
-          <Spinner className="my-20 !h-14 w-full !fill-red-300" />
+          <Spinner className="my-20 !h-14 w-full !fill-[var(--primary-color)]" />
         ) : (
           <>
             {forgeId && authState.matches('active.web3Connector') && 'TODO'}
