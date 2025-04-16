@@ -1,13 +1,13 @@
 'use client';
 
-import { FlowbiteTextInputTheme, Label, TextInput, TextInputProps } from 'flowbite-react';
+import { HelperText, Label, TextInput, TextInputProps, TextInputTheme } from 'flowbite-react';
 import React from 'react';
 import { Control, Controller, FieldErrorsImpl, FieldValues } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
 import InputErrorHelperText from './InputErrorHelperText';
 
-const textInputTheme: FlowbiteTextInputTheme = {
+const textInputTheme: TextInputTheme = {
   base: 'flex',
   addon:
     'inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-200 px-3 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-600 dark:text-gray-400',
@@ -79,40 +79,43 @@ const InputForm = ({
   'data-testid': dataTest,
   className,
   ...rest
-}: Props) => (
-  <Controller
-    control={control}
-    name={name}
-    render={({ field }) => (
-      <div className={twMerge('flex flex-col', className)}>
-        {label && (
-          <Label
-            className="mb-2 font-medium !text-gray-500"
-            htmlFor={field.name}
-          >
-            {label}
-          </Label>
-        )}
-        <TextInput
-          {...field}
-          {...rest}
-          type={type}
-          color={errors[field.name] ? 'failure' : 'gray'}
-          rightIcon={errors[field.name] && infoIcon}
-          data-testid={dataTest}
-          helperText={
-            errors[field.name] && (
+}: Props) => {
+  console.log(errors);
+  return (
+    <Controller
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <div className={twMerge('flex flex-col', className)}>
+          {label && (
+            <Label
+              className="mb-2 font-medium !text-gray-500"
+              htmlFor={field.name}
+            >
+              {label}
+            </Label>
+          )}
+          <TextInput
+            {...field}
+            {...rest}
+            type={type}
+            color={errors[field.name] ? 'failure' : 'gray'}
+            rightIcon={errors[field.name] && infoIcon}
+            data-testid={dataTest}
+            theme={textInputTheme}
+          />
+          <HelperText>
+            {errors[field.name] && (
               <InputErrorHelperText
                 id={dataTest}
                 message={String(errors?.[field.name]?.message)}
               />
-            )
-          }
-          theme={textInputTheme}
-        />
-      </div>
-    )}
-  />
-);
+            )}
+          </HelperText>
+        </div>
+      )}
+    />
+  );
+};
 
 export default InputForm;

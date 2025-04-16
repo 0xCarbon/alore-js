@@ -5,7 +5,7 @@ import { PublicClientApplication } from '@azure/msal-browser';
 import { MsalProvider } from '@azure/msal-react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useActor } from '@xstate/react';
-import { Spinner } from 'flowbite-react';
+import { createTheme, Spinner, ThemeProvider } from 'flowbite-react';
 import React, { Suspense, useEffect, useState } from 'react';
 
 import { Login } from '../auth/Login';
@@ -85,38 +85,56 @@ const Auth = ({
     }
   }, [sessionUser]);
 
+  const customTheme = createTheme({
+    button: {
+      color: {
+        default:
+          'group relative flex items-center justify-center border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 bg-alr-red hover:bg-alr-dark-red focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600',
+      },
+    },
+  });
+
   return isClient ? (
     <GoogleOAuthProvider clientId={googleId}>
       <MsalProvider instance={msalInstance}>
-        <Suspense
-          fallback={
-            <div className="flex size-full min-h-screen flex-col items-center justify-center">
-              <Spinner className="m-auto !h-12 w-full !fill-gray-300" />
-            </div>
-          }
+        <ThemeProvider
+          theme={customTheme}
+          props={{
+            button: {
+              pill: true,
+            },
+          }}
         >
-          {authState.matches('active.login') && (
-            <Login
-              locale={locale}
-              authServiceInstance={authServiceInstance}
-              forgeId={forgeId}
-              cryptoUtils={cryptoUtils}
-              keyshareWorker={keyshareWorker}
-              logoImage={logoImage}
-            />
-          )}
-          {authState.matches('active.register') && (
-            <Register
-              locale={locale}
-              authServiceInstance={authServiceInstance}
-              forgeId={forgeId}
-              inviteToken={inviteToken}
-              cryptoUtils={cryptoUtils}
-              keyshareWorker={keyshareWorker}
-              logoImage={logoImage}
-            />
-          )}
-        </Suspense>
+          <Suspense
+            fallback={
+              <div className="flex size-full min-h-screen flex-col items-center justify-center">
+                <Spinner className="m-auto !h-12 w-full !fill-gray-300" />
+              </div>
+            }
+          >
+            {authState.matches('active.login') && (
+              <Login
+                locale={locale}
+                authServiceInstance={authServiceInstance}
+                forgeId={forgeId}
+                cryptoUtils={cryptoUtils}
+                keyshareWorker={keyshareWorker}
+                logoImage={logoImage}
+              />
+            )}
+            {authState.matches('active.register') && (
+              <Register
+                locale={locale}
+                authServiceInstance={authServiceInstance}
+                forgeId={forgeId}
+                inviteToken={inviteToken}
+                cryptoUtils={cryptoUtils}
+                keyshareWorker={keyshareWorker}
+                logoImage={logoImage}
+              />
+            )}
+          </Suspense>
+        </ThemeProvider>
       </MsalProvider>
     </GoogleOAuthProvider>
   ) : null;

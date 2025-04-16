@@ -721,11 +721,11 @@ export const Login = ({
             )}
           </div>
         ) : (
-          <h1 className="font-inter text-center text-lg font-bold text-gray-700">
+          <h1 className="font-inter text-center text-xl font-bold text-gray-700">
             {forgeId ? loginDictionary?.forgeLogin : loginDictionary?.loginAccount}
           </h1>
         )}
-        <div className="mt-3 flex flex-col gap-y-5">
+        <div className="mt-4 flex flex-col gap-y-5">
           {!onlyPasskeyLogin && requireEmailVerification && (
             <form
               className="flex flex-col gap-y-5"
@@ -759,7 +759,6 @@ export const Login = ({
                 type="submit"
                 data-testid="login-button"
                 disabled={verifyEmptyValues(getValuesEmail('email'))}
-                className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
               >
                 {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
                 {onlyPasskeyLogin ? loginDictionary?.passkeyLogin : loginDictionary?.login}
@@ -767,10 +766,7 @@ export const Login = ({
             </form>
           )}
           {onlyPasskeyLogin && (
-            <Button
-              onClick={handlePasskeyButton}
-              className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
-            >
+            <Button onClick={handlePasskeyButton}>
               <div className="flex flex-row items-center justify-center gap-2">
                 <KeyIcon className="size-4 text-white" />
                 <span className="font-semibold text-white">{loginDictionary?.passkeyLogin}</span>
@@ -988,7 +984,6 @@ export const Login = ({
             type="submit"
             data-testid="login-submit"
             disabled={verifyEmptyValues(getValuesPassword('password'))}
-            className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
           >
             {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
             {loginDictionary?.login}
@@ -1272,7 +1267,7 @@ export const Login = ({
       )}
       <Card
         className={twMerge(
-          `md:child:!px-9 mx-5 flex min-w-[20rem] py-2 md:mx-7 md:w-96`,
+          `md:child:!px-9 mx-5 flex min-w-[20rem] !rounded-2xl border-gray-200 px-2 py-4 md:mx-7 md:w-96`,
           isLoading ? 'pointer-events-none opacity-50' : '',
         )}
       >
@@ -1319,7 +1314,6 @@ export const Login = ({
                 </div>
                 <Button
                   data-testid="logout-button"
-                  className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
                   onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
                 >
                   LOGOUT

@@ -449,7 +449,7 @@ export const Register = ({
 
   const userInfoDefaultValues: FieldValues = {
     email: '',
-    nickname: null,
+    nickname: '',
     agreedWithTerms: false,
   };
   const {
@@ -672,7 +672,7 @@ export const Register = ({
             </div>
           </div>
         ) : (
-          <h1 className="font-inter mb-3 text-center font-semibold text-gray-600 md:text-lg">
+          <h1 className="font-inter text-center text-xl font-bold text-gray-700">
             {forgeId ? registerDictionary?.forgeTitle : registerDictionary?.title}
           </h1>
         )}
@@ -683,7 +683,7 @@ export const Register = ({
         )}
         <form
           onSubmit={userInfoHandleSubmit((data) => onSubmitUserData(data))}
-          className="mb-1 flex flex-col gap-y-5"
+          className="mb-1 mt-4 flex flex-col gap-y-5"
           data-testid="register-new-account-step"
         >
           <InputForm
@@ -744,7 +744,6 @@ export const Register = ({
             data-testid="register-button"
             type="submit"
             disabled={isUserInfoSubmitDisabled || isLoading}
-            className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
           >
             {isLoading && <Spinner className="mr-2 !h-5 w-6 !fill-gray-300" />}
             {registerDictionary?.buttonStart}
@@ -824,12 +823,7 @@ export const Register = ({
         <p className="text-alr-grey mb-6 w-full text-center text-gray-600">
           {registerDictionary?.passkeyCreatedButNotAuthenticatedDescription}
         </p>
-        <Button
-          className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
-          onClick={() => sendAuth('BACK_TO_IDLE')}
-        >
-          {registerDictionary?.backToLogin}
-        </Button>
+        <Button onClick={() => sendAuth('BACK_TO_IDLE')}>{registerDictionary?.backToLogin}</Button>
       </div>
     ),
     [],
@@ -1039,7 +1033,6 @@ export const Register = ({
             <Button
               data-testid="password-submit-button"
               type="submit"
-              className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
               disabled={isPasswordSubmitDisabled || isLoading}
             >
               {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
@@ -1102,7 +1095,7 @@ export const Register = ({
       )}
       <Card
         className={twMerge(
-          `md:child:!px-9 mx-5 flex min-w-[20rem] py-2 md:mx-7 md:w-96`,
+          `md:child:!px-9 mx-5 flex min-w-[20rem] !rounded-2xl border-gray-200 px-2 py-4 md:mx-7 md:w-96`,
           isLoading ? 'pointer-events-none opacity-50' : '',
         )}
         data-testid="register-card"
@@ -1144,7 +1137,6 @@ export const Register = ({
                 </div>
                 <Button
                   data-testid="logout-button"
-                  className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
                   onClick={() => sendAuth([{ type: 'RESET_CONTEXT' }, { type: 'INITIALIZE' }])}
                 >
                   LOGOUT
