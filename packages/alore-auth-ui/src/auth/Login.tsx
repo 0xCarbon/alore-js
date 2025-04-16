@@ -2,8 +2,8 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { useMsal } from '@azure/msal-react';
-import { ArrowRightIcon, EnvelopeIcon } from '@heroicons/react/20/solid';
-import { KeyIcon, LockOpenIcon } from '@heroicons/react/24/outline';
+import { ArrowRightIcon, EnvelopeIcon, KeyIcon } from '@heroicons/react/20/solid';
+import { LockOpenIcon } from '@heroicons/react/24/outline';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useActor } from '@xstate/react';
@@ -99,6 +99,10 @@ export const Login = ({
   );
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
   const { instance } = useMsal();
+
+  const onlyPasskeyLogin = useMemo(() => {
+    return enablePasskeys && !enablePasswords;
+  }, [enablePasskeys, enablePasswords]);
 
   const googleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => {
@@ -317,6 +321,7 @@ export const Login = ({
     } catch (error) {
       if (error !== ABORT_CONDITIONAL_UI) {
         authAbortController?.abort();
+        console.error('error', error);
         setAuthAbortController(undefined);
         sendAuth('BACK');
       }
@@ -505,7 +510,6 @@ export const Login = ({
 
     const { email } = data;
 
-    // await signOut({ redirect: false });
     sendAuth({ type: 'SELECT_PASSWORD_METHOD', payload: { email } });
     setLoading(false);
   };
@@ -690,7 +694,7 @@ export const Login = ({
     return { authErrorTitle, authErrorDescription };
   };
 
-  const EmailInputStep = useMemo(() => {
+  const IdleStep = useMemo(() => {
     const { authErrorTitle, authErrorDescription } = getAuthError();
     return (
       <div data-testid="login-email-step">
@@ -722,64 +726,58 @@ export const Login = ({
           </h1>
         )}
         <div className="mt-3 flex flex-col gap-y-5">
-          {requireEmailVerification && (
-            <>
-              <form
-                className="flex flex-col gap-y-5"
-                onSubmit={handleSubmitEmail((data) => onSubmitEmail(data))}
-              >
-                <InputForm
-                  className="my-1"
-                  control={emailControl}
-                  errors={emailErrors}
-                  name="email"
-                  type="text"
-                  placeholder={loginDictionary?.enterEmail}
-                  data-testid="login-email-input"
-                  icon={envelopIcon}
-                  autoComplete={
-                    authAbortController && isConditionalMediationAvailable
-                      ? 'username webauthn'
-                      : undefined
-                  }
-                  autoFocus
-                />
+          {!onlyPasskeyLogin && requireEmailVerification && (
+            <form
+              className="flex flex-col gap-y-5"
+              onSubmit={handleSubmitEmail((data) => onSubmitEmail(data))}
+            >
+              <InputForm
+                className="my-1"
+                control={emailControl}
+                errors={emailErrors}
+                name="email"
+                type="text"
+                placeholder={loginDictionary?.enterEmail}
+                data-testid="login-email-input"
+                icon={envelopIcon}
+                autoComplete={
+                  authAbortController && isConditionalMediationAvailable
+                    ? 'username webauthn'
+                    : undefined
+                }
+                autoFocus
+              />
 
-                {/* <Link // TODO removed from beta
-            href="/forgot-password"
-            className="cursor-pointer self-end text-xs font-medium text-alr-red"
-            data-testid="forgot-password"
-          >
-            Forgot your password?
-          </Link> */}
-                <Button
-                  type="submit"
-                  data-testid="login-button"
-                  disabled={verifyEmptyValues(getValuesEmail('email'))}
-                  className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
-                >
-                  {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
-                  {loginDictionary?.login}
-                </Button>
-              </form>
-              <div className="h-[0.5px] w-full bg-gray-300" />
-            </>
-          )}
-          {enablePasskeys &&
-            !enablePasswords &&
-            !requireEmailVerification &&
-            typeof window.PublicKeyCredential !== 'undefined' && (
-              <Button
-                color="light"
-                onClick={handlePasskeyButton}
-                outline
+              {/* <Link // TODO removed from beta
+                href="/forgot-password"
+                className="cursor-pointer self-end text-xs font-medium text-alr-red"
+                data-testid="forgot-password"
               >
-                <div className="flex flex-row items-center justify-center gap-2">
-                  <KeyIcon className="size-4 text-gray-500" />
-                  <span>{dictionary?.auth.signWithPasskey}</span>
-                </div>
+                Forgot your password?
+              </Link> */}
+              <Button
+                type="submit"
+                data-testid="login-button"
+                disabled={verifyEmptyValues(getValuesEmail('email'))}
+                className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
+              >
+                {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
+                {onlyPasskeyLogin ? loginDictionary?.passkeyLogin : loginDictionary?.login}
               </Button>
-            )}
+            </form>
+          )}
+          {onlyPasskeyLogin && (
+            <Button
+              onClick={handlePasskeyButton}
+              className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
+            >
+              <div className="flex flex-row items-center justify-center gap-2">
+                <KeyIcon className="size-4 text-white" />
+                <span className="font-semibold text-white">{loginDictionary?.passkeyLogin}</span>
+              </div>
+            </Button>
+          )}
+          <div className="h-[0.5px] w-full bg-gray-300" />
           {socialProviders?.length && (
             <>
               <div className="flex w-full flex-row gap-4">
@@ -1287,7 +1285,7 @@ export const Login = ({
               authState.matches('active.login.googleLogin') ||
               authState.matches('active.login.retrievingSalt') ||
               authState.matches('active.login.verifyingRegisterPublicKeyCredential')) &&
-              EmailInputStep}
+              IdleStep}
             {(authState.matches('active.login.loginMethodSelection') ||
               authState.matches('active.login.signingCredentialRCR') ||
               authState.matches('active.login.retrievingCredentialRCR')) &&

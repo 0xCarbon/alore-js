@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import React from 'react';
+import React, { Suspense } from 'react';
 
 import '../styles/globals.css';
 
@@ -11,14 +11,12 @@ export const metadata: Metadata = {
   description: 'Test App',
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: any }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <Suspense fallback={<div>Loading...</div>}>
+        <body className={inter.className}>{children}</body>
+      </Suspense>
     </html>
   );
 }

@@ -42,6 +42,7 @@
     },
     "login": {
       "login": "Login",
+      "passkeyLogin": "Login with passkey",
       "password": "Password",
       "continue": "Continue",
       "passkey": "Passkey",
@@ -84,6 +85,9 @@
       "passkeyNotSupported": "Passkey not supported",
       "continue": "Continue",
       "title": "Let’s get started!",
+      "passkeyCreatedButNotAuthenticated": "Passkey created!",
+      "passkeyCreatedButNotAuthenticatedDescription": "Your passkey has been created, but you need to authenticate it to complete the registration process.",
+      "backToLogin": "Back to login",
       "forgeTitle": "Create an account and claim your NFT",
       "emailLabel": "Your e-mail",
       "emailPlaceholder": "youremail@email.com",

@@ -1,7 +1,7 @@
 'use client';
 
 /* eslint-disable @next/next/no-img-element */
-import { ArrowRightIcon, EnvelopeIcon } from '@heroicons/react/20/solid';
+import { ArrowRightIcon, EnvelopeIcon, UserCircleIcon } from '@heroicons/react/20/solid';
 import { KeyIcon, LockOpenIcon } from '@heroicons/react/24/outline';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useGoogleLogin } from '@react-oauth/google';
@@ -30,7 +30,8 @@ const CheckboxForm = React.lazy(() => import('../components/CheckboxForm'));
 const TermsModal = React.lazy(() => import('../components/TermsModal'));
 const FormRules = React.lazy(() => import('../components/FormRules'));
 
-const envelopIcon = () => <EnvelopeIcon className="size-4 text-gray-500" />;
+const envelopIcon = () => <EnvelopeIcon className="size-5 text-gray-500" />;
+const userIcon = () => <UserCircleIcon className="size-5 text-gray-500" />;
 
 export interface RegisterProps {
   locale?: Locale;
@@ -116,6 +117,20 @@ export const Register = ({
     }
   };
 
+  const base64UrlToArrayBuffer = (base64Url: string): ArrayBuffer => {
+    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+
+    const padLength = (4 - (base64.length % 4)) % 4;
+    base64 += '='.repeat(padLength);
+
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i += 1) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+  };
+
   const finishPasskeyRegistration = async () => {
     const publicKey = CCRPublicKey?.publicKey;
 
@@ -127,42 +142,40 @@ export const Register = ({
       return;
     }
 
-    // TODO: Validate prf on ios/macos when 18.0 drops
-
     const email = registerUser ? registerUser.email : userInfoGetValues('email');
     const nickname = registerUser ? registerUser.nickname : userInfoGetValues('nickname');
     const device = hashUserInfo(window.navigator.userAgent);
 
-    const extensions: {
-      prf?: { eval: { first: Uint8Array } };
-      largeBlob?: { support: string };
-    } = {
-      prf: {
-        eval: {
-          first: new TextEncoder().encode('Alore'),
-        },
-      },
-      largeBlob: {
-        support: 'preferred',
-      },
-    };
+    // TODO: verify this when user needs web3 module at this library
+    // const extensions: {
+    //   prf?: { eval: { first: Uint8Array } };
+    //   largeBlob?: { support: string };
+    // } = {
+    //   prf: {
+    //     eval: {
+    //       first: new TextEncoder().encode('Alore'),
+    //     },
+    //   },
+    //   largeBlob: {
+    //     support: 'preferred',
+    //   },
+    // };
 
     // eslint-disable-next-line no-undef
     const credentialCreationOptions: CredentialCreationOptions = {
       publicKey: {
         ...publicKey,
         // @ts-ignore
-        challenge: Buffer.from(publicKey.challenge, 'base64'),
-
+        challenge: base64UrlToArrayBuffer(publicKey.challenge),
         user: {
           // @ts-ignore
-          id: Buffer.from(publicKey.user.id, 'base64'),
+          id: new Uint8Array(32),
           name: email,
-          displayName: email,
+          displayName: nickname || email,
         },
         authenticatorSelection: {
-          requireResidentKey: false,
-          residentKey: 'discouraged',
+          authenticatorAttachment: 'cross-platform',
+          residentKey: 'required',
           userVerification: 'required',
         },
         timeout: 120000,
@@ -173,39 +186,9 @@ export const Register = ({
           },
           {
             type: 'public-key',
-            alg: -8,
-          },
-          {
-            type: 'public-key',
-            alg: -36,
-          },
-          {
-            type: 'public-key',
-            alg: -37,
-          },
-          {
-            type: 'public-key',
-            alg: -38,
-          },
-          {
-            type: 'public-key',
-            alg: -39,
-          },
-          {
-            type: 'public-key',
             alg: -257,
           },
-          {
-            type: 'public-key',
-            alg: -258,
-          },
-          {
-            type: 'public-key',
-            alg: -259,
-          },
         ],
-        // @ts-ignore
-        extensions,
       },
     };
 
@@ -224,48 +207,49 @@ export const Register = ({
         return;
       }
 
-      // eslint-disable-next-line no-undef
       const registerCredential = _registerCredential as PublicKeyCredential;
-      const extensionResults = registerCredential.getClientExtensionResults();
-      // @ts-ignore
-      const prfSupported = !!extensionResults?.prf?.enabled;
-      // @ts-ignore
-      const largeBlobSupported = !!extensionResults?.largeBlob?.supported;
 
-      if (!prfSupported && !largeBlobSupported) {
-        sendAuth({
-          type: 'PASSKEY_NOT_SUPPORTED',
-          payload: { error: registerDictionary?.passkeyNotSupported! },
-        });
-      } else {
-        sendAuth([
-          {
-            type: 'FINISH_PASSKEY_REGISTER',
-            payload: {
-              passkeyRegistration: {
-                id: registerCredential.id,
-                rawId: Buffer.from(registerCredential.rawId).toString('base64'),
-                response: {
-                  attestationObject: Buffer.from(
-                    // eslint-disable-next-line no-undef
-                    (registerCredential.response as AuthenticatorAttestationResponse)
-                      .attestationObject,
-                  ).toString('base64'),
-                  clientDataJSON: Buffer.from(
-                    // eslint-disable-next-line no-undef
-                    (registerCredential.response as AuthenticatorAttestationResponse)
-                      .clientDataJSON,
-                  ).toString('base64'),
-                },
-                type: 'public-key',
+      // TODO: verify this when user needs web3 module at this library
+      // // eslint-disable-next-line no-undef
+      // const extensionResults = registerCredential.getClientExtensionResults();
+      // // @ts-ignore
+      // const prfSupported = !!extensionResults?.prf?.enabled;
+      // // @ts-ignore
+      // const largeBlobSupported = !!extensionResults?.largeBlob?.supported;
+
+      // if (!prfSupported && !largeBlobSupported) {
+      //   sendAuth({
+      //     type: 'PASSKEY_NOT_SUPPORTED',
+      //     payload: { error: registerDictionary?.passkeyNotSupported! },
+      //   });
+      // } else {
+
+      sendAuth([
+        {
+          type: 'FINISH_PASSKEY_REGISTER',
+          payload: {
+            passkeyRegistration: {
+              id: registerCredential.id,
+              rawId: Buffer.from(registerCredential.rawId).toString('base64'),
+              response: {
+                attestationObject: Buffer.from(
+                  // eslint-disable-next-line no-undef
+                  (registerCredential.response as AuthenticatorAttestationResponse)
+                    .attestationObject,
+                ).toString('base64'),
+                clientDataJSON: Buffer.from(
+                  // eslint-disable-next-line no-undef
+                  (registerCredential.response as AuthenticatorAttestationResponse).clientDataJSON,
+                ).toString('base64'),
               },
-              email,
-              device,
-              nickname,
+              type: 'public-key',
             },
+            email,
+            device,
+            nickname,
           },
-        ]);
-      }
+        },
+      ]);
     } catch (_err) {
       sendAuth({
         type: 'PASSKEY_NOT_SUPPORTED',
@@ -395,7 +379,7 @@ export const Register = ({
         });
       }
     } catch (_err) {
-      sendAuth('BACK_TO_IDLE');
+      sendAuth('USER_CREATE_ACCOUNT_BUT_NOT_LOGIN');
     }
   };
 
@@ -479,6 +463,7 @@ export const Register = ({
     resolver: yupResolver(userInfoFormSchema),
     defaultValues: userInfoDefaultValues,
   });
+  useWatch({ control: userInfoControl, name: 'agreedWithTerms' });
 
   const passwordDefaultValues: FieldValues = {
     password: '',
@@ -723,6 +708,7 @@ export const Register = ({
               errors={userInfoErrors}
               name="nickname"
               type="text"
+              icon={userIcon}
               placeholder={registerDictionary?.nicknameLabel}
               data-testid="register-first-name"
               disabled={isLoading}
@@ -734,8 +720,15 @@ export const Register = ({
             name="agreedWithTerms"
             data-testid="register-agreed-with-terms-checkbox"
             label={
-              <span className="text-xs font-light text-gray-400 md:text-sm md:font-normal">
-                {registerDictionary?.agreeTermsPart1}
+              <div
+                onClick={() =>
+                  userInfoSetValue('agreedWithTerms', !userInfoGetValues('agreedWithTerms'))
+                }
+                className="flex flex-row items-center justify-center gap-1"
+              >
+                <span className="text-xs font-light text-gray-400 md:text-sm md:font-normal">
+                  {registerDictionary?.agreeTermsPart1}
+                </span>
                 <span
                   onClick={() => sendAuth('SHOW_TERMS_MODAL')}
                   className="text-alr-red cursor-pointer underline"
@@ -743,7 +736,7 @@ export const Register = ({
                 >
                   {registerDictionary?.agreeTermsPart2}
                 </span>
-              </span>
+              </div>
             }
           />
 
@@ -817,6 +810,29 @@ export const Register = ({
       userInfoDirtyFields,
       isLoading,
     ],
+  );
+
+  const PasskeyCreatedButNotAuthenticated = useMemo(
+    () => (
+      <div
+        data-testid="passkey-created-but-not-authenticated-step"
+        className="flex flex-col items-center justify-center"
+      >
+        <h1 className="font-inter mb-3 text-center text-xl font-semibold text-gray-900">
+          {registerDictionary?.passkeyCreatedButNotAuthenticated}
+        </h1>
+        <p className="text-alr-grey mb-6 w-full text-center text-gray-600">
+          {registerDictionary?.passkeyCreatedButNotAuthenticatedDescription}
+        </p>
+        <Button
+          className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
+          onClick={() => sendAuth('BACK_TO_IDLE')}
+        >
+          {registerDictionary?.backToLogin}
+        </Button>
+      </div>
+    ),
+    [],
   );
 
   const VerifyEmail = useMemo(
@@ -1115,6 +1131,8 @@ export const Register = ({
             {(authState.matches('active.register.createPassword') ||
               authState.matches('active.register.completingRegistration')) &&
               Password}
+            {authState.matches('active.register.passkeyCreatedButNotAuthenticated') &&
+              PasskeyCreatedButNotAuthenticated}
             {authState.matches('active.register.userCreated') && (
               <div
                 data-testid="register-user-created-step"
@@ -1127,7 +1145,7 @@ export const Register = ({
                 <Button
                   data-testid="logout-button"
                   className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
-                  onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
+                  onClick={() => sendAuth([{ type: 'RESET_CONTEXT' }, { type: 'INITIALIZE' }])}
                 >
                   LOGOUT
                 </Button>
