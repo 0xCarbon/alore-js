@@ -50,7 +50,7 @@ export interface RegisterProps {
   };
 }
 
-export const Register = ({
+const Register = ({
   locale = 'pt',
   authServiceInstance,
   forgeId,
@@ -1156,3 +1156,5 @@ export const Register = ({
     </div>
   );
 };
+
+export default Register;

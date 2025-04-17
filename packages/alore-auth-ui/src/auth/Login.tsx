@@ -57,7 +57,7 @@ export interface LoginProps {
   };
 }
 
-export const Login = ({
+const Login = ({
   locale = 'pt',
   authServiceInstance,
   forgeId,
@@ -1336,3 +1336,5 @@ export const Login = ({
     </div>
   );
 };
+
+export default Login;

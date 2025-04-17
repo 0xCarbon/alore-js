@@ -8,8 +8,8 @@ import { useActor } from '@xstate/react';
 import { createTheme, Spinner, ThemeProvider } from 'flowbite-react';
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
 
-import { Login } from '../auth/Login';
-import { Register } from '../auth/Register';
+import Login from '../auth/Login';
+import Register from '../auth/Register';
 import { darkenHexColor } from '../helpers';
 import useAuthServiceInstance from '../hooks/useAuthServiceInstance';
 import { SessionUser } from '../machine/types';

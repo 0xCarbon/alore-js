@@ -1,6 +1,6 @@
 {
   "name": "@alore/auth-react-ui",
-  "version": "1.0.3-alpha",
+  "version": "1.0.4-alpha",
   "repository": "https://github.com/0xCarbon/alore-js",
   "description": "React Auth UI component for Alore",
   "main": "dist/cjs/index.js",
@@ -10,8 +10,7 @@
   ],
   "scripts": {
     "prepare": "pnpm build",
-    "build": "rm -rf dist/* && tsc -p tsconfig-esm.json && tsc -p tsconfig-cjs.json",
-    "postinstall": "flowbite-react patch && flowbite-react register"
+    "build": "rm -rf dist/* && tsc -p tsconfig-esm.json && tsc -p tsconfig-cjs.json"
   },
   "author": "0xCarbon",
   "license": "LGPL-2.1-only",
@@ -19,7 +18,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@alore/auth-react-sdk": "file:../alore-auth-sdk",
+    "@alore/auth-react-sdk": "1.0.3-alpha",
     "@azure/msal-browser": "^4.8.0",
     "@azure/msal-react": "^3.0.7",
     "@heroicons/react": "2.0.16",
@@ -42,7 +41,7 @@
     "@types/react": "18.2.79",
     "autoprefixer": "10.4.19",
     "postcss": "8.4.38",
-    "tailwindcss": "4.1.4",
+    "tailwindcss": "3.4.17",
     "typescript": "5.4.5"
   },
   "peerDependencies": {
