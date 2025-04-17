@@ -7,7 +7,7 @@ export function verifyEmptyValues(values: object | string | undefined) {
 
       if (
         (typeof value === 'string' || Array.isArray(value)) &&
-        (!value || (value as string | any[]).length === 0)
+        (!value || (value as string).length === 0)
       ) {
         hasEmptyValues = true;
       } else if (typeof value === 'object' && value !== null) {
@@ -51,3 +51,17 @@ export function darkenHexColor(hex: string, amount: number = 20): string {
 
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
+
+export const base64UrlToArrayBuffer = (base64Url: string): ArrayBuffer => {
+  let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+
+  const padLength = (4 - (base64.length % 4)) % 4;
+  base64 += '='.repeat(padLength);
+
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i += 1) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes.buffer;
+};

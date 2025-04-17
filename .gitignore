@@ -55,3 +55,4 @@ yarn-error.log*
 # pnpm
 pnpm-lock.yaml
 pnpm-workspace.yaml
+.flowbite-react

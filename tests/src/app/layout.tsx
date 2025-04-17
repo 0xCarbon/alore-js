@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: 'Test App',
 };
 
-export default function RootLayout({ children }: { children: any }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <Suspense fallback={<div>Loading...</div>}>

@@ -16,7 +16,7 @@ import { twMerge } from 'tailwind-merge';
 import * as yup from 'yup';
 
 import { passwordRules, ruleValidation } from '../components/FormRules/helpers';
-import { verifyEmptyValues } from '../helpers';
+import { base64UrlToArrayBuffer, verifyEmptyValues } from '../helpers';
 import useDictionary from '../hooks/useDictionary';
 import { AuthInstance } from '../machine/types';
 import { aloreLogoBlack, google, metamaskLogo, walletConnectLogo } from '../utils';
@@ -117,20 +117,6 @@ const Register = ({
     }
   };
 
-  const base64UrlToArrayBuffer = (base64Url: string): ArrayBuffer => {
-    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-
-    const padLength = (4 - (base64.length % 4)) % 4;
-    base64 += '='.repeat(padLength);
-
-    const binaryString = atob(base64);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i += 1) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes.buffer;
-  };
-
   const finishPasskeyRegistration = async () => {
     const publicKey = CCRPublicKey?.publicKey;
 
@@ -171,7 +157,7 @@ const Register = ({
           // @ts-ignore
           id: new Uint8Array(32),
           name: email,
-          displayName: nickname || email,
+          displayName: nickname || email || '',
         },
         authenticatorSelection: {
           authenticatorAttachment: 'cross-platform',

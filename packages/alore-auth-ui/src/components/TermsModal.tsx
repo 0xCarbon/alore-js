@@ -22,15 +22,13 @@ const TermsModal = ({ locale, show, onClose, onSubmit }: Props) => {
       show={show}
       onClose={onClose}
     >
-      <Modal>
-        <ModalHeader>
-          <div className="px-8 pt-2">
-            <span className="font-poppins text-[1.75rem] font-bold">
-              {registerDictionary?.termsTitle}
-            </span>
-          </div>
-        </ModalHeader>
-      </Modal>
+      <ModalHeader>
+        <div className="px-8 pt-2">
+          <span className="font-poppins text-[1.75rem] font-bold">
+            {registerDictionary?.termsTitle}
+          </span>
+        </div>
+      </ModalHeader>
       <ModalBody className="scrollbar">
         <div className="flex flex-col px-8 pb-5 pt-2">
           <span

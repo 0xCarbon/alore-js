@@ -110,7 +110,7 @@ const Auth = ({
         {
           '--primary-color': primaryColor,
           '--primary-hover': primaryColorHover,
-        } as any
+        } as React.CSSProperties
       }
     >
       <GoogleOAuthProvider clientId={googleId}>
