@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { useMsal } from '@azure/msal-react';
-import { ArrowRightIcon, EnvelopeIcon, KeyIcon } from '@heroicons/react/20/solid';
+import { ArrowRightIcon, EnvelopeIcon, KeyIcon, LockClosedIcon } from '@heroicons/react/20/solid';
 import { LockOpenIcon } from '@heroicons/react/24/outline';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useGoogleLogin } from '@react-oauth/google';
@@ -35,6 +35,7 @@ const InputOTP = React.lazy(() => import('../components/InputOTP'));
 const BackButton = React.lazy(() => import('../components/BackButton'));
 
 const envelopIcon = () => <EnvelopeIcon className="size-4 text-gray-500" />;
+const lockClosedIcon = () => <LockClosedIcon className="size-4 text-gray-500" />;
 
 const HARDWARE = 1;
 const SOFTWARE = 2;
@@ -321,7 +322,6 @@ const Login = ({
     } catch (error) {
       if (error !== ABORT_CONDITIONAL_UI) {
         authAbortController?.abort();
-        console.error('error', error);
         setAuthAbortController(undefined);
         sendAuth('BACK');
       }
@@ -679,14 +679,31 @@ const Login = ({
     ],
   );
 
+  const otpError = useMemo(() => {
+    const authErrorLowerCase = authError?.toLowerCase();
+    let errorMessage = '';
+
+    if (authErrorLowerCase?.includes('wrong')) {
+      errorMessage = `${loginDictionary?.wrongCode}`;
+    } else if (authErrorLowerCase?.includes('expired')) {
+      errorMessage = `${loginDictionary?.codeExpired}`;
+    }
+
+    return errorMessage;
+  }, [authError]);
+
   const getAuthError = () => {
     let authErrorTitle = loginDictionary?.somethingWrong;
     let authErrorDescription = loginDictionary?.defaultError;
 
-    if (authError?.includes('Invalid credentials')) {
+    const authErrorLowerCase = authError?.toLowerCase();
+    if (authErrorLowerCase?.includes('invalid credentials')) {
       authErrorTitle = loginDictionary?.invalidEmailPassword;
       authErrorDescription = loginDictionary?.invalidEmailPasswordDescription;
-    } else if (authError?.includes('Passkey')) {
+    } else if (authErrorLowerCase?.includes('no passkey found')) {
+      authErrorTitle = loginDictionary?.noPasskey;
+      authErrorDescription = loginDictionary?.noPasskeyDescription;
+    } else if (authErrorLowerCase?.includes('passkey')) {
       authErrorTitle = loginDictionary?.passkeyNotSupported;
       authErrorDescription = loginDictionary?.passkeyNotSupportedDescription;
     }
@@ -853,7 +870,9 @@ const Login = ({
         <BackButton
           disabled={isLoading}
           onClick={() => sendAuth('BACK')}
-        />
+        >
+          {dictionary?.back}
+        </BackButton>
         {authError ? (
           <div className="my-4 flex flex-col items-center justify-center gap-2">
             <span className="font-poppins text-alr-red text-center text-xl font-bold">
@@ -863,7 +882,7 @@ const Login = ({
           </div>
         ) : undefined}
         <div
-          className="mt-2 flex w-full flex-col items-center"
+          className="mt-4 flex w-full flex-col items-center"
           data-testid="login-method-selection-step"
         >
           {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
@@ -880,14 +899,14 @@ const Login = ({
                 onClick={() => setLoginMethod('password')}
                 color="light"
                 className={`${
-                  loginMethod === 'password' ? '!border-alr-red' : '!border-gray-500'
-                } child:h-full w-full cursor-pointer items-start border focus:ring-0`}
+                  loginMethod === 'password' ? '!border-[--primary-color]' : '!border-gray-300'
+                } child:h-full !h-fit w-full cursor-pointer items-start rounded-lg border-2 p-4 duration-300 focus:ring-0`}
               >
                 <div className="flex flex-col items-start justify-center gap-2">
                   <LockOpenIcon
                     className={`${
-                      loginMethod === 'password' ? 'text-alr-red' : 'text-gray-500'
-                    } size-7`}
+                      loginMethod === 'password' ? 'text-[--primary-color]' : 'text-gray-500'
+                    } size-7 duration-300`}
                   />
                   <span className="font-semibold text-gray-900">{loginDictionary?.password}</span>
                   <span className="text-start text-xs font-normal text-gray-600">
@@ -900,14 +919,14 @@ const Login = ({
                 onClick={() => setLoginMethod('passkey')}
                 color="light"
                 className={`${
-                  loginMethod === 'passkey' ? '!border-alr-red' : '!border-gray-500'
-                } child:h-full w-full cursor-pointer items-start border focus:ring-0`}
+                  loginMethod === 'passkey' ? '!border-[--primary-color]' : '!border-gray-300'
+                } child:h-full !h-fit w-full cursor-pointer items-start rounded-lg border-2 p-4 duration-300 focus:ring-0`}
               >
                 <div className="flex flex-col items-start justify-center gap-2">
                   <KeyIcon
                     className={`${
-                      loginMethod === 'passkey' ? 'text-alr-red' : 'text-gray-500'
-                    } size-7`}
+                      loginMethod === 'passkey' ? 'text-[--primary-color]' : 'text-gray-500'
+                    } size-7 duration-300`}
                   />
                   <span className="font-semibold text-gray-900">{loginDictionary?.passkey}</span>
                   <span className="text-start text-xs font-normal text-gray-600">
@@ -919,7 +938,7 @@ const Login = ({
             <Button
               data-testid="login-method-selection-submit"
               onClick={() => selectLoginMethod()}
-              className="bg-alr-red text-alr-white mb-6 flex w-full cursor-pointer items-center"
+              className="mb-6 flex w-full"
             >
               {loginDictionary?.continue}
             </Button>
@@ -968,6 +987,7 @@ const Login = ({
             errors={passwordErrors}
             name="password"
             placeholder={loginDictionary?.enterPassword}
+            icon={lockClosedIcon}
             type="password"
             label={dictionary?.password}
             data-testid="login-password"
@@ -991,7 +1011,7 @@ const Login = ({
           <span className="text-sm font-medium">
             {loginDictionary?.dontHaveAccount}
             <div
-              className="text-alr-red cursor-pointer"
+              className="cursor-pointer text-[--primary-color]"
               onClick={() => {
                 sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
               }}
@@ -1007,20 +1027,23 @@ const Login = ({
 
   const VerifyEmail = useMemo(
     () => (
-      <div className="pb-10 pt-4">
+      <div data-testid="login-verify-email-step">
         <BackButton
+          className="mb-4"
           disabled={isLoading}
           onClick={() => sendAuth('BACK')}
-        />
+        >
+          {dictionary?.back}
+        </BackButton>
 
         <div
           className="flex w-full flex-col items-center"
           data-testid="login-verify-email-step"
         >
-          <span className="font-poppins text-alr-grey mb-10 mt-[4.5rem] text-[1.75rem] font-bold">
+          <span className="font-poppins text-alr-grey mb-4 mt-2 text-[1.75rem] font-bold">
             {loginDictionary?.verifyEmail}
           </span>
-          <span className="text-alr-grey mb-12 w-[23.75rem] text-center font-medium">
+          <span className="mb-6 text-center font-medium text-gray-600">
             {loginDictionary?.verifyEmailDescription}
           </span>
 
@@ -1031,7 +1054,7 @@ const Login = ({
               onChange={(value) => setSecure2FACode(value)}
               inputLength={6}
               data-testid="secure-code"
-              errorMessage={authError?.includes('wrong') ? loginDictionary?.wrongCode : undefined}
+              errorMessage={otpError}
               disabled={isLoading}
             />
           </div>
@@ -1047,10 +1070,10 @@ const Login = ({
           <span
             onClick={() => resendSecureCode()}
             className={twMerge(
-              `text-base font-medium duration-300`,
+              `text-base font-medium text-gray-700 duration-300`,
               sendEmailCooldown > 0
                 ? 'pointer-events-none opacity-50'
-                : 'hover:text-alr-red cursor-pointer opacity-100',
+                : 'cursor-pointer opacity-100 hover:text-[--primary-hover]',
             )}
           >
             {`${loginDictionary?.resendCode}${sendEmailCooldown ? ` (${sendEmailCooldown}s)` : ''}`}
@@ -1315,6 +1338,7 @@ const Login = ({
                 <Button
                   data-testid="logout-button"
                   onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
+                  className="w-full"
                 >
                   LOGOUT
                 </Button>

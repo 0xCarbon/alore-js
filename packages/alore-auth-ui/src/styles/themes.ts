@@ -20,7 +20,7 @@ export const buttonTheme: ButtonTheme = {
   color: {
     ...flowbiteButtonTheme.color,
     default:
-      'bg-[var(--primary-color)] hover:bg-[var(--primary-hover)] group relative flex items-center justify-center border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600',
+      'bg-[var(--primary-color)] hover:bg-[var(--primary-hover)] group relative flex items-center justify-center border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-0',
   },
 };
 
@@ -39,7 +39,7 @@ export const textInputTheme: TextInputTheme = {
       svg: 'h-5 w-5 text-gray-500 dark:text-gray-400',
     },
     input: {
-      base: 'block w-full bg-gray-100 !px-11 !rounded-full border-0 disabled:cursor-not-allowed disabled:opacity-50',
+      base: 'block w-full bg-gray-100 !pl-11 !pr-4 !rounded-full border-0 disabled:cursor-not-allowed disabled:opacity-50',
       sizes: {
         sm: 'p-2 sm:text-xs',
         md: 'p-2.5 text-sm',

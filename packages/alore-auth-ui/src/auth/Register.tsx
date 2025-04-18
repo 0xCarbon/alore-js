@@ -62,6 +62,7 @@ const Register = ({
   const { hashUserInfo, generateSecureHash } = cryptoUtils;
   const dictionary = useDictionary(locale);
   const registerDictionary = dictionary?.auth.register;
+
   const [secureCode, setSecureCode] = useState('');
   const [sendEmailCooldown, setSendEmailCooldown] = useState(0);
   const [cooldownMultiplier, setCooldownMultiplier] = useState(1);
@@ -79,12 +80,26 @@ const Register = ({
     socialProviderRegisterUser,
   } = authState.context;
 
-  const { requireUsername, requireEmailVerification, enablePasskeys } = authProviderConfigs || {};
+  const { requireUsername, requireEmailVerification, enablePasskeys, enableWalletCreation } =
+    authProviderConfigs || {};
 
   const [userSalt, setUserSalt] = useState('');
   const [registrationMethod, setRegistrationMethod] = useState('password');
 
-  const login = useGoogleLogin({
+  const otpError = useMemo(() => {
+    const authErrorLowerCase = authError?.toLowerCase();
+    let errorMessage = '';
+
+    if (authErrorLowerCase?.includes('wrong')) {
+      errorMessage = `${registerDictionary?.wrongCode}`;
+    } else if (authErrorLowerCase?.includes('expired')) {
+      errorMessage = `${registerDictionary?.codeExpired}`;
+    }
+
+    return errorMessage;
+  }, [authError]);
+
+  const handleGoogleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => {
       resetUserInfo();
       sendAuth({
@@ -96,8 +111,6 @@ const Register = ({
       });
     },
   });
-
-  const handleLogin = () => login();
 
   const selectRegisterMethod = () => {
     if (registrationMethod === 'password') {
@@ -132,20 +145,23 @@ const Register = ({
     const nickname = registerUser ? registerUser.nickname : userInfoGetValues('nickname');
     const device = hashUserInfo(window.navigator.userAgent);
 
-    // TODO: verify this when user needs web3 module at this library
-    // const extensions: {
-    //   prf?: { eval: { first: Uint8Array } };
-    //   largeBlob?: { support: string };
-    // } = {
-    //   prf: {
-    //     eval: {
-    //       first: new TextEncoder().encode('Alore'),
-    //     },
-    //   },
-    //   largeBlob: {
-    //     support: 'preferred',
-    //   },
-    // };
+    let extensions: {
+      prf?: { eval: { first: Uint8Array } };
+      largeBlob?: { support: string };
+    } | null = null;
+
+    if (enableWalletCreation) {
+      extensions = {
+        prf: {
+          eval: {
+            first: new TextEncoder().encode('Alore'),
+          },
+        },
+        largeBlob: {
+          support: 'preferred',
+        },
+      };
+    }
 
     // eslint-disable-next-line no-undef
     const credentialCreationOptions: CredentialCreationOptions = {
@@ -175,6 +191,8 @@ const Register = ({
             alg: -257,
           },
         ],
+        // @ts-ignore
+        extensions,
       },
     };
 
@@ -196,46 +214,47 @@ const Register = ({
       const registerCredential = _registerCredential as PublicKeyCredential;
 
       // TODO: verify this when user needs web3 module at this library
-      // // eslint-disable-next-line no-undef
-      // const extensionResults = registerCredential.getClientExtensionResults();
-      // // @ts-ignore
-      // const prfSupported = !!extensionResults?.prf?.enabled;
-      // // @ts-ignore
-      // const largeBlobSupported = !!extensionResults?.largeBlob?.supported;
+      // eslint-disable-next-line no-undef
+      const extensionResults = registerCredential.getClientExtensionResults();
+      // @ts-ignore
+      const prfSupported = !!extensionResults?.prf?.enabled;
+      // @ts-ignore
+      const largeBlobSupported = !!extensionResults?.largeBlob?.supported;
 
-      // if (!prfSupported && !largeBlobSupported) {
-      //   sendAuth({
-      //     type: 'PASSKEY_NOT_SUPPORTED',
-      //     payload: { error: registerDictionary?.passkeyNotSupported! },
-      //   });
-      // } else {
-
-      sendAuth([
-        {
-          type: 'FINISH_PASSKEY_REGISTER',
-          payload: {
-            passkeyRegistration: {
-              id: registerCredential.id,
-              rawId: Buffer.from(registerCredential.rawId).toString('base64'),
-              response: {
-                attestationObject: Buffer.from(
-                  // eslint-disable-next-line no-undef
-                  (registerCredential.response as AuthenticatorAttestationResponse)
-                    .attestationObject,
-                ).toString('base64'),
-                clientDataJSON: Buffer.from(
-                  // eslint-disable-next-line no-undef
-                  (registerCredential.response as AuthenticatorAttestationResponse).clientDataJSON,
-                ).toString('base64'),
+      if (enableWalletCreation && !prfSupported && !largeBlobSupported) {
+        sendAuth({
+          type: 'PASSKEY_NOT_SUPPORTED',
+          payload: { error: registerDictionary?.passkeyNotSupported! },
+        });
+      } else {
+        sendAuth([
+          {
+            type: 'FINISH_PASSKEY_REGISTER',
+            payload: {
+              passkeyRegistration: {
+                id: registerCredential.id,
+                rawId: Buffer.from(registerCredential.rawId).toString('base64'),
+                response: {
+                  attestationObject: Buffer.from(
+                    // eslint-disable-next-line no-undef
+                    (registerCredential.response as AuthenticatorAttestationResponse)
+                      .attestationObject,
+                  ).toString('base64'),
+                  clientDataJSON: Buffer.from(
+                    // eslint-disable-next-line no-undef
+                    (registerCredential.response as AuthenticatorAttestationResponse)
+                      .clientDataJSON,
+                  ).toString('base64'),
+                },
+                type: 'public-key',
               },
-              type: 'public-key',
+              email,
+              device,
+              nickname,
             },
-            email,
-            device,
-            nickname,
           },
-        },
-      ]);
+        ]);
+      }
     } catch (_err) {
       sendAuth({
         type: 'PASSKEY_NOT_SUPPORTED',
@@ -670,7 +689,7 @@ const Register = ({
         <form
           onSubmit={userInfoHandleSubmit((data) => onSubmitUserData(data))}
           className="mb-1 mt-4 flex flex-col gap-y-5"
-          data-testid="register-new-account-step"
+          data-testid="register-user-info-form"
         >
           <InputForm
             control={userInfoControl}
@@ -682,7 +701,7 @@ const Register = ({
                 ? `${registerDictionary?.emailInvitePlaceholder}`
                 : `${registerDictionary?.emailLabel}`
             }
-            data-testid="register-email"
+            data-testid="register-email-input"
             icon={envelopIcon}
             autoFocus
             disabled={isLoading || !!inviteToken}
@@ -696,7 +715,7 @@ const Register = ({
               type="text"
               icon={userIcon}
               placeholder={registerDictionary?.nicknameLabel}
-              data-testid="register-first-name"
+              data-testid="register-nickname-input"
               disabled={isLoading}
             />
           )}
@@ -727,7 +746,7 @@ const Register = ({
           />
 
           <Button
-            data-testid="register-button"
+            data-testid="register-user-info-submit"
             type="submit"
             disabled={isUserInfoSubmitDisabled || isLoading}
           >
@@ -751,7 +770,7 @@ const Register = ({
             <div className="h-[0.5px] w-full bg-gray-300" />
             <Button
               color="light"
-              onClick={handleLogin}
+              onClick={() => handleGoogleLogin()}
               outline
             >
               <div className="flex flex-row items-center justify-center gap-2">
@@ -851,9 +870,7 @@ const Register = ({
               onChange={(value) => setSecureCode(value)}
               inputLength={6}
               data-testid="secure-code-input"
-              errorMessage={
-                authError?.includes('wrong') ? `${registerDictionary?.wrongCode}` : undefined
-              }
+              errorMessage={otpError}
               disabled={isLoading}
             />
           </div>
@@ -872,7 +889,7 @@ const Register = ({
               `text-base font-medium duration-300`,
               sendEmailCooldown > 0
                 ? 'pointer-events-none opacity-50'
-                : 'hover:text-alr-red cursor-pointer opacity-100',
+                : 'cursor-pointer opacity-100 hover:text-[--primary-hover]',
             )}
           >
             {`${registerDictionary?.resendCode}${
@@ -918,14 +935,16 @@ const Register = ({
                 onClick={() => setRegistrationMethod('password')}
                 color="light"
                 className={`${
-                  registrationMethod === 'password' ? '!border-alr-red' : '!border-gray-500'
-                } child:h-full w-full cursor-pointer items-start border focus:ring-0`}
+                  registrationMethod === 'password'
+                    ? '!border-[--primary-color]'
+                    : '!border-gray-300'
+                } child:h-full !h-fit w-full cursor-pointer items-start rounded-lg border-2 p-4 duration-300 focus:ring-0`}
               >
                 <div className="flex flex-col items-start justify-center gap-2">
                   <LockOpenIcon
                     className={`${
-                      registrationMethod === 'password' ? 'text-alr-red' : 'text-gray-500'
-                    } size-7`}
+                      registrationMethod === 'password' ? 'text-[--primary-color]' : 'text-gray-500'
+                    } size-7 duration-300`}
                   />
                   <span className="font-semibold text-gray-900">
                     {registerDictionary?.password}
@@ -939,16 +958,17 @@ const Register = ({
                 disabled={typeof window.PublicKeyCredential === 'undefined'}
                 data-testid="register-method-selection-passkey"
                 onClick={() => setRegistrationMethod('passkey')}
-                color="light"
                 className={`${
-                  registrationMethod === 'passkey' ? '!border-alr-red' : '!border-gray-500'
-                } child:h-full w-full cursor-pointer items-start border focus:ring-0`}
+                  registrationMethod === 'passkey'
+                    ? '!border-[--primary-color]'
+                    : '!border-gray-300'
+                } child:h-full !h-fit w-full cursor-pointer items-start rounded-lg border-2 p-4 duration-300 focus:ring-0`}
               >
                 <div className="flex flex-col items-start justify-center gap-2">
                   <KeyIcon
                     className={`${
-                      registrationMethod === 'passkey' ? 'text-alr-red' : 'text-gray-500'
-                    } size-7`}
+                      registrationMethod === 'passkey' ? 'text-[--primary-color]' : 'text-gray-500'
+                    } size-7 duration-300`}
                   />
                   <span className="font-semibold text-gray-900">{registerDictionary?.passkey}</span>
                   <span className="text-start text-xs font-normal text-gray-600">
@@ -960,7 +980,7 @@ const Register = ({
             <Button
               data-testid="register-method-selection-submit"
               onClick={() => selectRegisterMethod()}
-              className="bg-alr-red text-alr-white mb-6 flex w-full cursor-pointer items-center"
+              // className="mb-6 w-full"
             >
               {registerDictionary?.continue}
             </Button>
@@ -1121,7 +1141,7 @@ const Register = ({
               PasskeyCreatedButNotAuthenticated}
             {authState.matches('active.register.userCreated') && (
               <div
-                data-testid="register-user-created-step"
+                data-testid="registration-complete"
                 className="flex flex-col items-center justify-center gap-4"
               >
                 <div className="flex flex-row items-center justify-center gap-2">

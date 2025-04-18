@@ -20,8 +20,8 @@ export interface AuthProps {
   forgeId?: string;
   styles?: {
     primaryColor: string;
+    logoImage?: React.ReactNode;
   };
-  logoImage?: React.ReactNode;
   inviteToken?: string;
   keyshareWorker?: Worker | null;
   onSuccess?: (_sessionUser: SessionUser) => void;
@@ -32,7 +32,6 @@ const Auth = ({
   googleId,
   forgeId,
   styles,
-  logoImage,
   inviteToken,
   keyshareWorker,
   onSuccess,
@@ -137,7 +136,7 @@ const Auth = ({
                   forgeId={forgeId}
                   cryptoUtils={cryptoUtils}
                   keyshareWorker={keyshareWorker}
-                  logoImage={logoImage}
+                  logoImage={styles?.logoImage}
                 />
               )}
               {authState.matches('active.register') && (
@@ -148,7 +147,7 @@ const Auth = ({
                   inviteToken={inviteToken}
                   cryptoUtils={cryptoUtils}
                   keyshareWorker={keyshareWorker}
-                  logoImage={logoImage}
+                  logoImage={styles?.logoImage}
                 />
               )}
             </Suspense>

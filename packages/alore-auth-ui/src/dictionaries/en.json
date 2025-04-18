@@ -60,6 +60,7 @@
       "verifyEmail": "Verify your e-mail",
       "verifyEmailDescription": "Please, inform the code we sent to your e-mail. Don’t forget to check your spam box.",
       "wrongCode": "You’ve sent the wrong code. Try again.",
+      "codeExpired": "Code expired",
       "confirmCode": "Confirm Code",
       "resendCode": "Re-send code to your e-mail",
       "inform2FACode": "Please, inform your code located at your authenticator app.",
@@ -77,7 +78,9 @@
       "selectMethodPassword": "Login using a password",
       "selectMethodPasskey": "Login using a passkey",
       "passkeyNotSupported": "Passkey not supported",
-      "passkeyNotSupportedDescription": "Selected passkey is not supported in your browser."
+      "passkeyNotSupportedDescription": "Selected passkey is not supported in your browser.",
+      "noPasskey": "No passkey found",
+      "noPasskeyDescription": "No passkey found for your account."
     },
     "register": {
       "password": "Password",
@@ -104,6 +107,7 @@
       "verifyEmail": "Verify your e-mail",
       "informCode": "Please, inform the code we sent to your e-mail. Don’t forget to check your spam box.",
       "wrongCode": "You’ve sent the wrong code. Try again.",
+      "codeExpired": "Code expired",
       "confirmCode": "Confirm Code",
       "resendCode": "Re-send code to your e-mail",
       "createPassword": "Create a safe password",

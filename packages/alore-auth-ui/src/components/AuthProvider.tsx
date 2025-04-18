@@ -1,8 +1,8 @@
 'use client';
 
 import { AloreAuth } from '@alore/auth-react-sdk';
+import { AuthProviderConfig } from '@alore/auth-react-sdk/dist/types';
 import React, { createContext, useEffect, useMemo, useState } from 'react';
-import { AuthProviderConfig } from 'types';
 
 import { authService } from '../machine';
 

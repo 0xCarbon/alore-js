@@ -60,6 +60,7 @@
       "verifyEmail": "Verifique seu e-mail",
       "verifyEmailDescription": "Por favor, informe o código que enviamos para seu e-mail. ",
       "wrongCode": "Você digitou o código errado.",
+      "codeExpired": "Código expirado",
       "confirmCode": "Confirmar código",
       "resendCode": "Reenviar código para seu e-mail",
       "inform2FACode": "Por favor, informe seu código localizado em seu aplicativo autenticador.",
@@ -77,7 +78,9 @@
       "selectMethodPassword": "Entre usando uma senha",
       "selectMethodPasskey": "Entre usando uma passkey",
       "passkeyNotSupported": "Passkey não suportada",
-      "passkeyNotSupportedDescription": "A Passkey selecionada não é suportada no seu navegador."
+      "passkeyNotSupportedDescription": "A Passkey selecionada não é suportada no seu navegador.",
+      "noPasskey": "Nenhuma passkey encontrada",
+      "noPasskeyDescription": "Nenhuma passkey encontrada para sua conta."
     },
     "register": {
       "password": "Senha",
@@ -104,6 +107,7 @@
       "verifyEmail": "Verifique seu e-mail",
       "informCode": "Por favor, informe o código que enviamos para seu e-mail. ",
       "wrongCode": "Você digitou o código errado.",
+      "codeExpired": "Código expirado",
       "confirmCode": "Confirmar código",
       "resendCode": "Reenviar código para seu e-mail",
       "createPassword": "Crie uma senha segura",
