@@ -171,7 +171,7 @@ const Register = ({
         challenge: base64UrlToArrayBuffer(publicKey.challenge),
         user: {
           // @ts-ignore
-          id: new Uint8Array(32),
+          id: crypto.getRandomValues(new Uint8Array(32)),
           name: email,
           displayName: nickname || email || '',
         },
@@ -299,7 +299,7 @@ const Register = ({
         publicKey: {
           ...publicKey,
           // @ts-ignore
-          challenge: Buffer.from(publicKey.challenge, 'base64'),
+          challenge: base64UrlToArrayBuffer(publicKey.challenge),
           allowCredentials: allowCredentialsList, // Use the prepared list
           timeout: 120000,
           extensions: {
