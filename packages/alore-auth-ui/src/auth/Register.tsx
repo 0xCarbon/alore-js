@@ -1,7 +1,7 @@
 'use client';
 
 /* eslint-disable @next/next/no-img-element */
-import { ArrowRightIcon, EnvelopeIcon } from '@heroicons/react/20/solid';
+import { ArrowRightIcon, EnvelopeIcon, UserCircleIcon } from '@heroicons/react/20/solid';
 import { KeyIcon, LockOpenIcon } from '@heroicons/react/24/outline';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useGoogleLogin } from '@react-oauth/google';
@@ -16,7 +16,7 @@ import { twMerge } from 'tailwind-merge';
 import * as yup from 'yup';
 
 import { passwordRules, ruleValidation } from '../components/FormRules/helpers';
-import { verifyEmptyValues } from '../helpers';
+import { base64UrlToArrayBuffer, verifyEmptyValues } from '../helpers';
 import useDictionary from '../hooks/useDictionary';
 import { AuthInstance } from '../machine/types';
 import { aloreLogoBlack, google, metamaskLogo, walletConnectLogo } from '../utils';
@@ -30,7 +30,8 @@ const CheckboxForm = React.lazy(() => import('../components/CheckboxForm'));
 const TermsModal = React.lazy(() => import('../components/TermsModal'));
 const FormRules = React.lazy(() => import('../components/FormRules'));
 
-const envelopIcon = () => <EnvelopeIcon className="size-4 text-gray-500" />;
+const envelopIcon = () => <EnvelopeIcon className="size-5 text-gray-500" />;
+const userIcon = () => <UserCircleIcon className="size-5 text-gray-500" />;
 
 export interface RegisterProps {
   locale?: Locale;
@@ -49,7 +50,7 @@ export interface RegisterProps {
   };
 }
 
-export const Register = ({
+const Register = ({
   locale = 'pt',
   authServiceInstance,
   forgeId,
@@ -61,6 +62,7 @@ export const Register = ({
   const { hashUserInfo, generateSecureHash } = cryptoUtils;
   const dictionary = useDictionary(locale);
   const registerDictionary = dictionary?.auth.register;
+
   const [secureCode, setSecureCode] = useState('');
   const [sendEmailCooldown, setSendEmailCooldown] = useState(0);
   const [cooldownMultiplier, setCooldownMultiplier] = useState(1);
@@ -78,12 +80,26 @@ export const Register = ({
     socialProviderRegisterUser,
   } = authState.context;
 
-  const { requireUsername, requireEmailVerification, enablePasskeys } = authProviderConfigs || {};
+  const { requireUsername, requireEmailVerification, enablePasskeys, enableWalletCreation } =
+    authProviderConfigs || {};
 
   const [userSalt, setUserSalt] = useState('');
   const [registrationMethod, setRegistrationMethod] = useState('password');
 
-  const login = useGoogleLogin({
+  const otpError = useMemo(() => {
+    const authErrorLowerCase = authError?.toLowerCase();
+    let errorMessage = '';
+
+    if (authErrorLowerCase?.includes('wrong')) {
+      errorMessage = `${registerDictionary?.wrongCode}`;
+    } else if (authErrorLowerCase?.includes('expired')) {
+      errorMessage = `${registerDictionary?.codeExpired}`;
+    }
+
+    return errorMessage;
+  }, [authError]);
+
+  const handleGoogleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => {
       resetUserInfo();
       sendAuth({
@@ -95,8 +111,6 @@ export const Register = ({
       });
     },
   });
-
-  const handleLogin = () => login();
 
   const selectRegisterMethod = () => {
     if (registrationMethod === 'password') {
@@ -127,42 +141,43 @@ export const Register = ({
       return;
     }
 
-    // TODO: Validate prf on ios/macos when 18.0 drops
-
     const email = registerUser ? registerUser.email : userInfoGetValues('email');
     const nickname = registerUser ? registerUser.nickname : userInfoGetValues('nickname');
     const device = hashUserInfo(window.navigator.userAgent);
 
-    const extensions: {
+    let extensions: {
       prf?: { eval: { first: Uint8Array } };
       largeBlob?: { support: string };
-    } = {
-      prf: {
-        eval: {
-          first: new TextEncoder().encode('Alore'),
+    } | null = null;
+
+    if (enableWalletCreation) {
+      extensions = {
+        prf: {
+          eval: {
+            first: new TextEncoder().encode('Alore'),
+          },
         },
-      },
-      largeBlob: {
-        support: 'preferred',
-      },
-    };
+        largeBlob: {
+          support: 'preferred',
+        },
+      };
+    }
 
     // eslint-disable-next-line no-undef
     const credentialCreationOptions: CredentialCreationOptions = {
       publicKey: {
         ...publicKey,
         // @ts-ignore
-        challenge: Buffer.from(publicKey.challenge, 'base64'),
-
+        challenge: base64UrlToArrayBuffer(publicKey.challenge),
         user: {
           // @ts-ignore
-          id: Buffer.from(publicKey.user.id, 'base64'),
+          id: crypto.getRandomValues(new Uint8Array(32)),
           name: email,
-          displayName: email,
+          displayName: nickname || email || '',
         },
         authenticatorSelection: {
-          requireResidentKey: false,
-          residentKey: 'discouraged',
+          authenticatorAttachment: 'cross-platform',
+          residentKey: 'required',
           userVerification: 'required',
         },
         timeout: 120000,
@@ -173,35 +188,7 @@ export const Register = ({
           },
           {
             type: 'public-key',
-            alg: -8,
-          },
-          {
-            type: 'public-key',
-            alg: -36,
-          },
-          {
-            type: 'public-key',
-            alg: -37,
-          },
-          {
-            type: 'public-key',
-            alg: -38,
-          },
-          {
-            type: 'public-key',
-            alg: -39,
-          },
-          {
-            type: 'public-key',
             alg: -257,
-          },
-          {
-            type: 'public-key',
-            alg: -258,
-          },
-          {
-            type: 'public-key',
-            alg: -259,
           },
         ],
         // @ts-ignore
@@ -224,15 +211,17 @@ export const Register = ({
         return;
       }
 
-      // eslint-disable-next-line no-undef
       const registerCredential = _registerCredential as PublicKeyCredential;
+
+      // TODO: verify this when user needs web3 module at this library
+      // eslint-disable-next-line no-undef
       const extensionResults = registerCredential.getClientExtensionResults();
       // @ts-ignore
       const prfSupported = !!extensionResults?.prf?.enabled;
       // @ts-ignore
       const largeBlobSupported = !!extensionResults?.largeBlob?.supported;
 
-      if (!prfSupported && !largeBlobSupported) {
+      if (enableWalletCreation && !prfSupported && !largeBlobSupported) {
         sendAuth({
           type: 'PASSKEY_NOT_SUPPORTED',
           payload: { error: registerDictionary?.passkeyNotSupported! },
@@ -310,7 +299,7 @@ export const Register = ({
         publicKey: {
           ...publicKey,
           // @ts-ignore
-          challenge: Buffer.from(publicKey.challenge, 'base64'),
+          challenge: base64UrlToArrayBuffer(publicKey.challenge),
           allowCredentials: allowCredentialsList, // Use the prepared list
           timeout: 120000,
           extensions: {
@@ -395,7 +384,7 @@ export const Register = ({
         });
       }
     } catch (_err) {
-      sendAuth('BACK_TO_IDLE');
+      sendAuth('USER_CREATE_ACCOUNT_BUT_NOT_LOGIN');
     }
   };
 
@@ -465,7 +454,7 @@ export const Register = ({
 
   const userInfoDefaultValues: FieldValues = {
     email: '',
-    nickname: null,
+    nickname: '',
     agreedWithTerms: false,
   };
   const {
@@ -479,6 +468,7 @@ export const Register = ({
     resolver: yupResolver(userInfoFormSchema),
     defaultValues: userInfoDefaultValues,
   });
+  useWatch({ control: userInfoControl, name: 'agreedWithTerms' });
 
   const passwordDefaultValues: FieldValues = {
     password: '',
@@ -687,7 +677,7 @@ export const Register = ({
             </div>
           </div>
         ) : (
-          <h1 className="font-inter mb-3 text-center font-semibold text-gray-600 md:text-lg">
+          <h1 className="font-inter text-center text-xl font-bold text-gray-700">
             {forgeId ? registerDictionary?.forgeTitle : registerDictionary?.title}
           </h1>
         )}
@@ -698,8 +688,8 @@ export const Register = ({
         )}
         <form
           onSubmit={userInfoHandleSubmit((data) => onSubmitUserData(data))}
-          className="mb-1 flex flex-col gap-y-5"
-          data-testid="register-new-account-step"
+          className="mb-1 mt-4 flex flex-col gap-y-5"
+          data-testid="register-user-info-form"
         >
           <InputForm
             control={userInfoControl}
@@ -711,7 +701,7 @@ export const Register = ({
                 ? `${registerDictionary?.emailInvitePlaceholder}`
                 : `${registerDictionary?.emailLabel}`
             }
-            data-testid="register-email"
+            data-testid="register-email-input"
             icon={envelopIcon}
             autoFocus
             disabled={isLoading || !!inviteToken}
@@ -723,8 +713,9 @@ export const Register = ({
               errors={userInfoErrors}
               name="nickname"
               type="text"
+              icon={userIcon}
               placeholder={registerDictionary?.nicknameLabel}
-              data-testid="register-first-name"
+              data-testid="register-nickname-input"
               disabled={isLoading}
             />
           )}
@@ -734,44 +725,52 @@ export const Register = ({
             name="agreedWithTerms"
             data-testid="register-agreed-with-terms-checkbox"
             label={
-              <span className="text-xs font-light text-gray-400 md:text-sm md:font-normal">
-                {registerDictionary?.agreeTermsPart1}
+              <div
+                onClick={() =>
+                  userInfoSetValue('agreedWithTerms', !userInfoGetValues('agreedWithTerms'))
+                }
+                className="flex flex-row items-center justify-center gap-1"
+              >
+                <span className="text-xs font-light text-gray-400 md:text-sm md:font-normal">
+                  {registerDictionary?.agreeTermsPart1}
+                </span>
                 <span
                   onClick={() => sendAuth('SHOW_TERMS_MODAL')}
-                  className="text-alr-red cursor-pointer underline"
+                  className="cursor-pointer text-[var(--primary-color)] underline hover:text-[var(--primary-hover)]"
                   data-testid="terms-of-service"
                 >
                   {registerDictionary?.agreeTermsPart2}
                 </span>
-              </span>
+              </div>
             }
           />
 
           <Button
-            data-testid="register-button"
+            data-testid="register-user-info-submit"
             type="submit"
             disabled={isUserInfoSubmitDisabled || isLoading}
-            className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
           >
             {isLoading && <Spinner className="mr-2 !h-5 w-6 !fill-gray-300" />}
             {registerDictionary?.buttonStart}
           </Button>
         </form>
         <div
-          className="mt-4 flex w-full cursor-pointer flex-row items-center justify-center gap-1.5 text-sm text-gray-500"
+          className="group mt-4 flex w-full cursor-pointer flex-row items-center justify-center gap-1.5 text-sm text-gray-500"
           onClick={() => {
             sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'LOGIN']);
           }}
         >
-          <span className="font-inter font-semibold">{registerDictionary?.alreadyHaveAccount}</span>
-          <ArrowRightIcon className="size-4" />
+          <span className="font-inter font-semibold duration-300 group-hover:text-[var(--primary-hover)]">
+            {registerDictionary?.alreadyHaveAccount}
+          </span>
+          <ArrowRightIcon className="size-4 duration-300 group-hover:text-[var(--primary-hover)]" />
         </div>
         {forgeId && (
           <>
             <div className="h-[0.5px] w-full bg-gray-300" />
             <Button
               color="light"
-              onClick={handleLogin}
+              onClick={() => handleGoogleLogin()}
               outline
             >
               <div className="flex flex-row items-center justify-center gap-2">
@@ -819,6 +818,29 @@ export const Register = ({
     ],
   );
 
+  const PasskeyCreatedButNotAuthenticated = useMemo(
+    () => (
+      <div
+        data-testid="passkey-created-but-not-authenticated-step"
+        className="flex flex-col items-center justify-center"
+      >
+        <h1 className="font-inter mb-3 text-center text-xl font-semibold text-gray-900">
+          {registerDictionary?.passkeyCreatedButNotAuthenticated}
+        </h1>
+        <p className="text-alr-grey mb-6 w-full text-center text-gray-600">
+          {registerDictionary?.passkeyCreatedButNotAuthenticatedDescription}
+        </p>
+        <Button
+          className="flex w-full items-center justify-center"
+          onClick={() => sendAuth('BACK_TO_IDLE')}
+        >
+          {registerDictionary?.backToLogin}
+        </Button>
+      </div>
+    ),
+    [],
+  );
+
   const VerifyEmail = useMemo(
     () => (
       <div data-testid="register-verify-email-step">
@@ -848,16 +870,14 @@ export const Register = ({
               onChange={(value) => setSecureCode(value)}
               inputLength={6}
               data-testid="secure-code-input"
-              errorMessage={
-                authError?.includes('wrong') ? `${registerDictionary?.wrongCode}` : undefined
-              }
+              errorMessage={otpError}
               disabled={isLoading}
             />
           </div>
           <Button
             data-testid="secure-code-submit-button"
             onClick={() => onClickSecureCodeSubmit()}
-            className="bg-alr-red hover:bg-alr-dark-red group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
+            className="mb-6 flex w-full items-center justify-center"
             disabled={secureCode.length !== 6 || isLoading}
           >
             {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
@@ -869,7 +889,7 @@ export const Register = ({
               `text-base font-medium duration-300`,
               sendEmailCooldown > 0
                 ? 'pointer-events-none opacity-50'
-                : 'hover:text-alr-red cursor-pointer opacity-100',
+                : 'cursor-pointer opacity-100 hover:text-[--primary-hover]',
             )}
           >
             {`${registerDictionary?.resendCode}${
@@ -915,14 +935,16 @@ export const Register = ({
                 onClick={() => setRegistrationMethod('password')}
                 color="light"
                 className={`${
-                  registrationMethod === 'password' ? '!border-alr-red' : '!border-gray-500'
-                } child:h-full w-full cursor-pointer items-start border focus:ring-0`}
+                  registrationMethod === 'password'
+                    ? '!border-[--primary-color]'
+                    : '!border-gray-300'
+                } child:h-full !h-fit w-full cursor-pointer items-start rounded-lg border-2 p-4 duration-300 focus:ring-0`}
               >
                 <div className="flex flex-col items-start justify-center gap-2">
                   <LockOpenIcon
                     className={`${
-                      registrationMethod === 'password' ? 'text-alr-red' : 'text-gray-500'
-                    } size-7`}
+                      registrationMethod === 'password' ? 'text-[--primary-color]' : 'text-gray-500'
+                    } size-7 duration-300`}
                   />
                   <span className="font-semibold text-gray-900">
                     {registerDictionary?.password}
@@ -936,16 +958,17 @@ export const Register = ({
                 disabled={typeof window.PublicKeyCredential === 'undefined'}
                 data-testid="register-method-selection-passkey"
                 onClick={() => setRegistrationMethod('passkey')}
-                color="light"
                 className={`${
-                  registrationMethod === 'passkey' ? '!border-alr-red' : '!border-gray-500'
-                } child:h-full w-full cursor-pointer items-start border focus:ring-0`}
+                  registrationMethod === 'passkey'
+                    ? '!border-[--primary-color]'
+                    : '!border-gray-300'
+                } child:h-full !h-fit w-full cursor-pointer items-start rounded-lg border-2 p-4 duration-300 focus:ring-0`}
               >
                 <div className="flex flex-col items-start justify-center gap-2">
                   <KeyIcon
                     className={`${
-                      registrationMethod === 'passkey' ? 'text-alr-red' : 'text-gray-500'
-                    } size-7`}
+                      registrationMethod === 'passkey' ? 'text-[--primary-color]' : 'text-gray-500'
+                    } size-7 duration-300`}
                   />
                   <span className="font-semibold text-gray-900">{registerDictionary?.passkey}</span>
                   <span className="text-start text-xs font-normal text-gray-600">
@@ -957,7 +980,7 @@ export const Register = ({
             <Button
               data-testid="register-method-selection-submit"
               onClick={() => selectRegisterMethod()}
-              className="bg-alr-red text-alr-white mb-6 flex w-full cursor-pointer items-center"
+              // className="mb-6 w-full"
             >
               {registerDictionary?.continue}
             </Button>
@@ -1023,7 +1046,6 @@ export const Register = ({
             <Button
               data-testid="password-submit-button"
               type="submit"
-              className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
               disabled={isPasswordSubmitDisabled || isLoading}
             >
               {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
@@ -1086,13 +1108,13 @@ export const Register = ({
       )}
       <Card
         className={twMerge(
-          `md:child:!px-9 mx-5 flex min-w-[20rem] py-2 md:mx-7 md:w-96`,
+          `md:child:!px-9 mx-5 flex min-w-[20rem] !rounded-2xl border-gray-200 px-2 py-4 md:mx-7 md:w-96`,
           isLoading ? 'pointer-events-none opacity-50' : '',
         )}
         data-testid="register-card"
       >
         {isLoading ? (
-          <Spinner className="my-20 !h-14 w-full !fill-red-300" />
+          <Spinner className="my-20 !h-14 w-full !fill-[var(--primary-color)]" />
         ) : (
           <>
             {forgeId && authState.matches('active.web3Connector') && 'TODO'}
@@ -1115,9 +1137,11 @@ export const Register = ({
             {(authState.matches('active.register.createPassword') ||
               authState.matches('active.register.completingRegistration')) &&
               Password}
+            {authState.matches('active.register.passkeyCreatedButNotAuthenticated') &&
+              PasskeyCreatedButNotAuthenticated}
             {authState.matches('active.register.userCreated') && (
               <div
-                data-testid="register-user-created-step"
+                data-testid="registration-complete"
                 className="flex flex-col items-center justify-center gap-4"
               >
                 <div className="flex flex-row items-center justify-center gap-2">
@@ -1126,8 +1150,7 @@ export const Register = ({
                 </div>
                 <Button
                   data-testid="logout-button"
-                  className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
-                  onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
+                  onClick={() => sendAuth([{ type: 'RESET_CONTEXT' }, { type: 'INITIALIZE' }])}
                 >
                   LOGOUT
                 </Button>
@@ -1139,3 +1162,5 @@ export const Register = ({
     </div>
   );
 };
+
+export default Register;

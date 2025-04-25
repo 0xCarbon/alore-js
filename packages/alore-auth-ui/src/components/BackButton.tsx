@@ -16,7 +16,7 @@ const BackButton = ({ onClick, disabled = false, children, className = '', ...pr
     {...props}
     onClick={!disabled ? onClick : undefined}
     className={twMerge(
-      `text-alr-red flex w-fit cursor-pointer items-center gap-x-1 text-base`,
+      `flex w-fit cursor-pointer items-center gap-x-1 text-base text-[var(--primary-color)]`,
       disabled ? 'cursor-not-allowed' : '',
       className,
     )}

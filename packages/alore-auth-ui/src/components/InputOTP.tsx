@@ -141,6 +141,7 @@ const OTPInput = ({
           <input
             // eslint-disable-next-line react/no-array-index-key
             key={idx}
+            data-testid={`${dataTest}-${idx}`}
             type="text"
             // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus={idx === 0}

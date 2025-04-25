@@ -252,6 +252,7 @@ export type AuthMachineEvents =
       payload: { error: string };
     }
   | { type: 'SIGN_IN_WITH_PASSKEY' }
+  | { type: 'USER_CREATE_ACCOUNT_BUT_NOT_LOGIN' }
   | { type: 'SET_CONDITIONAL_UI_PASSKEY' };
 
 type AuthReturn = {

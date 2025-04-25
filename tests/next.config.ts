@@ -7,8 +7,13 @@ module.exports = {
     ignoreDuringBuilds: true,
   },
   reactStrictMode: true,
+  swcMinify: true,
+  output: 'export',
+  images: {
+    unoptimized: true,
+  },
   transpilePackages: ['@alore/auth-react-ui', '@alore/crypto-sdk'],
-  webpack(config, { isServer }) {
+  webpack(config: any, { isServer }: { isServer: boolean }) {
     config.experiments = {
       asyncWebAssembly: true,
       layers: true,

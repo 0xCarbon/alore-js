@@ -5,18 +5,23 @@ import { PublicClientApplication } from '@azure/msal-browser';
 import { MsalProvider } from '@azure/msal-react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useActor } from '@xstate/react';
-import { Spinner } from 'flowbite-react';
-import React, { Suspense, useEffect, useState } from 'react';
+import { createTheme, Spinner, ThemeProvider } from 'flowbite-react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 
-import { Login } from '../auth/Login';
-import { Register } from '../auth/Register';
+import Login from '../auth/Login';
+import Register from '../auth/Register';
+import { darkenHexColor } from '../helpers';
 import useAuthServiceInstance from '../hooks/useAuthServiceInstance';
 import { SessionUser } from '../machine/types';
+import { buttonTheme, checkboxTheme, textInputTheme } from '../styles/themes';
 
 export interface AuthProps {
   googleId: string;
   forgeId?: string;
-  logoImage?: React.ReactNode;
+  styles?: {
+    primaryColor: string;
+    logoImage?: React.ReactNode;
+  };
   inviteToken?: string;
   keyshareWorker?: Worker | null;
   onSuccess?: (_sessionUser: SessionUser) => void;
@@ -26,7 +31,7 @@ export interface AuthProps {
 const Auth = ({
   googleId,
   forgeId,
-  logoImage,
+  styles,
   inviteToken,
   keyshareWorker,
   onSuccess,
@@ -49,6 +54,19 @@ const Auth = ({
   };
 
   const msalInstance = new PublicClientApplication(msalConfig);
+
+  const primaryColor = styles?.primaryColor || '#090909';
+  const primaryColorHover = darkenHexColor(primaryColor, 25);
+
+  const customTheme = useMemo(
+    () =>
+      createTheme({
+        button: buttonTheme,
+        checkbox: checkboxTheme,
+        textInput: textInputTheme,
+      }),
+    [primaryColor, primaryColorHover],
+  );
 
   const cryptoUtils = {
     generateSecureHash,
@@ -86,39 +104,57 @@ const Auth = ({
   }, [sessionUser]);
 
   return isClient ? (
-    <GoogleOAuthProvider clientId={googleId}>
-      <MsalProvider instance={msalInstance}>
-        <Suspense
-          fallback={
-            <div className="flex size-full min-h-screen flex-col items-center justify-center">
-              <Spinner className="m-auto !h-12 w-full !fill-gray-300" />
-            </div>
-          }
-        >
-          {authState.matches('active.login') && (
-            <Login
-              locale={locale}
-              authServiceInstance={authServiceInstance}
-              forgeId={forgeId}
-              cryptoUtils={cryptoUtils}
-              keyshareWorker={keyshareWorker}
-              logoImage={logoImage}
-            />
-          )}
-          {authState.matches('active.register') && (
-            <Register
-              locale={locale}
-              authServiceInstance={authServiceInstance}
-              forgeId={forgeId}
-              inviteToken={inviteToken}
-              cryptoUtils={cryptoUtils}
-              keyshareWorker={keyshareWorker}
-              logoImage={logoImage}
-            />
-          )}
-        </Suspense>
-      </MsalProvider>
-    </GoogleOAuthProvider>
+    <div
+      style={
+        {
+          '--primary-color': primaryColor,
+          '--primary-hover': primaryColorHover,
+        } as React.CSSProperties
+      }
+    >
+      <GoogleOAuthProvider clientId={googleId}>
+        <MsalProvider instance={msalInstance}>
+          <ThemeProvider
+            theme={customTheme}
+            props={{
+              button: {
+                pill: true,
+              },
+            }}
+          >
+            <Suspense
+              fallback={
+                <div className="flex size-full min-h-screen flex-col items-center justify-center">
+                  <Spinner className="m-auto !h-12 w-full !fill-gray-300" />
+                </div>
+              }
+            >
+              {authState.matches('active.login') && (
+                <Login
+                  locale={locale}
+                  authServiceInstance={authServiceInstance}
+                  forgeId={forgeId}
+                  cryptoUtils={cryptoUtils}
+                  keyshareWorker={keyshareWorker}
+                  logoImage={styles?.logoImage}
+                />
+              )}
+              {authState.matches('active.register') && (
+                <Register
+                  locale={locale}
+                  authServiceInstance={authServiceInstance}
+                  forgeId={forgeId}
+                  inviteToken={inviteToken}
+                  cryptoUtils={cryptoUtils}
+                  keyshareWorker={keyshareWorker}
+                  logoImage={styles?.logoImage}
+                />
+              )}
+            </Suspense>
+          </ThemeProvider>
+        </MsalProvider>
+      </GoogleOAuthProvider>
+    </div>
   ) : null;
 };
 

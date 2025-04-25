@@ -15,11 +15,13 @@ export type KeyDerivationFunction = 'argon2d' | 'pbkdf2';
  * @property requireUsername - Optional boolean to require username.
  * @property passwordMinLength - Optional number for password minimum length.
  * @property enablePasskeys - Optional boolean to enable passkeys.
+ * @property enablePasswords - Optional boolean to enable passwords.
  * @property socialLoginEnabled - Optional boolean to enable social login.
  * @property privacyPolicyUrl - Optional string for privacy policy URL.
  * @property termsOfServiceUrl - Optional string for terms of service URL.
  * @property logoUrl - Optional string for logo URL.
  * @property socialProviders - Optional social login providers.
+ * @property enableWalletCreation - Optional boolean to enable wallet creation.
  */
 export interface AuthProviderConfig {
   rpDomain?: string;
@@ -35,6 +37,7 @@ export interface AuthProviderConfig {
   termsOfServiceUrl?: string;
   logoUrl?: string;
   socialProviders?: SocialProvider[];
+  enableWalletCreation?: boolean;
 }
 
 export interface AuthMachineContext {

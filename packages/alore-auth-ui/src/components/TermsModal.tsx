@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Modal } from 'flowbite-react';
+import { Button, Modal, ModalBody, ModalHeader } from 'flowbite-react';
 import React from 'react';
 
 import { Locale } from '../get-dictionary';
@@ -22,14 +22,14 @@ const TermsModal = ({ locale, show, onClose, onSubmit }: Props) => {
       show={show}
       onClose={onClose}
     >
-      <Modal.Header>
+      <ModalHeader>
         <div className="px-8 pt-2">
           <span className="font-poppins text-[1.75rem] font-bold">
             {registerDictionary?.termsTitle}
           </span>
         </div>
-      </Modal.Header>
-      <Modal.Body className="scrollbar">
+      </ModalHeader>
+      <ModalBody className="scrollbar">
         <div className="flex flex-col px-8 pb-5 pt-2">
           <span
             // eslint-disable-next-line react/no-danger
@@ -40,13 +40,12 @@ const TermsModal = ({ locale, show, onClose, onSubmit }: Props) => {
           />
           <Button
             data-testid="accept-terms"
-            className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
             onClick={onSubmit}
           >
             {dictionary?.accept}
           </Button>
         </div>
-      </Modal.Body>
+      </ModalBody>
     </Modal>
   );
 };

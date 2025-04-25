@@ -2,8 +2,8 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { useMsal } from '@azure/msal-react';
-import { ArrowRightIcon, EnvelopeIcon } from '@heroicons/react/20/solid';
-import { KeyIcon, LockOpenIcon } from '@heroicons/react/24/outline';
+import { ArrowRightIcon, EnvelopeIcon, KeyIcon, LockClosedIcon } from '@heroicons/react/20/solid';
+import { LockOpenIcon } from '@heroicons/react/24/outline';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useActor } from '@xstate/react';
@@ -35,6 +35,7 @@ const InputOTP = React.lazy(() => import('../components/InputOTP'));
 const BackButton = React.lazy(() => import('../components/BackButton'));
 
 const envelopIcon = () => <EnvelopeIcon className="size-4 text-gray-500" />;
+const lockClosedIcon = () => <LockClosedIcon className="size-4 text-gray-500" />;
 
 const HARDWARE = 1;
 const SOFTWARE = 2;
@@ -57,7 +58,7 @@ export interface LoginProps {
   };
 }
 
-export const Login = ({
+const Login = ({
   locale = 'pt',
   authServiceInstance,
   forgeId,
@@ -99,6 +100,10 @@ export const Login = ({
   );
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
   const { instance } = useMsal();
+
+  const onlyPasskeyLogin = useMemo(() => {
+    return enablePasskeys && !enablePasswords;
+  }, [enablePasskeys, enablePasswords]);
 
   const googleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => {
@@ -505,7 +510,6 @@ export const Login = ({
 
     const { email } = data;
 
-    // await signOut({ redirect: false });
     sendAuth({ type: 'SELECT_PASSWORD_METHOD', payload: { email } });
     setLoading(false);
   };
@@ -675,14 +679,31 @@ export const Login = ({
     ],
   );
 
+  const otpError = useMemo(() => {
+    const authErrorLowerCase = authError?.toLowerCase();
+    let errorMessage = '';
+
+    if (authErrorLowerCase?.includes('wrong')) {
+      errorMessage = `${loginDictionary?.wrongCode}`;
+    } else if (authErrorLowerCase?.includes('expired')) {
+      errorMessage = `${loginDictionary?.codeExpired}`;
+    }
+
+    return errorMessage;
+  }, [authError]);
+
   const getAuthError = () => {
     let authErrorTitle = loginDictionary?.somethingWrong;
     let authErrorDescription = loginDictionary?.defaultError;
 
-    if (authError?.includes('Invalid credentials')) {
+    const authErrorLowerCase = authError?.toLowerCase();
+    if (authErrorLowerCase?.includes('invalid credentials')) {
       authErrorTitle = loginDictionary?.invalidEmailPassword;
       authErrorDescription = loginDictionary?.invalidEmailPasswordDescription;
-    } else if (authError?.includes('Passkey')) {
+    } else if (authErrorLowerCase?.includes('no passkey found')) {
+      authErrorTitle = loginDictionary?.noPasskey;
+      authErrorDescription = loginDictionary?.noPasskeyDescription;
+    } else if (authErrorLowerCase?.includes('passkey')) {
       authErrorTitle = loginDictionary?.passkeyNotSupported;
       authErrorDescription = loginDictionary?.passkeyNotSupportedDescription;
     }
@@ -690,7 +711,7 @@ export const Login = ({
     return { authErrorTitle, authErrorDescription };
   };
 
-  const EmailInputStep = useMemo(() => {
+  const IdleStep = useMemo(() => {
     const { authErrorTitle, authErrorDescription } = getAuthError();
     return (
       <div data-testid="login-email-step">
@@ -717,69 +738,59 @@ export const Login = ({
             )}
           </div>
         ) : (
-          <h1 className="font-inter text-center text-lg font-bold text-gray-700">
+          <h1 className="font-inter text-center text-xl font-bold text-gray-700">
             {forgeId ? loginDictionary?.forgeLogin : loginDictionary?.loginAccount}
           </h1>
         )}
-        <div className="mt-3 flex flex-col gap-y-5">
-          {requireEmailVerification && (
-            <>
-              <form
-                className="flex flex-col gap-y-5"
-                onSubmit={handleSubmitEmail((data) => onSubmitEmail(data))}
-              >
-                <InputForm
-                  className="my-1"
-                  control={emailControl}
-                  errors={emailErrors}
-                  name="email"
-                  type="text"
-                  placeholder={loginDictionary?.enterEmail}
-                  data-testid="login-email-input"
-                  icon={envelopIcon}
-                  autoComplete={
-                    authAbortController && isConditionalMediationAvailable
-                      ? 'username webauthn'
-                      : undefined
-                  }
-                  autoFocus
-                />
+        <div className="mt-4 flex flex-col gap-y-5">
+          {!onlyPasskeyLogin && requireEmailVerification && (
+            <form
+              className="flex flex-col gap-y-5"
+              onSubmit={handleSubmitEmail((data) => onSubmitEmail(data))}
+            >
+              <InputForm
+                className="my-1"
+                control={emailControl}
+                errors={emailErrors}
+                name="email"
+                type="text"
+                placeholder={loginDictionary?.enterEmail}
+                data-testid="login-email-input"
+                icon={envelopIcon}
+                autoComplete={
+                  authAbortController && isConditionalMediationAvailable
+                    ? 'username webauthn'
+                    : undefined
+                }
+                autoFocus
+              />
 
-                {/* <Link // TODO removed from beta
-            href="/forgot-password"
-            className="cursor-pointer self-end text-xs font-medium text-alr-red"
-            data-testid="forgot-password"
-          >
-            Forgot your password?
-          </Link> */}
-                <Button
-                  type="submit"
-                  data-testid="login-button"
-                  disabled={verifyEmptyValues(getValuesEmail('email'))}
-                  className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
-                >
-                  {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
-                  {loginDictionary?.login}
-                </Button>
-              </form>
-              <div className="h-[0.5px] w-full bg-gray-300" />
-            </>
-          )}
-          {enablePasskeys &&
-            !enablePasswords &&
-            !requireEmailVerification &&
-            typeof window.PublicKeyCredential !== 'undefined' && (
-              <Button
-                color="light"
-                onClick={handlePasskeyButton}
-                outline
+              {/* <Link // TODO removed from beta
+                href="/forgot-password"
+                className="cursor-pointer self-end text-xs font-medium text-alr-red"
+                data-testid="forgot-password"
               >
-                <div className="flex flex-row items-center justify-center gap-2">
-                  <KeyIcon className="size-4 text-gray-500" />
-                  <span>{dictionary?.auth.signWithPasskey}</span>
-                </div>
+                Forgot your password?
+              </Link> */}
+              <Button
+                type="submit"
+                data-testid="login-button"
+                disabled={verifyEmptyValues(getValuesEmail('email'))}
+              >
+                {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
+                {onlyPasskeyLogin ? loginDictionary?.passkeyLogin : loginDictionary?.login}
               </Button>
-            )}
+            </form>
+          )}
+          {onlyPasskeyLogin && (
+            <Button onClick={handlePasskeyButton}>
+              <div className="flex flex-row items-center justify-center gap-2">
+                <KeyIcon className="size-4 text-white" />
+                <span className="font-semibold text-white">{loginDictionary?.passkeyLogin}</span>
+              </div>
+            </Button>
+          )}
+          <div className="h-[0.5px] w-full bg-gray-300" />
           {socialProviders?.length && (
             <>
               <div className="flex w-full flex-row gap-4">
@@ -838,7 +849,7 @@ export const Login = ({
             {loginDictionary?.dontHaveAccount}
             <div
               data-testid="sign-up-button"
-              className="text-alr-red cursor-pointer"
+              className="cursor-pointer text-[var(--primary-color)] hover:text-[var(--primary-hover)]"
               onClick={() => {
                 sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
               }}
@@ -859,7 +870,9 @@ export const Login = ({
         <BackButton
           disabled={isLoading}
           onClick={() => sendAuth('BACK')}
-        />
+        >
+          {dictionary?.back}
+        </BackButton>
         {authError ? (
           <div className="my-4 flex flex-col items-center justify-center gap-2">
             <span className="font-poppins text-alr-red text-center text-xl font-bold">
@@ -869,7 +882,7 @@ export const Login = ({
           </div>
         ) : undefined}
         <div
-          className="mt-2 flex w-full flex-col items-center"
+          className="mt-4 flex w-full flex-col items-center"
           data-testid="login-method-selection-step"
         >
           {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
@@ -886,14 +899,14 @@ export const Login = ({
                 onClick={() => setLoginMethod('password')}
                 color="light"
                 className={`${
-                  loginMethod === 'password' ? '!border-alr-red' : '!border-gray-500'
-                } child:h-full w-full cursor-pointer items-start border focus:ring-0`}
+                  loginMethod === 'password' ? '!border-[--primary-color]' : '!border-gray-300'
+                } child:h-full !h-fit w-full cursor-pointer items-start rounded-lg border-2 p-4 duration-300 focus:ring-0`}
               >
                 <div className="flex flex-col items-start justify-center gap-2">
                   <LockOpenIcon
                     className={`${
-                      loginMethod === 'password' ? 'text-alr-red' : 'text-gray-500'
-                    } size-7`}
+                      loginMethod === 'password' ? 'text-[--primary-color]' : 'text-gray-500'
+                    } size-7 duration-300`}
                   />
                   <span className="font-semibold text-gray-900">{loginDictionary?.password}</span>
                   <span className="text-start text-xs font-normal text-gray-600">
@@ -906,14 +919,14 @@ export const Login = ({
                 onClick={() => setLoginMethod('passkey')}
                 color="light"
                 className={`${
-                  loginMethod === 'passkey' ? '!border-alr-red' : '!border-gray-500'
-                } child:h-full w-full cursor-pointer items-start border focus:ring-0`}
+                  loginMethod === 'passkey' ? '!border-[--primary-color]' : '!border-gray-300'
+                } child:h-full !h-fit w-full cursor-pointer items-start rounded-lg border-2 p-4 duration-300 focus:ring-0`}
               >
                 <div className="flex flex-col items-start justify-center gap-2">
                   <KeyIcon
                     className={`${
-                      loginMethod === 'passkey' ? 'text-alr-red' : 'text-gray-500'
-                    } size-7`}
+                      loginMethod === 'passkey' ? 'text-[--primary-color]' : 'text-gray-500'
+                    } size-7 duration-300`}
                   />
                   <span className="font-semibold text-gray-900">{loginDictionary?.passkey}</span>
                   <span className="text-start text-xs font-normal text-gray-600">
@@ -925,7 +938,7 @@ export const Login = ({
             <Button
               data-testid="login-method-selection-submit"
               onClick={() => selectLoginMethod()}
-              className="bg-alr-red text-alr-white mb-6 flex w-full cursor-pointer items-center"
+              className="mb-6 flex w-full"
             >
               {loginDictionary?.continue}
             </Button>
@@ -974,6 +987,7 @@ export const Login = ({
             errors={passwordErrors}
             name="password"
             placeholder={loginDictionary?.enterPassword}
+            icon={lockClosedIcon}
             type="password"
             label={dictionary?.password}
             data-testid="login-password"
@@ -990,7 +1004,6 @@ export const Login = ({
             type="submit"
             data-testid="login-submit"
             disabled={verifyEmptyValues(getValuesPassword('password'))}
-            className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
           >
             {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
             {loginDictionary?.login}
@@ -998,7 +1011,7 @@ export const Login = ({
           <span className="text-sm font-medium">
             {loginDictionary?.dontHaveAccount}
             <div
-              className="text-alr-red cursor-pointer"
+              className="cursor-pointer text-[--primary-color]"
               onClick={() => {
                 sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
               }}
@@ -1014,20 +1027,23 @@ export const Login = ({
 
   const VerifyEmail = useMemo(
     () => (
-      <div className="pb-10 pt-4">
+      <div data-testid="login-verify-email-step">
         <BackButton
+          className="mb-4"
           disabled={isLoading}
           onClick={() => sendAuth('BACK')}
-        />
+        >
+          {dictionary?.back}
+        </BackButton>
 
         <div
           className="flex w-full flex-col items-center"
           data-testid="login-verify-email-step"
         >
-          <span className="font-poppins text-alr-grey mb-10 mt-[4.5rem] text-[1.75rem] font-bold">
+          <span className="font-poppins text-alr-grey mb-4 mt-2 text-[1.75rem] font-bold">
             {loginDictionary?.verifyEmail}
           </span>
-          <span className="text-alr-grey mb-12 w-[23.75rem] text-center font-medium">
+          <span className="mb-6 text-center font-medium text-gray-600">
             {loginDictionary?.verifyEmailDescription}
           </span>
 
@@ -1038,7 +1054,7 @@ export const Login = ({
               onChange={(value) => setSecure2FACode(value)}
               inputLength={6}
               data-testid="secure-code"
-              errorMessage={authError?.includes('wrong') ? loginDictionary?.wrongCode : undefined}
+              errorMessage={otpError}
               disabled={isLoading}
             />
           </div>
@@ -1054,10 +1070,10 @@ export const Login = ({
           <span
             onClick={() => resendSecureCode()}
             className={twMerge(
-              `text-base font-medium duration-300`,
+              `text-base font-medium text-gray-700 duration-300`,
               sendEmailCooldown > 0
                 ? 'pointer-events-none opacity-50'
-                : 'hover:text-alr-red cursor-pointer opacity-100',
+                : 'cursor-pointer opacity-100 hover:text-[--primary-hover]',
             )}
           >
             {`${loginDictionary?.resendCode}${sendEmailCooldown ? ` (${sendEmailCooldown}s)` : ''}`}
@@ -1274,12 +1290,12 @@ export const Login = ({
       )}
       <Card
         className={twMerge(
-          `md:child:!px-9 mx-5 flex min-w-[20rem] py-2 md:mx-7 md:w-96`,
+          `md:child:!px-9 mx-5 flex min-w-[20rem] !rounded-2xl border-gray-200 px-2 py-4 md:mx-7 md:w-96`,
           isLoading ? 'pointer-events-none opacity-50' : '',
         )}
       >
         {isLoading ? (
-          <Spinner className="my-20 !h-14 w-full !fill-red-300" />
+          <Spinner className="my-20 !h-14 w-full !fill-[var(--primary-color)]" />
         ) : (
           <>
             {forgeId && authState.matches('active.web3Connector') && 'TODO'}
@@ -1287,7 +1303,7 @@ export const Login = ({
               authState.matches('active.login.googleLogin') ||
               authState.matches('active.login.retrievingSalt') ||
               authState.matches('active.login.verifyingRegisterPublicKeyCredential')) &&
-              EmailInputStep}
+              IdleStep}
             {(authState.matches('active.login.loginMethodSelection') ||
               authState.matches('active.login.signingCredentialRCR') ||
               authState.matches('active.login.retrievingCredentialRCR')) &&
@@ -1321,8 +1337,8 @@ export const Login = ({
                 </div>
                 <Button
                   data-testid="logout-button"
-                  className="bg-alr-red hover:bg-alr-dark-red group relative flex items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
                   onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
+                  className="w-full"
                 >
                   LOGOUT
                 </Button>
@@ -1344,3 +1360,5 @@ export const Login = ({
     </div>
   );
 };
+
+export default Login;
