@@ -9,7 +9,7 @@ import {
 export const checkboxTheme: CheckboxTheme = {
   ...flowbiteCheckboxTheme,
   color: {
-    ...flowbiteCheckboxTheme.color,
+    ...flowbiteCheckboxTheme?.color,
     default:
       'size-4 rounded border border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-cyan-600 dark:focus:ring-cyan-600 text-[var(--primary-color)] hover:text-[var(--primary-hover)] focus:ring-2 focus:ring-[var(--primary-color)]',
   },
@@ -18,7 +18,7 @@ export const checkboxTheme: CheckboxTheme = {
 export const buttonTheme: ButtonTheme = {
   ...flowbiteButtonTheme,
   color: {
-    ...flowbiteButtonTheme.color,
+    ...flowbiteButtonTheme?.color,
     default:
       'bg-[var(--primary-color)] hover:bg-[var(--primary-hover)] group relative flex items-center justify-center border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-0',
   },

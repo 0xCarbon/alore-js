@@ -199,7 +199,7 @@ export type AuthMachineEvents =
       type: 'SEND_REGISTRATION_EMAIL';
       payload: {
         email: string;
-        nickname: string;
+        nickname?: string;
         isForgeClaim?: boolean;
         locale?: string;
       };

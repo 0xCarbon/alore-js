@@ -83,6 +83,7 @@ const Login = ({
     sessionUser,
     RCRPublicKey,
     authProviderConfigs,
+    credentialEmail,
   } = authState.context;
 
   const { enablePasskeys, requireEmailVerification, enablePasswords, socialProviders } =
@@ -526,7 +527,7 @@ const Login = ({
   const onSubmitLogin = async (data: typeof passwordDefaultValues) => {
     setLoading(true);
     const { password } = data;
-    const email = getValuesEmail('email') || googleUser?.email;
+    const email = getValuesEmail('email') || googleUser?.email || credentialEmail;
 
     if (salt && email) {
       derivePasswordAndGetKeyshares(password, email);
@@ -955,7 +956,7 @@ const Login = ({
           className="mb-2.5"
           onClick={() => sendAuth('BACK')}
         >
-          {getValuesEmail('email') || googleUser?.email}
+          {getValuesEmail('email') || googleUser?.email || credentialEmail}
         </BackButton>
 
         {authError && (
