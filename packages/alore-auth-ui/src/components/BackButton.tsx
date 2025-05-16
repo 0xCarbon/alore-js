@@ -14,6 +14,7 @@ interface Props {
 const BackButton = ({ onClick, disabled = false, children, className = '', ...props }: Props) => (
   <span
     {...props}
+    data-testid="back-button"
     onClick={!disabled ? onClick : undefined}
     className={twMerge(
       `flex w-fit cursor-pointer items-center gap-x-1 text-base text-[var(--primary-color)]`,

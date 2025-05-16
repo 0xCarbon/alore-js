@@ -1,6 +1,6 @@
 {
   "name": "@alore/auth-react-sdk",
-  "version": "1.0.4-alpha",
+  "version": "1.0.5-alpha",
   "repository": "https://github.com/0xCarbon/alore-js",
   "description": "SDK for Alore Auth",
   "main": "dist/index.js",

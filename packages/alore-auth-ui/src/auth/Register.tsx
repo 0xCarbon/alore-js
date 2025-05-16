@@ -1,7 +1,12 @@
 'use client';
 
 /* eslint-disable @next/next/no-img-element */
-import { ArrowRightIcon, EnvelopeIcon, UserCircleIcon } from '@heroicons/react/20/solid';
+import {
+  ArrowRightIcon,
+  EnvelopeIcon,
+  LockClosedIcon,
+  UserCircleIcon,
+} from '@heroicons/react/20/solid';
 import { KeyIcon, LockOpenIcon } from '@heroicons/react/24/outline';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useGoogleLogin } from '@react-oauth/google';
@@ -32,6 +37,7 @@ const FormRules = React.lazy(() => import('../components/FormRules'));
 
 const envelopIcon = () => <EnvelopeIcon className="size-5 text-gray-500" />;
 const userIcon = () => <UserCircleIcon className="size-5 text-gray-500" />;
+const lockClosedIcon = () => <LockClosedIcon className="size-4 text-gray-500" />;
 
 export interface RegisterProps {
   locale?: Locale;
@@ -755,6 +761,7 @@ const Register = ({
           </Button>
         </form>
         <div
+          data-testid="sign-in-button"
           className="group mt-4 flex w-full cursor-pointer flex-row items-center justify-center gap-1.5 text-sm text-gray-500"
           onClick={() => {
             sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'LOGIN']);
@@ -938,7 +945,7 @@ const Register = ({
                   registrationMethod === 'password'
                     ? '!border-[--primary-color]'
                     : '!border-gray-300'
-                } child:h-full !h-fit w-full cursor-pointer items-start rounded-lg border-2 p-4 duration-300 focus:ring-0`}
+                } child:h-full !h-fit w-full cursor-pointer items-start rounded-lg border-2 !bg-white p-4 duration-300 hover:!bg-gray-100 focus:ring-0`}
               >
                 <div className="flex flex-col items-start justify-center gap-2">
                   <LockOpenIcon
@@ -962,7 +969,7 @@ const Register = ({
                   registrationMethod === 'passkey'
                     ? '!border-[--primary-color]'
                     : '!border-gray-300'
-                } child:h-full !h-fit w-full cursor-pointer items-start rounded-lg border-2 p-4 duration-300 focus:ring-0`}
+                } child:h-full !h-fit w-full cursor-pointer items-start rounded-lg border-2 !bg-white p-4 duration-300 hover:!bg-gray-100 focus:ring-0`}
               >
                 <div className="flex flex-col items-start justify-center gap-2">
                   <KeyIcon
@@ -1018,6 +1025,7 @@ const Register = ({
               errors={passwordErrors}
               name="password"
               autoFocus
+              icon={lockClosedIcon}
               placeholder={registerDictionary?.passwordPlaceholder}
               label={registerDictionary?.passwordLabel}
               type="password"
@@ -1031,6 +1039,7 @@ const Register = ({
               name="confirmPassword"
               placeholder={registerDictionary?.passwordConfirmPlaceholder}
               label={registerDictionary?.passwordConfirmLabel}
+              icon={lockClosedIcon}
               type="password"
               data-testid="register-confirm-password-input"
               disabled={isLoading}
@@ -1150,7 +1159,7 @@ const Register = ({
                 </div>
                 <Button
                   data-testid="logout-button"
-                  onClick={() => sendAuth([{ type: 'RESET_CONTEXT' }, { type: 'INITIALIZE' }])}
+                  onClick={() => sendAuth([{ type: 'RESET' }, { type: 'INITIALIZE' }])}
                 >
                   LOGOUT
                 </Button>

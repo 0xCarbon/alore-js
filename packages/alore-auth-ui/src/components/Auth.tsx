@@ -16,7 +16,7 @@ import { SessionUser } from '../machine/types';
 import { buttonTheme, checkboxTheme, textInputTheme } from '../styles/themes';
 
 export interface AuthProps {
-  googleId: string;
+  googleId?: string;
   forgeId?: string;
   styles?: {
     primaryColor: string;
@@ -26,6 +26,7 @@ export interface AuthProps {
   keyshareWorker?: Worker | null;
   onSuccess?: (_sessionUser: SessionUser) => void;
   onError?: (_error: string) => void;
+  onGoBack?: () => void;
 }
 
 const Auth = ({
@@ -37,6 +38,7 @@ const Auth = ({
   onSuccess,
   // eslint-disable-next-line no-unused-vars
   onError,
+  onGoBack,
 }: AuthProps) => {
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
@@ -103,6 +105,12 @@ const Auth = ({
     }
   }, [sessionUser]);
 
+  useEffect(() => {
+    if (authState.event.type === 'BACK') {
+      onGoBack?.();
+    }
+  }, [authState.event, onGoBack]);
+
   return isClient ? (
     <div
       style={
@@ -112,7 +120,7 @@ const Auth = ({
         } as React.CSSProperties
       }
     >
-      <GoogleOAuthProvider clientId={googleId}>
+      <GoogleOAuthProvider clientId={googleId || ''}>
         <MsalProvider instance={msalInstance}>
           <ThemeProvider
             theme={customTheme}

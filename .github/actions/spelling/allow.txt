@@ -389,3 +389,5 @@ screenshot
 Skype
 testmail
 textbox
+sessionid
+XEvent

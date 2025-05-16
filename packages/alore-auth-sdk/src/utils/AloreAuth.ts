@@ -46,12 +46,16 @@ export class AloreAuth {
       },
     ) => {
       const { email } = event.payload;
+      const { credentialEmail } = context;
 
-      const response = await this.fetchWithProgressiveBackoff(`/auth/v1/salt/${email}`, {
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await this.fetchWithProgressiveBackoff(
+        `/auth/v1/salt/${email || credentialEmail}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
         },
-      });
+      );
 
       if (response.ok) {
         const salt: string = await response.json();
@@ -103,6 +107,9 @@ export class AloreAuth {
       },
     ) => {
       const { email, nickname, passwordHash, device } = event.payload;
+      const { firebaseCompatible, firebaseServiceAccountEmail } =
+        context.authProviderConfigs?.firebaseOptions || {};
+
       const response = await this.fetchWithProgressiveBackoff('/auth/v1/account-registration', {
         method: 'POST',
         headers: {
@@ -113,6 +120,10 @@ export class AloreAuth {
           nickname,
           passwordHash,
           device,
+          firebaseOptions: {
+            firebaseCompatible,
+            firebaseServiceAccountEmail,
+          },
         }),
       });
 
@@ -166,7 +177,7 @@ export class AloreAuth {
             type: 'SEND_REGISTRATION_EMAIL';
             payload: {
               email: string;
-              nickname: string;
+              nickname?: string;
               isForgeClaim?: boolean;
               locale?: string;
             };
@@ -193,7 +204,7 @@ export class AloreAuth {
           },
           body: JSON.stringify({
             email,
-            nickname,
+            nickname: nickname || null,
           }),
         },
       );
@@ -236,7 +247,7 @@ export class AloreAuth {
       return {};
     },
     verifyLogin: async (
-      _: AuthMachineContext,
+      context: AuthMachineContext,
       event:
         | {
             type: 'VERIFY_LOGIN';
@@ -261,6 +272,8 @@ export class AloreAuth {
           },
     ) => {
       const { email, passwordHash, device, locale } = event.payload;
+      const { credentialEmail } = context;
+
       const searchParams = new URLSearchParams();
       const url = '/auth/v1/login-verification';
 
@@ -280,7 +293,7 @@ export class AloreAuth {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            email,
+            email: email || credentialEmail,
             passwordHash,
             device,
           }),
@@ -356,7 +369,7 @@ export class AloreAuth {
         };
       },
     ) => {
-      const { rpDomain } = context.authProviderConfigs || {};
+      const { rpDomain, firebaseOptions } = context.authProviderConfigs || {};
       const { email, nickname, device, passkeyRegistration } = event.payload || {};
 
       const response = await this.fetchWithProgressiveBackoff(
@@ -373,6 +386,7 @@ export class AloreAuth {
             passkeyRegistration,
             sessionId: context.sessionId,
             rpOrigin: rpDomain,
+            firebaseOptions,
           }),
         },
       );
@@ -618,14 +632,17 @@ export class AloreAuth {
       },
     ) => {
       const { email, passwordHash, secureCode } = event.payload;
+      const { credentialEmail, authProviderConfigs } = context;
+      const { firebaseOptions } = authProviderConfigs || {};
 
       const response = await this.fetchWithProgressiveBackoff('/auth/v1/email-2fa-verification', {
         method: 'POST',
         body: JSON.stringify({
-          email,
+          email: email || credentialEmail,
           passwordHash,
           emailCode: secureCode,
           sessionId: context.sessionId,
+          firebaseOptions,
         }),
         headers: {
           'Content-Type': 'application/json',
@@ -720,7 +737,7 @@ export class AloreAuth {
     },
     // Google login flow
     googleLogin: async (
-      _: AuthMachineContext,
+      context: AuthMachineContext,
       event: {
         type: 'GOOGLE_LOGIN';
         payload: {
@@ -730,6 +747,9 @@ export class AloreAuth {
       },
     ) => {
       const { accessToken, providerName } = event.payload;
+      const { authProviderConfigs } = context;
+      const { firebaseOptions } = authProviderConfigs || {};
+
       const response = await this.fetchWithProgressiveBackoff('/auth/v1/google-login', {
         method: 'POST',
         headers: {
@@ -738,6 +758,7 @@ export class AloreAuth {
         body: JSON.stringify({
           accessToken,
           provider: providerName,
+          firebaseOptions,
         }),
       });
 
