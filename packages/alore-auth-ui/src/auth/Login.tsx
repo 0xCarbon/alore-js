@@ -1062,7 +1062,7 @@ const Login = ({
           <Button
             data-testid="secure-code-submit"
             onClick={() => onClickSecureCodeSubmit()}
-            className="bg-alr-red hover:bg-alr-dark-red group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
+            className="group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent bg-[--primary-color] p-0.5 text-center font-medium text-white duration-300 hover:bg-[--primary-hover] focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
             disabled={secureCode2FA.length !== 6 || isLoading}
           >
             {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
