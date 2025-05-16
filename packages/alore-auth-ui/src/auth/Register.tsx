@@ -1159,7 +1159,7 @@ const Register = ({
                 </div>
                 <Button
                   data-testid="logout-button"
-                  onClick={() => sendAuth([{ type: 'RESET_CONTEXT' }, { type: 'INITIALIZE' }])}
+                  onClick={() => sendAuth([{ type: 'RESET' }, { type: 'INITIALIZE' }])}
                 >
                   LOGOUT
                 </Button>

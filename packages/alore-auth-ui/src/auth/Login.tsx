@@ -1338,7 +1338,7 @@ const Login = ({
                 </div>
                 <Button
                   data-testid="logout-button"
-                  onClick={() => sendAuth(['RESET_CONTEXT', 'INITIALIZE'])}
+                  onClick={() => sendAuth(['RESET', 'INITIALIZE'])}
                   className="w-full"
                 >
                   LOGOUT
