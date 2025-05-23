@@ -369,7 +369,7 @@ export class AloreAuth {
         };
       },
     ) => {
-      const { rpDomain, firebaseOptions } = context.authProviderConfigs || {};
+      const { rpDomain } = context.authProviderConfigs || {};
       const { email, nickname, device, passkeyRegistration } = event.payload || {};
 
       const response = await this.fetchWithProgressiveBackoff(
@@ -386,7 +386,6 @@ export class AloreAuth {
             passkeyRegistration,
             sessionId: context.sessionId,
             rpOrigin: rpDomain,
-            firebaseOptions,
           }),
         },
       );
@@ -466,7 +465,7 @@ export class AloreAuth {
             };
           },
     ) => {
-      const { rpDomain } = context.authProviderConfigs || {};
+      const { rpDomain, firebaseOptions } = context.authProviderConfigs || {};
       const { passkeyAuth } = event.payload;
       const response = await this.fetchWithProgressiveBackoff(`/auth/v1/login-passkey-finish`, {
         method: 'POST',
@@ -477,6 +476,7 @@ export class AloreAuth {
           passkeyAuth,
           sessionId: context.sessionId,
           rpOrigin: rpDomain,
+          firebaseOptions,
         }),
       });
 
