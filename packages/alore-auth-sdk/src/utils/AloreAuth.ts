@@ -107,25 +107,23 @@ export class AloreAuth {
       },
     ) => {
       const { email, nickname, passwordHash, device } = event.payload;
-      const { firebaseCompatible, firebaseServiceAccountEmail } =
-        context.authProviderConfigs?.firebaseOptions || {};
+      const { firebaseCompatible } = context.authProviderConfigs || {};
 
-      const response = await this.fetchWithProgressiveBackoff('/auth/v1/account-registration', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          nickname,
-          passwordHash,
-          device,
-          firebaseOptions: {
-            firebaseCompatible,
-            firebaseServiceAccountEmail,
+      const response = await this.fetchWithProgressiveBackoff(
+        `/auth/v1/account-registration${firebaseCompatible ? `?firebaseCompatibleToken=${firebaseCompatible}` : ''}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
           },
-        }),
-      });
+          body: JSON.stringify({
+            email,
+            nickname,
+            passwordHash,
+            device,
+          }),
+        },
+      );
 
       const data = await response.json();
 
@@ -465,20 +463,22 @@ export class AloreAuth {
             };
           },
     ) => {
-      const { rpDomain, firebaseOptions } = context.authProviderConfigs || {};
+      const { rpDomain, firebaseCompatible } = context.authProviderConfigs || {};
       const { passkeyAuth } = event.payload;
-      const response = await this.fetchWithProgressiveBackoff(`/auth/v1/login-passkey-finish`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await this.fetchWithProgressiveBackoff(
+        `/auth/v1/login-passkey-finish${firebaseCompatible ? `?firebaseCompatibleToken=${firebaseCompatible}` : ''}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            passkeyAuth,
+            sessionId: context.sessionId,
+            rpOrigin: rpDomain,
+          }),
         },
-        body: JSON.stringify({
-          passkeyAuth,
-          sessionId: context.sessionId,
-          rpOrigin: rpDomain,
-          firebaseOptions,
-        }),
-      });
+      );
 
       const data = await response.json();
 
@@ -633,21 +633,23 @@ export class AloreAuth {
     ) => {
       const { email, passwordHash, secureCode } = event.payload;
       const { credentialEmail, authProviderConfigs } = context;
-      const { firebaseOptions } = authProviderConfigs || {};
+      const { firebaseCompatible } = authProviderConfigs || {};
 
-      const response = await this.fetchWithProgressiveBackoff('/auth/v1/email-2fa-verification', {
-        method: 'POST',
-        body: JSON.stringify({
-          email: email || credentialEmail,
-          passwordHash,
-          emailCode: secureCode,
-          sessionId: context.sessionId,
-          firebaseOptions,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await this.fetchWithProgressiveBackoff(
+        `/auth/v1/email-2fa-verification${firebaseCompatible ? `?firebaseCompatibleToken=${firebaseCompatible}` : ''}`,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            email: email || credentialEmail,
+            passwordHash,
+            emailCode: secureCode,
+            sessionId: context.sessionId,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
         },
-      });
+      );
 
       const data = await response.json();
 
@@ -748,19 +750,21 @@ export class AloreAuth {
     ) => {
       const { accessToken, providerName } = event.payload;
       const { authProviderConfigs } = context;
-      const { firebaseOptions } = authProviderConfigs || {};
+      const { firebaseCompatible } = authProviderConfigs || {};
 
-      const response = await this.fetchWithProgressiveBackoff('/auth/v1/google-login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await this.fetchWithProgressiveBackoff(
+        `/auth/v1/google-login${firebaseCompatible ? `?firebaseCompatibleToken=${firebaseCompatible}` : ''}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            accessToken,
+            provider: providerName,
+          }),
         },
-        body: JSON.stringify({
-          accessToken,
-          provider: providerName,
-          firebaseOptions,
-        }),
-      });
+      );
 
       const data = await response.json();
 

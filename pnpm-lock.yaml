@@ -193,7 +193,7 @@ importers:
   packages/alore-auth-ui:
     dependencies:
       '@alore/auth-react-sdk':
-        specifier: 1.0.6-alpha
+        specifier: 1.0.7-alpha
         version: link:../alore-auth-sdk
       '@azure/msal-browser':
         specifier: ^4.8.0

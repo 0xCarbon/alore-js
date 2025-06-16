@@ -80,7 +80,6 @@ const Login = ({
     registerUser,
     googleOtpCode,
     googleUser,
-    sessionUser,
     RCRPublicKey,
     authProviderConfigs,
     credentialEmail,
@@ -1259,6 +1258,8 @@ const Login = ({
     [secureCodeEmail, sendEmailCooldown, isLoading, newDeviceInfo],
   );
 
+  if (authState.matches('active.login.successfulLogin')) return null;
+
   return (
     <div
       className="flex size-full min-h-screen flex-col items-center justify-center gap-y-2 sm:gap-y-7"
@@ -1327,24 +1328,6 @@ const Login = ({
               authState.matches('active.login.verifyingCode') ||
               authState.matches('active.login.resendingConfirmationEmail')) &&
               NewDeviceStep}
-            {authState.matches('active.login.successfulLogin') && (
-              <div
-                data-testid="login-successful-login-step"
-                className="flex flex-col items-center justify-center gap-4"
-              >
-                <div className="flex flex-row items-center justify-center gap-2">
-                  <span>Login complete for</span>
-                  <span className="font-semibold">{sessionUser?.nickname}</span>
-                </div>
-                <Button
-                  data-testid="logout-button"
-                  onClick={() => sendAuth(['RESET', 'INITIALIZE'])}
-                  className="w-full"
-                >
-                  LOGOUT
-                </Button>
-              </div>
-            )}
           </>
         )}
       </Card>
