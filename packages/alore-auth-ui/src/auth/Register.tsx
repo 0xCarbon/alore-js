@@ -625,18 +625,18 @@ const Register = ({
           method: 'derive-password',
           payload: { password, email },
         });
-        const secureHashArgon2d = await generateSecureHash(password, saltWallet, 'argon2d');
-
-        sendAuth({
-          type: 'COMPLETE_REGISTRATION',
-          payload: {
-            email,
-            passwordHash: secureHashArgon2d,
-            device,
-            nickname,
-          },
-        });
       }
+      const secureHashArgon2d = await generateSecureHash(password, saltWallet, 'argon2d');
+
+      sendAuth({
+        type: 'COMPLETE_REGISTRATION',
+        payload: {
+          email,
+          passwordHash: secureHashArgon2d,
+          device,
+          nickname,
+        },
+      });
     }
   }
 
