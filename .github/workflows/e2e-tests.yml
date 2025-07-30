@@ -47,12 +47,14 @@ jobs:
 
       - name: Create .env file
         working-directory: ./tests
+        env:
+          VARS_JSON: ${{ toJSON(vars) }}
         run: |
           echo "GOOGLE_PWD=${{ secrets.GOOGLE_PWD }}" >> .env
           echo "NEXT_PUBLIC_ALORE_API_KEY=${{ secrets.NEXT_PUBLIC_ALORE_API_KEY }}" >> .env
           echo "NEXT_PUBLIC_ALORE_CLIENT_ID=${{ secrets.NEXT_PUBLIC_ALORE_CLIENT_ID }}" >> .env
           echo "TESTMAIL_API_KEY=${{ secrets.TESTMAIL_API_KEY }}" >> .env
-          echo "${{ toJSON(vars) }}" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' >> .env
+          echo "$VARS_JSON" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' >> .env
 
       - name: Run Playwright Tests
         working-directory: ./tests
