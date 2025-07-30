@@ -1,6 +1,6 @@
 'use client';
 
-import Auth, { AuthProvider, AuthProviderConfig } from '@alore/auth-react-ui';
+import Auth, { AuthProvider, AuthProviderConfig, useAuthService } from '@alore/auth-react-ui';
 import { useSearchParams } from 'next/navigation';
 
 import KeyshareWorkerProvider, { keyshareWorker } from './KeyshareWorkerProvider';
@@ -16,6 +16,37 @@ const defaultAloreConfigs: AuthProviderConfig = {
   requireEmailVerification: true,
   requireUsername: true,
   passwordMinLength: 8,
+  socialProviders: [
+    {
+      id: 'google',
+      providerName: 'google',
+      clientId: process.env.NEXT_PUBLIC_GOOGLE_ID || '',
+    },
+  ],
+};
+
+const LoggedState = () => {
+  const [authState, sendAuth] = useAuthService();
+  const { sessionUser } = authState.context;
+
+  const logout = () => {
+    sendAuth(['RESET_CONTEXT', 'RESET', 'INITIALIZE']);
+  };
+  console.log('sessionUser', sessionUser);
+  if (!sessionUser) {
+    return null;
+  }
+
+  return (
+    <button
+      type="button"
+      data-testid="logout-button"
+      className="rounded-md bg-red-500 p-3 text-white"
+      onClick={logout}
+    >
+      Logout
+    </button>
+  );
 };
 
 export default function Home() {
@@ -42,6 +73,7 @@ export default function Home() {
             console.info('User logged in:', user);
           }}
         />
+        <LoggedState />
       </AuthProvider>
     </KeyshareWorkerProvider>
   );
