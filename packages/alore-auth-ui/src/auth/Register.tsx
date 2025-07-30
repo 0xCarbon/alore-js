@@ -79,7 +79,6 @@ const Register = ({
     error: authError,
     registerUser,
     googleUser,
-    sessionUser,
     CCRPublicKey,
     RCRPublicKey,
     authProviderConfigs,
@@ -626,18 +625,18 @@ const Register = ({
           method: 'derive-password',
           payload: { password, email },
         });
-        const secureHashArgon2d = await generateSecureHash(password, saltWallet, 'argon2d');
-
-        sendAuth({
-          type: 'COMPLETE_REGISTRATION',
-          payload: {
-            email,
-            passwordHash: secureHashArgon2d,
-            device,
-            nickname,
-          },
-        });
       }
+      const secureHashArgon2d = await generateSecureHash(password, saltWallet, 'argon2d');
+
+      sendAuth({
+        type: 'COMPLETE_REGISTRATION',
+        payload: {
+          email,
+          passwordHash: secureHashArgon2d,
+          device,
+          nickname,
+        },
+      });
     }
   }
 
@@ -1075,6 +1074,8 @@ const Register = ({
     ],
   );
 
+  if (authState.matches('active.register.userCreated')) return null;
+
   return (
     <div
       className="flex size-full min-h-screen flex-col items-center justify-center gap-y-2 sm:gap-y-7"
@@ -1148,23 +1149,6 @@ const Register = ({
               Password}
             {authState.matches('active.register.passkeyCreatedButNotAuthenticated') &&
               PasskeyCreatedButNotAuthenticated}
-            {authState.matches('active.register.userCreated') && (
-              <div
-                data-testid="registration-complete"
-                className="flex flex-col items-center justify-center gap-4"
-              >
-                <div className="flex flex-row items-center justify-center gap-2">
-                  <span>Registration complete for</span>
-                  <span className="font-semibold">{sessionUser?.nickname}</span>
-                </div>
-                <Button
-                  data-testid="logout-button"
-                  onClick={() => sendAuth([{ type: 'RESET' }, { type: 'INITIALIZE' }])}
-                >
-                  LOGOUT
-                </Button>
-              </div>
-            )}
           </>
         )}
       </Card>

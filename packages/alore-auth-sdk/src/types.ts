@@ -38,13 +38,8 @@ export interface AuthProviderConfig {
   logoUrl?: string;
   socialProviders?: SocialProvider[];
   enableWalletCreation?: boolean;
-  firebaseOptions?: FirebaseOptions;
-}
-
-type FirebaseOptions = {
   firebaseCompatible?: boolean;
-  firebaseServiceAccountEmail?: string;
-};
+}
 
 export interface AuthMachineContext {
   authProviderConfigs?: AuthProviderConfig;
