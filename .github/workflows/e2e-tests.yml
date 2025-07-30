@@ -53,7 +53,7 @@ jobs:
         working-directory: ./tests
         run: pnpm exec playwright install --with-deps
 
-      - name: Create .env filea
+      - name: Create .env file
         working-directory: ./tests
         env:
           VARS_JSON: ${{ toJSON(vars) }}
