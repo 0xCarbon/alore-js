@@ -16,6 +16,7 @@ const aloreConfigs: AuthProviderConfig = {
   requireEmailVerification: true,
   requireUsername: false,
   passwordMinLength: 8,
+  enablePasswords: true,
 };
 
 export default function Home() {

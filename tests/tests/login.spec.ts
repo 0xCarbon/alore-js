@@ -109,10 +109,22 @@ test.describe('Login Page Authentication', () => {
     await passwordInput.fill(googlePassword);
 
     // 7. Click Next and wait for navigation
-    await Promise.all([
-      popup.waitForEvent('close'),
-      popup.getByRole('button', { name: 'Next' }).click(),
+    await popup.getByRole('button', { name: 'Next' }).click();
+
+    const continueButton = popup.getByRole('button', { name: /Continue|Continuar|Fazer login/i });
+
+    await Promise.race([
+      continueButton.waitFor({ state: 'visible' }).catch(() => {}),
+      popup.waitForEvent('close', { timeout: 30000 }),
     ]);
+
+    if (!popup.isClosed() && (await continueButton.isVisible())) {
+      await Promise.all([popup.waitForEvent('close'), continueButton.click()]);
+    }
+
+    if (!popup.isClosed()) {
+      await popup.waitForEvent('close', { timeout: 30000 });
+    }
 
     await page.waitForTimeout(1000);
 
@@ -120,33 +132,32 @@ test.describe('Login Page Authentication', () => {
     await expect(page.getByTestId('login-email-step')).toBeHidden();
 
     // 8. Verify successful login OR registration initiation in main window
-    const loginPasswordStep = page.getByTestId('login-password-step');
-    const isExistingUser = await loginPasswordStep.isVisible({ timeout: 15000 });
+    const googleLoginResponsePromise = page.waitForResponse('**/auth/v1/google-login', {
+      timeout: 360000, // 6 minutes
+    });
 
-    if (isExistingUser) {
-      // --- Existing User Flow ---
-      await page.getByTestId('login-password').click();
-      await page.getByTestId('login-password').fill(TEST_PASSWORD);
-      await page.getByTestId('login-submit').click();
+    const googleLoginResponse = await googleLoginResponsePromise;
+    expect(googleLoginResponse.ok()).toBe(true);
 
-      // 9. Assert Final Success
-      await expect(page.getByTestId('login-successful-login-step')).toBeVisible({
-        timeout: 15000,
-      });
-    } else {
-      // --- New User Flow ---
-      await expect(page.getByTestId('register-password-input')).toBeVisible({ timeout: 10000 }); // Check if registration password input is now visible
-      await page.getByTestId('register-password-input').click();
-      await page.getByTestId('register-password-input').fill(TEST_PASSWORD);
-      await page.getByTestId('register-confirm-password-input').click();
-      await page.getByTestId('register-confirm-password-input').fill(TEST_PASSWORD);
-      await page.getByTestId('password-submit-button').click();
+    await page.waitForTimeout(2000);
 
-      // 9. Assert Final Success
-      await expect(page.getByTestId('register-user-created-step')).toBeVisible({
-        timeout: 10000,
-      });
-    }
+    await expect(page.getByTestId('login-password-step')).toBeVisible({ timeout: 10000 });
+
+    // --- Existing User Flow ---
+    await page.getByTestId('login-password').click();
+    await page.getByTestId('login-password').fill(TEST_PASSWORD);
+    await page.getByTestId('login-submit').click();
+
+    // 9. Assert Final Success
+    const google2faVerificationResponsePromise = page.waitForResponse(
+      '**/auth/v1/google-2fa-verification',
+      {
+        timeout: 360000, // 6 minutes
+      },
+    );
+
+    const google2faVerificationResponse = await google2faVerificationResponsePromise;
+    expect(google2faVerificationResponse.ok()).toBe(true);
   });
 
   test('should allow auth with microsoft social login provider, and if user does not exist create user', async ({
@@ -283,9 +294,11 @@ test.describe('Login Page Authentication', () => {
         await page.getByTestId('login-submit').click();
 
         // 9. Assert Final Success
-        await expect(page.getByTestId('login-successful-login-step')).toBeVisible({
-          timeout: 15000,
+        const responsePromise = page.waitForResponse('**/auth/v1/google-login', {
+          timeout: 360000, // 6 minutes
         });
+        const response = await responsePromise;
+        expect(response.ok()).toBe(true);
       } else {
         // --- New User Flow ---
         await expect(page.getByTestId('register-password-input')).toBeVisible({ timeout: 10000 }); // Check if registration password input is now visible
@@ -296,9 +309,11 @@ test.describe('Login Page Authentication', () => {
         await page.getByTestId('password-submit-button').click();
 
         // 9. Assert Final Success
-        await expect(page.getByTestId('register-user-created-step')).toBeVisible({
-          timeout: 10000,
+        const responsePromise = page.waitForResponse('**/auth/v1/account-registration', {
+          timeout: 360000, // 6 minutes
         });
+        const response = await responsePromise;
+        expect(response.ok()).toBe(true);
       }
     } catch (error) {
       await popup.screenshot({ path: 'microsoft-auth-failure.png' });

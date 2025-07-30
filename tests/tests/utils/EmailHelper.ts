@@ -20,7 +20,7 @@ export class TestMailHelper {
     this.generateNewEmail();
   }
 
-  generateNewEmail(): void {
+  async generateNewEmail(): Promise<void> {
     this.tag = uuidv4().replace(/-/g, '').substring(0, 10);
     this.emailAddress = `${this.namespace}.${this.tag}@inbox.testmail.app`;
   }
@@ -37,11 +37,14 @@ export class TestMailHelper {
 
         const { emails } = response.data;
         if (emails.length > 0) {
+          console.log('emails', emails);
           const latestEmail = emails[emails.length - 1];
-          const textString = type === 'register' ? 'código de registro' : 'código de login';
+          console.log('latestEmail', latestEmail);
+          const textString = type === 'register' ? 'código de registro' : 'código de acesso';
           const textMatch = latestEmail.text.match(`${textString}[:\\s]`);
+          console.log('textMatch', textMatch);
           const codeMatch = latestEmail.text.match(/\b\d{6}\b/);
-
+          console.log('codeMatch', codeMatch);
           if (textMatch && codeMatch && codeMatch[0]) {
             return codeMatch[0];
           }
