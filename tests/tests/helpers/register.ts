@@ -34,12 +34,13 @@ export async function registerUser(page: Page, emailHelper: TestMailHelper) {
   await page.getByTestId('register-password-input').fill(TEST_PASSWORD);
   await page.getByTestId('register-confirm-password-input').click();
   await page.getByTestId('register-confirm-password-input').fill(TEST_PASSWORD);
-  await page.getByTestId('password-submit-button').click();
 
   // 7. Assert Success
-  const responsePromise = page.waitForResponse('**/auth/v1/account-registration', {
-    timeout: 360000, // 6 minutes
-  });
-  const response = await responsePromise;
+  const [response] = await Promise.all([
+    page.waitForResponse('**/auth/v1/account-registration', {
+      timeout: 360000, // 6 minutes
+    }),
+    page.getByTestId('password-submit-button').click(),
+  ]);
   expect(response.ok()).toBe(true);
 }

@@ -133,7 +133,7 @@ test.describe('Login Page Authentication', () => {
 
     // 8. Verify successful login OR registration initiation in main window
     const googleLoginResponsePromise = page.waitForResponse('**/auth/v1/google-login', {
-      timeout: 360000, // 6 minutes
+      timeout: 240000, // 4 minutes
     });
 
     const googleLoginResponse = await googleLoginResponsePromise;
@@ -152,7 +152,7 @@ test.describe('Login Page Authentication', () => {
     const google2faVerificationResponsePromise = page.waitForResponse(
       '**/auth/v1/google-2fa-verification',
       {
-        timeout: 360000, // 6 minutes
+        timeout: 240000, // 4 minutes
       },
     );
 
@@ -214,15 +214,41 @@ test.describe('Login Page Authentication', () => {
       await popup.getByPlaceholder('Email, phone, or Skype').fill(microsoftEmail);
       await popup.getByRole('button', { name: 'Next' }).click();
 
+      await page.waitForTimeout(1000);
+
       // 6. Handle password input
-      await popup.getByPlaceholder('Password').waitFor();
-      await popup.getByPlaceholder('Password').fill(microsoftPassword);
+      const passwordInput = popup.locator('input[type="password"]');
+      await passwordInput.waitFor({ state: 'visible', timeout: 10000 });
+      await passwordInput.fill(microsoftPassword);
 
       // 7. Click Sign in/Next and wait for navigation/popup closure
       await Promise.all([
         popup.waitForNavigation(),
-        popup.getByRole('button', { name: 'Sign in' }).click(),
+        popup.getByRole('button', { name: 'Next' }).click(),
       ]);
+
+      // Here could have the screen "Let this app access your info?" and should click in Accept button if it appear
+      const accessInfoAcceptButton = popup.getByRole('button', { name: /Accept/i });
+      let accessInfoVisible = false;
+
+      try {
+        await accessInfoAcceptButton.waitFor({ state: 'visible', timeout: 10000 });
+        accessInfoVisible = true;
+      } catch (error) {
+        console.log('"Let this app access your info?" screen not detected');
+      }
+
+      if (accessInfoVisible) {
+        if (!popup.isClosed()) {
+          await Promise.all([
+            Promise.race([
+              popup.waitForEvent('close'),
+              popup.waitForNavigation({ waitUntil: 'networkidle' }),
+            ]),
+            accessInfoAcceptButton.click(),
+          ]);
+        }
+      }
 
       // Handle "Stay signed in?" prompt with proper closure handling
       const staySignedInButton = popup.getByRole('button', { name: /No|Don't stay signed in/i });
@@ -275,13 +301,22 @@ test.describe('Login Page Authentication', () => {
 
       // Final popup closure wait
       if (!popup.isClosed()) {
-        await popup.waitForEvent('close', { timeout: 15000 });
+        await popup.waitForEvent('close', { timeout: 30000 });
       }
 
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(1000);
 
       await page.waitForLoadState('networkidle');
       await expect(page.getByTestId('login-email-step')).toBeHidden();
+
+      const microsoftLoginResponsePromise = page.waitForResponse('**/auth/v1/google-login', {
+        timeout: 240000, // 4 minutes
+      });
+
+      const microsoftLoginResponse = await microsoftLoginResponsePromise;
+      expect(microsoftLoginResponse.ok()).toBe(true);
+
+      await page.waitForTimeout(2000);
 
       // 8. Verify successful login OR registration initiation in main window
       const loginPasswordStep = page.getByTestId('login-password-step');
@@ -291,14 +326,19 @@ test.describe('Login Page Authentication', () => {
         // --- Existing User Flow ---
         await page.getByTestId('login-password').click();
         await page.getByTestId('login-password').fill(TEST_PASSWORD);
-        await page.getByTestId('login-submit').click();
 
         // 9. Assert Final Success
-        const responsePromise = page.waitForResponse('**/auth/v1/google-login', {
-          timeout: 360000, // 6 minutes
-        });
-        const response = await responsePromise;
-        expect(response.ok()).toBe(true);
+        const microsoft2faVerificationResponsePromise = page.waitForResponse(
+          '**/auth/v1/google-2fa-verification',
+          {
+            timeout: 240000, // 4 minutes
+          },
+        );
+
+        const microsoft2faVerificationResponse = await microsoft2faVerificationResponsePromise;
+        expect(microsoft2faVerificationResponse.ok()).toBe(true);
+
+        await page.getByTestId('login-submit').click();
       } else {
         // --- New User Flow ---
         await expect(page.getByTestId('register-password-input')).toBeVisible({ timeout: 10000 }); // Check if registration password input is now visible
@@ -306,17 +346,21 @@ test.describe('Login Page Authentication', () => {
         await page.getByTestId('register-password-input').fill(TEST_PASSWORD);
         await page.getByTestId('register-confirm-password-input').click();
         await page.getByTestId('register-confirm-password-input').fill(TEST_PASSWORD);
-        await page.getByTestId('password-submit-button').click();
 
         // 9. Assert Final Success
         const responsePromise = page.waitForResponse('**/auth/v1/account-registration', {
-          timeout: 360000, // 6 minutes
+          timeout: 240000, // 4 minutes
         });
+
+        await page.getByTestId('password-submit-button').click();
+
         const response = await responsePromise;
         expect(response.ok()).toBe(true);
       }
     } catch (error) {
-      await popup.screenshot({ path: 'microsoft-auth-failure.png' });
+      if (!popup.isClosed()) {
+        await popup.screenshot({ path: 'microsoft-auth-failure.png' });
+      }
       await page.screenshot({ path: 'failure.png' });
       throw error;
     }

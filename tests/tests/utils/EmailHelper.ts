@@ -37,14 +37,13 @@ export class TestMailHelper {
 
         const { emails } = response.data;
         if (emails.length > 0) {
-          console.log('emails', emails);
-          const latestEmail = emails[emails.length - 1];
-          console.log('latestEmail', latestEmail);
+          const latestEmail = emails[0];
+
           const textString = type === 'register' ? 'código de registro' : 'código de acesso';
-          const textMatch = latestEmail.text.match(`${textString}[:\\s]`);
-          console.log('textMatch', textMatch);
+          const textMatch = latestEmail.text.replace(/(\r\n|\n|\r)/gm, ' ').includes(textString);
+
           const codeMatch = latestEmail.text.match(/\b\d{6}\b/);
-          console.log('codeMatch', codeMatch);
+
           if (textMatch && codeMatch && codeMatch[0]) {
             return codeMatch[0];
           }

@@ -22,6 +22,11 @@ const defaultAloreConfigs: AuthProviderConfig = {
       providerName: 'google',
       clientId: process.env.NEXT_PUBLIC_GOOGLE_ID || '',
     },
+    {
+      id: 'microsoft',
+      providerName: 'microsoft',
+      clientId: process.env.NEXT_PUBLIC_MICROSOFT_ID || '',
+    },
   ],
 };
 
@@ -32,7 +37,7 @@ const LoggedState = () => {
   const logout = () => {
     sendAuth(['RESET_CONTEXT', 'RESET', 'INITIALIZE']);
   };
-  console.log('sessionUser', sessionUser);
+
   if (!sessionUser) {
     return null;
   }
