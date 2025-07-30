@@ -20,7 +20,6 @@
   "author": "",
   "license": "ISC",
   "type": "module",
-  "packageManager": "pnpm@8.15.7+sha512.c85cd21b6da10332156b1ca2aa79c0a61ee7ad2eb0453b88ab299289e9e8ca93e6091232b25c07cbf61f6df77128d9c849e5c9ac6e44854dbd211c49f3a67adc",
   "devDependencies": {
     "@commitlint/cli": "19.7.1",
     "@commitlint/config-conventional": "19.7.1",
@@ -43,5 +42,6 @@
     "prettier": "3.4.2",
     "prettier-plugin-tailwindcss": "0.6.11",
     "typescript-eslint": "8.23.0"
-  }
+  },
+  "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184"
 }
