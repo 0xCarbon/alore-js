@@ -10,6 +10,8 @@ jobs:
     if: github.event.pull_request.merged == true && startsWith(github.head_ref, 'changeset-release/')
     name: Publish
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
