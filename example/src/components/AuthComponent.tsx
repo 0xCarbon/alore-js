@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import Auth, { useAuthService } from '@alore/auth-react-ui';
+import { Auth, useAuthService } from '@alore/auth-react-ui';
 
 export default function AuthComponent() {
   const [state, actor] = useAuthService();
@@ -10,8 +10,11 @@ export default function AuthComponent() {
   return (
     <Auth
       googleId={process.env.NEXT_PUBLIC_GOOGLE_ID || ''}
-      onSuccess={(user) => {
+      onLogin={(user) => {
         console.info('User logged in:', user);
+      }}
+      onRegister={(user) => {
+        console.info('User registered:', user);
       }}
     />
   );

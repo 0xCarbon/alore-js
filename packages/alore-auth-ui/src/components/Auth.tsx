@@ -24,7 +24,8 @@ export interface AuthProps {
   };
   inviteToken?: string;
   keyshareWorker?: Worker | null;
-  onSuccess?: (_sessionUser: SessionUser) => void;
+  onLogin?: (_sessionUser: SessionUser) => void;
+  onRegister?: (_sessionUser: SessionUser) => void;
   onError?: (_error: string) => void;
   onGoBack?: () => void;
 }
@@ -35,7 +36,8 @@ const Auth = ({
   styles,
   inviteToken,
   keyshareWorker,
-  onSuccess,
+  onLogin,
+  onRegister,
   // eslint-disable-next-line no-unused-vars
   onError,
   onGoBack,
@@ -96,12 +98,11 @@ const Auth = ({
   }, [socialProviderRegisterUser]);
 
   useEffect(() => {
-    if (
-      (authState.matches('active.login.successfulLogin') ||
-        authState.matches('active.register.userCreated')) &&
-      sessionUser
-    ) {
-      onSuccess?.(sessionUser);
+    if (authState.matches('active.login.successfulLogin') && sessionUser) {
+      onLogin?.(sessionUser);
+    }
+    if (authState.matches('active.register.userCreated') && sessionUser) {
+      onRegister?.(sessionUser);
     }
   }, [sessionUser]);
 
