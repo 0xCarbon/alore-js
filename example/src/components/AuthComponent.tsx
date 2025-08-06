@@ -1,22 +1,20 @@
-import Auth, { useAuthService } from '@0xcarbon/alore-auth-ui';
-import { useContext } from 'react';
-import { KeyshareWorkerContext } from './KeyshareWorker';
-import { hashUserInfo, generateSecureHash } from '@0xcarbon/alore-auth-sdk';
+/* eslint-disable no-unused-vars */
+import { Auth, useAuthService } from '@alore/auth-react-ui';
 
 export default function AuthComponent() {
-  const keyshareWorker: null | Worker = useContext(KeyshareWorkerContext);
   const [state, actor] = useAuthService();
 
-  console.log(state, actor);
+  console.info('Current State:', state.value);
+  console.info('Context', state.context);
 
   return (
     <Auth
-      locale='pt'
       googleId={process.env.NEXT_PUBLIC_GOOGLE_ID || ''}
-      cryptoUtils={{ hashUserInfo, generateSecureHash }}
-      keyshareWorker={keyshareWorker}
-      onSuccess={(user) => {
-        console.log('User logged in:', user);
+      onLogin={(user) => {
+        console.info('User logged in:', user);
+      }}
+      onRegister={(user) => {
+        console.info('User registered:', user);
       }}
     />
   );

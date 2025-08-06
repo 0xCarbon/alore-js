@@ -1,0 +1,51 @@
+{
+  "name": "alore-web-kit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint '**/*.{ts,tsx}'",
+    "format": "prettier --write .",
+    "format-check": "prettier --check .",
+    "prepare": "husky",
+    "changeset": "changeset"
+  },
+  "keywords": [],
+  "lint-staged": {
+    "**/*.{js,ts,tsx}": [
+      "eslint --fix"
+    ],
+    "**/*": "prettier --write --ignore-unknown"
+  },
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "packageManager": "pnpm@8.15.9",
+  "devDependencies": {
+    "@changesets/changelog-git": "^0.2.1",
+    "@changesets/changelog-github": "^0.5.0",
+    "@changesets/cli": "^2.29.5",
+    "@commitlint/cli": "19.7.1",
+    "@commitlint/config-conventional": "19.7.1",
+    "@eslint/compat": "1.2.6",
+    "@eslint/js": "9.19.0",
+    "@trivago/prettier-plugin-sort-imports": "5.2.2",
+    "eslint": "8.57.1",
+    "eslint-config-airbnb": "19.0.4",
+    "eslint-config-next": "^15.1.6",
+    "eslint-config-prettier": "10.0.1",
+    "eslint-plugin-import": "2.25.3",
+    "eslint-plugin-jsx-a11y": "6.5.1",
+    "eslint-plugin-prettier": "5.2.3",
+    "eslint-plugin-react": "7.37.4",
+    "eslint-plugin-react-hooks": "4.3.0",
+    "eslint-plugin-tailwindcss": "^3.18.0",
+    "globals": "15.14.0",
+    "husky": "9.1.7",
+    "lint-staged": "15.4.3",
+    "prettier": "3.4.2",
+    "prettier-plugin-tailwindcss": "0.6.11",
+    "typescript-eslint": "8.23.0"
+  }
+}

@@ -1,0 +1,8 @@
+coverage
+public
+dist
+pnpm-lock.yaml
+pnpm-workspace.yaml
+**/.next/**
+**/alore-crypto-sdk/**
+tests/playwright-report/**

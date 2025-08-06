@@ -1,0 +1,12 @@
+{
+  "printWidth": 100,
+  "singleQuote": true,
+  "endOfLine": "auto",
+  "trailingComma": "all",
+  "singleAttributePerLine": true,
+  "importOrder": ["^@core/(.*)$", "<THIRD_PARTY_MODULES>", "^@ui/(.*)$", "@/(.*)$", "^[./]"],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true,
+  "importOrderCaseInsensitive": true,
+  "plugins": ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-tailwindcss"]
+}

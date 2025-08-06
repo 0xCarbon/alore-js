@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  app:
+    image: ghcr.io/0xcarbon/devcontainer@sha256:b19b569569c45c44f1d124911d8cc9b1807231c9d022fa26dd9429fd0fea1735
+    volumes:
+      - ../..:/workspaces:cached
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
