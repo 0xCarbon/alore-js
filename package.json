@@ -8,7 +8,8 @@
     "lint": "eslint '**/*.{ts,tsx}'",
     "format": "prettier --write .",
     "format-check": "prettier --check .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "changeset": "changeset"
   },
   "keywords": [],
   "lint-staged": {
@@ -22,6 +23,9 @@
   "type": "module",
   "packageManager": "pnpm@8.15.7+sha512.c85cd21b6da10332156b1ca2aa79c0a61ee7ad2eb0453b88ab299289e9e8ca93e6091232b25c07cbf61f6df77128d9c849e5c9ac6e44854dbd211c49f3a67adc",
   "devDependencies": {
+    "@changesets/changelog-git": "^0.2.1",
+    "@changesets/changelog-github": "^0.5.0",
+    "@changesets/cli": "^2.29.5",
     "@commitlint/cli": "19.7.1",
     "@commitlint/config-conventional": "19.7.1",
     "@eslint/compat": "1.2.6",
