@@ -4,7 +4,9 @@
   "initialVersions": {
     "@alore/auth-react-sdk": "1.0.7-alpha",
     "@alore/auth-react-ui": "1.1.1-alpha",
-    "@alore/crypto-sdk": "1.0.1-alpha"
+    "@alore/crypto-sdk": "1.0.1-alpha",
+    "example": "0.1.0",
+    "test-app": "0.1.0"
   },
-  "changesets": []
+  "changesets": ["eleven-snails-smell"]
 }
