@@ -7,5 +7,5 @@
     "@alore/crypto-sdk": "1.0.1-alpha",
     "example": "0.1.0"
   },
-  "changesets": ["eleven-snails-smell"]
+  "changesets": ["eleven-snails-smell", "weak-cloths-happen"]
 }
