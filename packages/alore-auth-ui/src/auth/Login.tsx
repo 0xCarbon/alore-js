@@ -386,7 +386,19 @@ const Login = ({
       email: yup
         .string()
         .required(dictionary?.formValidation.required)
-        .email(dictionary?.formValidation.invalidEmail),
+        .email(dictionary?.formValidation.invalidEmail)
+        .test('allowed-domain', 'Email domain not allowed', (value) => {
+          const allowedConf = authProviderConfigs?.allowedEmailDomains;
+          const allowed =
+            typeof allowedConf === 'string' ? [allowedConf] : Array.isArray(allowedConf) ? allowedConf : [];
+          if (allowed.length === 0) return true;
+          if (!value) return false;
+          const domain = (value.split('@')[1] || '').toLowerCase();
+          return allowed.some((d) => {
+            const normalized = d.startsWith('@') ? d.slice(1) : d;
+            return domain === normalized.toLowerCase();
+          });
+        }),
     })
     .required();
 
