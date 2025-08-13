@@ -7,6 +7,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useActor } from '@xstate/react';
 import { createTheme, Spinner, ThemeProvider } from 'flowbite-react';
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
+import { StateValue } from 'xstate';
 
 import Login from '../auth/Login';
 import Register from '../auth/Register';
@@ -97,14 +98,62 @@ const Auth = ({
     }
   }, [socialProviderRegisterUser]);
 
+  // Fire callbacks only when transitioning from a verifying state to success (not on hydration)
+  const prevStateValueRef = React.useRef(authState.value);
   useEffect(() => {
-    if (authState.matches('active.login.successfulLogin') && sessionUser) {
+    const matchesValue = (value: StateValue, path: string): boolean => {
+      const parts = path.split('.');
+      let current = value;
+      for (let i = 0; i < parts.length; i += 1) {
+        const part = parts[i];
+        if (typeof current === 'string') {
+          return current === part && i === parts.length - 1;
+        }
+        if (current && typeof current === 'object' && part in current) {
+          current = current[part];
+        } else {
+          return false;
+        }
+      }
+      return true;
+    };
+
+    const prev = prevStateValueRef.current;
+
+    const cameFromLoginVerification =
+      matchesValue(prev, 'active.login.verifyingLogin') ||
+      matchesValue(prev, 'active.login.verifyingEmail2fa') ||
+      matchesValue(prev, 'active.login.verifyingHwAuth') ||
+      matchesValue(prev, 'active.login.verifying2faCode') ||
+      matchesValue(prev, 'active.login.verifyingCode') ||
+      matchesValue(prev, 'active.login.verifyingRegisterPublicKeyCredential') ||
+      matchesValue(prev, 'active.login.verifyingGoogleLogin');
+
+    if (
+      sessionUser &&
+      authState.matches('active.login.successfulLogin') &&
+      cameFromLoginVerification
+    ) {
       onLogin?.(sessionUser);
+      prevStateValueRef.current = authState.value;
+      return;
     }
-    if (authState.matches('active.register.userCreated') && sessionUser) {
+
+    const cameFromRegisterVerification =
+      matchesValue(prev, 'active.register.completingRegistration') ||
+      matchesValue(prev, 'active.register.sendingAuthPublicCredential') ||
+      matchesValue(prev, 'active.register.sendingPublicCredential');
+
+    if (
+      sessionUser &&
+      authState.matches('active.register.userCreated') &&
+      cameFromRegisterVerification
+    ) {
       onRegister?.(sessionUser);
     }
-  }, [sessionUser]);
+
+    prevStateValueRef.current = authState.value;
+  }, [authState.value, sessionUser]);
 
   useEffect(() => {
     if (authState.event.type === 'BACK') {
