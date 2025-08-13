@@ -390,6 +390,7 @@ const Login = ({
         .test('allowed-domain', 'Email domain not allowed', (value) => {
           const allowedConf = authProviderConfigs?.allowedEmailDomains;
           const allowed =
+            // eslint-disable-next-line no-nested-ternary
             typeof allowedConf === 'string'
               ? [allowedConf]
               : Array.isArray(allowedConf)

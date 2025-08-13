@@ -30,6 +30,7 @@ export class AloreAuth {
     isEmailAllowed: (context: AuthMachineContext, email?: string | null) => {
       const allowedConf = context.authProviderConfigs?.allowedEmailDomains;
       const allowedList =
+        // eslint-disable-next-line no-nested-ternary
         typeof allowedConf === 'string'
           ? [allowedConf]
           : Array.isArray(allowedConf)
