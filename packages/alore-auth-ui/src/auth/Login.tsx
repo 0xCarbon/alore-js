@@ -390,7 +390,11 @@ const Login = ({
         .test('allowed-domain', 'Email domain not allowed', (value) => {
           const allowedConf = authProviderConfigs?.allowedEmailDomains;
           const allowed =
-            typeof allowedConf === 'string' ? [allowedConf] : Array.isArray(allowedConf) ? allowedConf : [];
+            typeof allowedConf === 'string'
+              ? [allowedConf]
+              : Array.isArray(allowedConf)
+                ? allowedConf
+                : [];
           if (allowed.length === 0) return true;
           if (!value) return false;
           const domain = (value.split('@')[1] || '').toLowerCase();

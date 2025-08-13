@@ -30,7 +30,11 @@ export class AloreAuth {
     isEmailAllowed: (context: AuthMachineContext, email?: string | null) => {
       const allowedConf = context.authProviderConfigs?.allowedEmailDomains;
       const allowedList =
-        typeof allowedConf === 'string' ? [allowedConf] : Array.isArray(allowedConf) ? allowedConf : [];
+        typeof allowedConf === 'string'
+          ? [allowedConf]
+          : Array.isArray(allowedConf)
+            ? allowedConf
+            : [];
       if (allowedList.length === 0) return true;
       if (!email) return false;
       const domain = (email.split('@')[1] || '').toLowerCase();
