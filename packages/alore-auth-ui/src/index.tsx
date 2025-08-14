@@ -1,4 +1,4 @@
-import { AuthProviderConfig } from '@alore/auth-react-sdk/dist/types';
+import { AuthProviderConfig } from '@alore/auth-react-sdk';
 
 import Login from './auth/Login';
 import Register from './auth/Register';
