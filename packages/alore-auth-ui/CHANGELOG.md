@@ -1,5 +1,13 @@
 # @alore/auth-react-ui
 
+## 1.2.0-alpha.4
+
+### Patch Changes
+
+- 2efdf28: fix build
+- Updated dependencies [2efdf28]
+  - @alore/auth-react-sdk@1.1.0-alpha.2
+
 ## 1.2.0-alpha.3
 
 ### Patch Changes

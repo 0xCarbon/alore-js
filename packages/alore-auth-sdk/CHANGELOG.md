@@ -1,5 +1,11 @@
 # @alore/auth-react-sdk
 
+## 1.1.0-alpha.2
+
+### Patch Changes
+
+- 2efdf28: fix build
+
 ## 1.1.0-alpha.1
 
 ### Patch Changes
