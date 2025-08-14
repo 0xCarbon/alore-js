@@ -1,6 +1,7 @@
 'use client';
 
 /* eslint-disable @next/next/no-img-element */
+import type { SocialProvider } from '@alore/auth-react-sdk';
 import { useMsal } from '@azure/msal-react';
 import { ArrowRightIcon, EnvelopeIcon, KeyIcon, LockClosedIcon } from '@heroicons/react/20/solid';
 import { LockOpenIcon } from '@heroicons/react/24/outline';
@@ -811,7 +812,7 @@ const Login = ({
           {socialProviders?.length && (
             <>
               <div className="flex w-full flex-row gap-4">
-                {socialProviders.map((provider) => (
+                {socialProviders.map((provider: SocialProvider) => (
                   <Button
                     key={provider.id}
                     color="light"
