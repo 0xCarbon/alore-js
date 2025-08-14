@@ -18,7 +18,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@alore/auth-react-sdk": "1.1.0-alpha.0",
+    "@alore/auth-react-sdk": "workspace:*",
     "@azure/msal-browser": "4.8.0",
     "@azure/msal-react": "3.0.7",
     "@heroicons/react": "2.0.16",
