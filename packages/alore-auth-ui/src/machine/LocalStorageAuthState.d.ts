@@ -29,6 +29,7 @@ interface AuthProviderConfigs {
   privacyPolicyUrl: string;
   termsOfServiceUrl: string;
   firebaseOptions: FirebaseOptions;
+  allowedEmailDomains?: string | string[];
 }
 
 interface Context {

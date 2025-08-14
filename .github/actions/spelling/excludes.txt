@@ -10,6 +10,7 @@
 (?:^|/)styles/
 (?:^|/)vendor/
 (?:^|/)insomnia.json
+(?:^|/)CHANGELOG.md
 (?:^|/)scripts/
 (?:^|/)sqlx-data.json
 (?:^|/)Cargo.toml

@@ -6,8 +6,8 @@ import AuthComponent from '@/components/AuthComponent';
 
 import KeyshareWorkerProvider from '../components/KeyshareWorkerProvider';
 
-export const clientId = process.env.NEXT_PUBLIC_ALORE_CLIENT_ID || '';
-export const endpoint = process.env.NEXT_PUBLIC_ALORE_BACKEND_URL || 'https://api.bealore.com/v1';
+const clientId = process.env.NEXT_PUBLIC_ALORE_CLIENT_ID || '';
+const endpoint = process.env.NEXT_PUBLIC_ALORE_BACKEND_URL || 'https://api.bealore.com/v1';
 
 const aloreConfigs: AuthProviderConfig = {
   locale: 'pt',
@@ -17,6 +17,8 @@ const aloreConfigs: AuthProviderConfig = {
   requireUsername: false,
   passwordMinLength: 8,
   enablePasswords: true,
+  // Example: restrict to a domain or multiple
+  allowedEmailDomains: 'bealore.com',
 };
 
 export default function Home() {

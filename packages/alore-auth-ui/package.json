@@ -1,6 +1,6 @@
 {
   "name": "@alore/auth-react-ui",
-  "version": "1.1.1-alpha.1",
+  "version": "1.2.0-alpha.2",
   "repository": "https://github.com/0xCarbon/alore-js",
   "description": "React Auth UI component for Alore",
   "main": "dist/cjs/index.js",
@@ -18,7 +18,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
-    "@alore/auth-react-sdk": "1.0.7-alpha",
+    "@alore/auth-react-sdk": "1.1.0-alpha.0",
     "@azure/msal-browser": "4.8.0",
     "@azure/msal-react": "3.0.7",
     "@heroicons/react": "2.0.16",
