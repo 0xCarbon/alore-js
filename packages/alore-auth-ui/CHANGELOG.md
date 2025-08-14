@@ -1,5 +1,13 @@
 # @alore/auth-react-ui
 
+## 1.2.0-alpha.6
+
+### Patch Changes
+
+- 4d2a1db: enhance error handling
+- Updated dependencies [4d2a1db]
+  - @alore/auth-react-sdk@1.1.0-alpha.4
+
 ## 1.2.0-alpha.5
 
 ### Patch Changes
