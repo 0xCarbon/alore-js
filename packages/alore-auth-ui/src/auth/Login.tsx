@@ -405,7 +405,15 @@ const Login = ({
             return domain === normalized.toLowerCase();
           });
           if (!isAllowed) {
-            sendAuth({ type: 'SET_ERROR', error: 'EMAIL_DOMAIN_NOT_ALLOWED' });
+            sendAuth({
+              type: 'SET_ERROR',
+              error: 'EMAIL_DOMAIN_NOT_ALLOWED',
+              info: {
+                code: 'EMAIL_DOMAIN_NOT_ALLOWED',
+                message: dictionary?.auth.emailDomainNotAllowed!,
+                email: value,
+              },
+            });
           } else {
             sendAuth({ type: 'CLEAR_ERROR' });
           }

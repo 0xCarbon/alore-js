@@ -24,6 +24,12 @@ export interface AuthMachineContext {
   authProviderConfigs?: AuthProviderConfig;
   salt?: string;
   error?: string;
+  errorInfo?: {
+    code?: string;
+    message?: string;
+    email?: string;
+    data?: any;
+  };
   active2fa?: TwoFactorAuth[];
   sessionId?: string;
   registerUser?: {
@@ -48,7 +54,11 @@ export type AuthMachineEvents =
   | { type: 'INITIALIZE'; forgeId?: null | string }
   | { type: 'RESET' }
   | { type: 'RESET_CONTEXT' }
-  | { type: 'SET_ERROR'; error: string }
+  | {
+      type: 'SET_ERROR';
+      error?: string;
+      info?: { code?: string; message?: string; email?: string; data?: any };
+    }
   | { type: 'CLEAR_ERROR' }
   | { type: 'REFRESH_ACCESS_TOKEN'; newAccessToken: string }
   | { type: 'ADVANCE_TO_PASSWORD' }

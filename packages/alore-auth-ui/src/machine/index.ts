@@ -7,6 +7,7 @@ import { AuthMachineContext, AuthMachineEvents, AuthMachineServices } from './ty
 const initialContext: AuthMachineContext = {
   salt: undefined,
   error: undefined,
+  errorInfo: undefined,
   active2fa: undefined,
   sessionId: undefined,
   registerUser: undefined,
@@ -269,6 +270,16 @@ export const authMachine = createMachine(
                         event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
                           ? 'EMAIL_DOMAIN_NOT_ALLOWED'
                           : event.data?.error,
+                      errorInfo: (ctx, event) => ({
+                        code: event.data?.type,
+                        message: event.data?.message || event.data?.error,
+                        email:
+                          ctx.credentialEmail ||
+                          ctx.registerUser?.email ||
+                          ctx.googleUser?.email ||
+                          ctx.socialProviderRegisterUser?.email,
+                        data: event.data,
+                      }),
                     }),
                   },
                 },
@@ -334,6 +345,16 @@ export const authMachine = createMachine(
                         event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
                           ? 'EMAIL_DOMAIN_NOT_ALLOWED'
                           : event.data?.error || event.data?.message,
+                      errorInfo: (ctx, event) => ({
+                        code: event.data?.type,
+                        message: event.data?.message || event.data?.error,
+                        email:
+                          ctx.credentialEmail ||
+                          ctx.registerUser?.email ||
+                          ctx.googleUser?.email ||
+                          ctx.socialProviderRegisterUser?.email,
+                        data: event.data,
+                      }),
                     }),
                   },
                 },
@@ -471,6 +492,16 @@ export const authMachine = createMachine(
                         event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
                           ? 'EMAIL_DOMAIN_NOT_ALLOWED'
                           : event.data?.error || event.data?.message,
+                      errorInfo: (ctx, event) => ({
+                        code: event.data?.type,
+                        message: event.data?.message || event.data?.error,
+                        email:
+                          ctx.credentialEmail ||
+                          ctx.registerUser?.email ||
+                          ctx.googleUser?.email ||
+                          ctx.socialProviderRegisterUser?.email,
+                        data: event.data,
+                      }),
                     }),
                   },
 
@@ -583,6 +614,16 @@ export const authMachine = createMachine(
                         event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
                           ? 'EMAIL_DOMAIN_NOT_ALLOWED'
                           : event.data?.error || event.data?.message || event.data,
+                      errorInfo: (ctx, event) => ({
+                        code: event.data?.type,
+                        message: event.data?.message || event.data?.error,
+                        email:
+                          ctx.credentialEmail ||
+                          ctx.registerUser?.email ||
+                          ctx.googleUser?.email ||
+                          ctx.socialProviderRegisterUser?.email,
+                        data: event.data,
+                      }),
                     }),
                   },
                 },
@@ -812,6 +853,16 @@ export const authMachine = createMachine(
                         event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
                           ? 'EMAIL_DOMAIN_NOT_ALLOWED'
                           : event.data?.error || event.data?.message,
+                      errorInfo: (ctx, event) => ({
+                        code: event.data?.type,
+                        message: event.data?.message || event.data?.error,
+                        email:
+                          ctx.registerUser?.email ||
+                          ctx.credentialEmail ||
+                          ctx.googleUser?.email ||
+                          ctx.socialProviderRegisterUser?.email,
+                        data: event.data,
+                      }),
                     }),
                   },
                 },
@@ -949,6 +1000,16 @@ export const authMachine = createMachine(
                         event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
                           ? 'EMAIL_DOMAIN_NOT_ALLOWED'
                           : event.data?.error || event.data?.message || event.data,
+                      errorInfo: (ctx, event) => ({
+                        code: event.data?.type,
+                        message: event.data?.message || event.data?.error,
+                        email:
+                          ctx.registerUser?.email ||
+                          ctx.credentialEmail ||
+                          ctx.googleUser?.email ||
+                          ctx.socialProviderRegisterUser?.email,
+                        data: event.data,
+                      }),
                     }),
                   },
                 },
@@ -1170,11 +1231,14 @@ export const authMachine = createMachine(
       SET_ERROR: {
         actions: assign({
           error: (_ctx, event) => event.error,
+          errorInfo: (_ctx, event) =>
+            event.info || (event.error ? { code: event.error, message: event.error } : undefined),
         }),
       },
       CLEAR_ERROR: {
         actions: assign({
           error: () => undefined,
+          errorInfo: () => undefined,
         }),
       },
     },

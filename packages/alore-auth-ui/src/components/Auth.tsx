@@ -16,6 +16,13 @@ import useAuthServiceInstance from '../hooks/useAuthServiceInstance';
 import { SessionUser } from '../machine/types';
 import { buttonTheme, checkboxTheme, textInputTheme } from '../styles/themes';
 
+export type AuthError = {
+  code?: string;
+  message?: string;
+  email?: string;
+  data?: any;
+};
+
 export interface AuthProps {
   googleId?: string;
   forgeId?: string;
@@ -27,7 +34,7 @@ export interface AuthProps {
   keyshareWorker?: Worker | null;
   onLogin?: (_sessionUser: SessionUser) => void;
   onRegister?: (_sessionUser: SessionUser) => void;
-  onError?: (_error: string) => void;
+  onError?: (_error: string | AuthError) => void;
   onGoBack?: () => void;
 }
 
@@ -161,11 +168,20 @@ const Auth = ({
     }
     if (typeof onError === 'function') {
       const err = authState.context.error;
-      if (err && typeof err === 'string') {
-        onError(err);
+      const info = (authState.context as any).errorInfo as AuthError | undefined;
+      if (info && (info.code || info.message)) {
+        onError(info);
+      } else if (err && typeof err === 'string') {
+        onError({ message: err });
       }
     }
-  }, [authState.event, onGoBack]);
+  }, [
+    authState.event,
+    authState.context.error,
+    (authState.context as any).errorInfo,
+    onError,
+    onGoBack,
+  ]);
 
   return isClient ? (
     <div
