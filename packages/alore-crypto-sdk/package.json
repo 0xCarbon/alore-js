@@ -16,6 +16,7 @@
   },
   "scripts": {
     "prepare": "pnpm build",
+    "prepack": "pnpm build",
     "build": "rm -rf dist/* && tsc"
   },
   "author": "0xCarbon",

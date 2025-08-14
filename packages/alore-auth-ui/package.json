@@ -10,7 +10,9 @@
   ],
   "scripts": {
     "prepare": "pnpm build",
-    "build": "rm -rf dist/* && tsc -p tsconfig-esm.json && tsc -p tsconfig-cjs.json"
+    "prepack": "pnpm build",
+    "build:deps": "pnpm -w -r --filter @alore/auth-react-sdk run build",
+    "build": "pnpm run build:deps && rm -rf dist/* && tsc -p tsconfig-esm.json && tsc -p tsconfig-cjs.json"
   },
   "author": "0xCarbon",
   "license": "LGPL-2.1-only",

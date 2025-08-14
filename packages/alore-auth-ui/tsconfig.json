@@ -1,6 +1,11 @@
 {
   "compilerOptions": {
     "baseUrl": "src",
+    "paths": {
+      "@alore/auth-react-sdk": ["../alore-auth-sdk/src"],
+      "@alore/auth-react-sdk/*": ["../alore-auth-sdk/src/*"]
+    },
+    "rootDirs": ["src", "../alore-auth-sdk/src"],
     "rootDir": "./src",
     "lib": ["DOM", "ESNext"],
     "moduleResolution": "node",

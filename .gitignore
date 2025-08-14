@@ -52,6 +52,13 @@ yarn-error.log*
 # xstate
 *.typegen.*
 
+# generated artifacts accidentally placed in src
+# keep dist ignored above; this prevents committing compiled outputs under source dirs
+packages/**/src/**/*.d.ts
+packages/**/src/**/*.d.ts.map
+packages/**/src/**/*.js.map
+packages/**/src/**/*.js
+
 # pnpm
 pnpm-lock.yaml
 pnpm-workspace.yaml
