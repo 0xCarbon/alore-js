@@ -25,6 +25,7 @@
     "continueMicrosoft": "Microsoft",
     "signWithPasskey": "Sign in with a passkey",
     "continueApple": "Continue with Apple",
+    "emailDomainNotAllowed": "Email domain not allowed",
     "layout": {
       "default": {
         "title": "Where user experience and DeFi meets.",

@@ -16,6 +16,9 @@ export default function AuthComponent() {
       onRegister={(user) => {
         console.info('User registered:', user);
       }}
+      onError={(error) => {
+        console.info('Error:', error);
+      }}
     />
   );
 }

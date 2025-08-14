@@ -25,6 +25,7 @@
     "continueMicrosoft": "Microsoft",
     "signWithPasskey": "Entrar com uma passkey",
     "continueApple": "Continuar com a Apple",
+    "emailDomainNotAllowed": "Domínio de e-mail não permitido",
     "layout": {
       "default": {
         "title": "Onde a experiência do usuário e DeFi se encontram.",

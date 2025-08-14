@@ -159,6 +159,12 @@ const Auth = ({
     if (authState.event.type === 'BACK') {
       onGoBack?.();
     }
+    if (typeof onError === 'function') {
+      const err = authState.context.error;
+      if (err && typeof err === 'string') {
+        onError(err);
+      }
+    }
   }, [authState.event, onGoBack]);
 
   return isClient ? (

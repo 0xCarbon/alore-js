@@ -48,6 +48,8 @@ export type AuthMachineEvents =
   | { type: 'INITIALIZE'; forgeId?: null | string }
   | { type: 'RESET' }
   | { type: 'RESET_CONTEXT' }
+  | { type: 'SET_ERROR'; error: string }
+  | { type: 'CLEAR_ERROR' }
   | { type: 'REFRESH_ACCESS_TOKEN'; newAccessToken: string }
   | { type: 'ADVANCE_TO_PASSWORD' }
   | { type: 'BACK' }

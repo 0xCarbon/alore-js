@@ -265,7 +265,10 @@ export const authMachine = createMachine(
                   onError: {
                     target: '#authMachine.active.login',
                     actions: assign({
-                      error: (_context, event) => event.data?.error,
+                      error: (_context, event) =>
+                        event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
+                          ? 'EMAIL_DOMAIN_NOT_ALLOWED'
+                          : event.data?.error,
                     }),
                   },
                 },
@@ -327,7 +330,10 @@ export const authMachine = createMachine(
                   onError: {
                     target: '#authMachine.active.login.inputPassword',
                     actions: assign({
-                      error: (_context, event) => event.data?.error || event.data?.message,
+                      error: (_context, event) =>
+                        event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
+                          ? 'EMAIL_DOMAIN_NOT_ALLOWED'
+                          : event.data?.error || event.data?.message,
                     }),
                   },
                 },
@@ -461,7 +467,10 @@ export const authMachine = createMachine(
                   onError: {
                     target: 'email2fa',
                     actions: assign({
-                      error: (_context, event) => event.data?.error || event.data?.message,
+                      error: (_context, event) =>
+                        event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
+                          ? 'EMAIL_DOMAIN_NOT_ALLOWED'
+                          : event.data?.error || event.data?.message,
                     }),
                   },
 
@@ -571,7 +580,9 @@ export const authMachine = createMachine(
                     target: 'idle',
                     actions: assign({
                       error: (_context, event) =>
-                        event.data?.error || event.data?.message || event.data,
+                        event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
+                          ? 'EMAIL_DOMAIN_NOT_ALLOWED'
+                          : event.data?.error || event.data?.message || event.data,
                     }),
                   },
                 },
@@ -797,7 +808,10 @@ export const authMachine = createMachine(
                   onError: {
                     target: 'emailValidation',
                     actions: assign({
-                      error: (_context, event) => event.data?.error || event.data?.message,
+                      error: (_context, event) =>
+                        event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
+                          ? 'EMAIL_DOMAIN_NOT_ALLOWED'
+                          : event.data?.error || event.data?.message,
                     }),
                   },
                 },
@@ -932,7 +946,9 @@ export const authMachine = createMachine(
                     target: 'registerMethodSelection',
                     actions: assign({
                       error: (_context, event) =>
-                        event.data?.error || event.data?.message || event.data,
+                        event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
+                          ? 'EMAIL_DOMAIN_NOT_ALLOWED'
+                          : event.data?.error || event.data?.message || event.data,
                     }),
                   },
                 },
@@ -1150,6 +1166,16 @@ export const authMachine = createMachine(
       RESET_CONTEXT: {
         target: '.history',
         actions: 'clearContext',
+      },
+      SET_ERROR: {
+        actions: assign({
+          error: (_ctx, event) => event.error,
+        }),
+      },
+      CLEAR_ERROR: {
+        actions: assign({
+          error: () => undefined,
+        }),
       },
     },
   },

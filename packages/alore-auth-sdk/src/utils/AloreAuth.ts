@@ -66,7 +66,11 @@ export class AloreAuth {
     ) => {
       const { email } = event.payload;
       if (!this.services.isEmailAllowed(context, email)) {
-        throw new Error('Email domain not allowed');
+        throw new AloreAuthError(
+          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
+          'Email domain not allowed',
+          400,
+        );
       }
       const { credentialEmail } = context;
 
@@ -130,7 +134,11 @@ export class AloreAuth {
     ) => {
       const { email, nickname, passwordHash, device } = event.payload;
       if (!this.services.isEmailAllowed(context, email)) {
-        throw new Error('Email domain not allowed');
+        throw new AloreAuthError(
+          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
+          'Email domain not allowed',
+          400,
+        );
       }
       const { firebaseCompatible } = context.authProviderConfigs || {};
 
@@ -208,7 +216,11 @@ export class AloreAuth {
     ) => {
       const { email, nickname, locale } = event.payload;
       if (!this.services.isEmailAllowed(context, email)) {
-        throw new Error('Email domain not allowed');
+        throw new AloreAuthError(
+          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
+          'Email domain not allowed',
+          400,
+        );
       }
       const searchParams = new URLSearchParams();
       const url = '/auth/v1/confirmation-email';
@@ -259,7 +271,11 @@ export class AloreAuth {
     ) => {
       const { email } = event.payload;
       if (!this.services.isEmailAllowed(context, email)) {
-        return { error: 'Email domain not allowed' };
+        throw new AloreAuthError(
+          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
+          'Email domain not allowed',
+          400,
+        );
       }
       const response = await this.fetchWithProgressiveBackoff(`/reset-password`, {
         method: 'POST',
@@ -302,7 +318,11 @@ export class AloreAuth {
     ) => {
       const { email, passwordHash, device, locale } = event.payload;
       if (!this.services.isEmailAllowed(context, email || context.credentialEmail)) {
-        throw new Error('Email domain not allowed');
+        throw new AloreAuthError(
+          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
+          'Email domain not allowed',
+          400,
+        );
       }
       const { credentialEmail } = context;
 
@@ -361,7 +381,11 @@ export class AloreAuth {
       const { rpDomain } = context.authProviderConfigs || {};
       const { email, nickname, device } = event.payload || context.registerUser;
       if (email && !this.services.isEmailAllowed(context, email)) {
-        throw new Error('Email domain not allowed');
+        throw new AloreAuthError(
+          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
+          'Email domain not allowed',
+          400,
+        );
       }
 
       const startPasskeyRegistrationResponse = await this.fetchWithProgressiveBackoff(
@@ -407,7 +431,11 @@ export class AloreAuth {
       const { rpDomain } = context.authProviderConfigs || {};
       const { email, nickname, device, passkeyRegistration } = event.payload || {};
       if (email && !this.services.isEmailAllowed(context, email)) {
-        throw new Error('Email domain not allowed');
+        throw new AloreAuthError(
+          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
+          'Email domain not allowed',
+          400,
+        );
       }
 
       const response = await this.fetchWithProgressiveBackoff(
@@ -446,7 +474,11 @@ export class AloreAuth {
 
       const email = event.payload?.email;
       if (email && !this.services.isEmailAllowed(context, email)) {
-        throw new Error('Email domain not allowed');
+        throw new AloreAuthError(
+          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
+          'Email domain not allowed',
+          400,
+        );
       }
 
       const searchParams = new URLSearchParams();
@@ -677,7 +709,11 @@ export class AloreAuth {
       const { email, passwordHash, secureCode } = event.payload;
       const { credentialEmail, authProviderConfigs } = context;
       if (!this.services.isEmailAllowed(context, email || credentialEmail)) {
-        throw new Error('Email domain not allowed');
+        throw new AloreAuthError(
+          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
+          'Email domain not allowed',
+          400,
+        );
       }
       const { firebaseCompatible } = authProviderConfigs || {};
 
@@ -816,7 +852,11 @@ export class AloreAuth {
 
       if (response.ok) {
         if (!this.services.isEmailAllowed(context, data.email)) {
-          throw new Error('Email domain not allowed');
+          throw new AloreAuthError(
+            ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
+            'Email domain not allowed',
+            400,
+          );
         }
         return {
           googleOtpCode: data.otpCode,
@@ -832,7 +872,11 @@ export class AloreAuth {
 
       if (response.status === 404) {
         if (!this.services.isEmailAllowed(context, data.email)) {
-          throw new Error('Email domain not allowed');
+          throw new AloreAuthError(
+            ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
+            'Email domain not allowed',
+            400,
+          );
         }
         return {
           isNewUser: true,

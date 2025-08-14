@@ -388,7 +388,7 @@ const Login = ({
         .string()
         .required(dictionary?.formValidation.required)
         .email(dictionary?.formValidation.invalidEmail)
-        .test('allowed-domain', 'Email domain not allowed', (value) => {
+        .test('allowed-domain', dictionary?.auth.emailDomainNotAllowed!, (value) => {
           const allowedConf = authProviderConfigs?.allowedEmailDomains;
           const allowed =
             // eslint-disable-next-line no-nested-ternary
@@ -400,10 +400,16 @@ const Login = ({
           if (allowed.length === 0) return true;
           if (!value) return false;
           const domain = (value.split('@')[1] || '').toLowerCase();
-          return allowed.some((d) => {
+          const isAllowed = allowed.some((d) => {
             const normalized = d.startsWith('@') ? d.slice(1) : d;
             return domain === normalized.toLowerCase();
           });
+          if (!isAllowed) {
+            sendAuth({ type: 'SET_ERROR', error: 'EMAIL_DOMAIN_NOT_ALLOWED' });
+          } else {
+            sendAuth({ type: 'CLEAR_ERROR' });
+          }
+          return isAllowed;
         }),
     })
     .required();
