@@ -392,3 +392,4 @@ textbox
 sessionid
 XEvent
 spacebar
+transitioning
