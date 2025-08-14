@@ -3,10 +3,9 @@ import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
 import typescriptEslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
-import _import from 'eslint-plugin-import';
-import prettier from 'eslint-plugin-prettier';
-import react from 'eslint-plugin-react';
-import reactHooks from 'eslint-plugin-react-hooks';
+// Plugins like 'import', 'react', 'react-hooks', and 'prettier' are provided
+// by the extended configs via FlatCompat. Avoid redefining them here to
+// prevent "Cannot redefine plugin" errors in flat config merging.
 import globals from 'globals';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -34,10 +33,6 @@ export default [
   {
     plugins: {
       '@typescript-eslint': typescriptEslint,
-      import: _import,
-      react,
-      'react-hooks': reactHooks,
-      prettier,
     },
 
     languageOptions: {
