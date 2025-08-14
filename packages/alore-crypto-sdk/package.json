@@ -1,6 +1,6 @@
 {
   "name": "@alore/crypto-sdk",
-  "version": "1.0.1-alpha",
+  "version": "1.0.1-alpha.0",
   "repository": "https://github.com/0xCarbon/alore-js",
   "description": "SDK for Alore Crypto",
   "main": "dist/index.js",
