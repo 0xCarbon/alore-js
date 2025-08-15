@@ -18,6 +18,13 @@ export default function AuthComponent() {
       }}
       onError={(error) => {
         console.info('Error:', error);
+        if (
+          typeof error === 'object' &&
+          'message' in error &&
+          error.message === 'User not allowed to register with email'
+        ) {
+          // do something
+        }
       }}
     />
   );

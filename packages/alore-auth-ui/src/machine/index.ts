@@ -18,6 +18,8 @@ const initialContext: AuthMachineContext = {
   forgeData: undefined,
   CCRPublicKey: undefined,
   RCRPublicKey: undefined,
+  // authProviderConfigs: undefined,
+  credentialEmail: undefined,
 };
 
 export const authMachine = createMachine(
@@ -150,7 +152,10 @@ export const authMachine = createMachine(
                         }),
                       },
 
-                      BACK: '#authMachine.active.login.idle.error',
+                      BACK: {
+                        target: '#authMachine.active.login.idle.error',
+                        actions: 'clearContext',
+                      },
                     },
                   },
 
@@ -194,7 +199,10 @@ export const authMachine = createMachine(
                         }),
                       },
 
-                      BACK: '#authMachine.active.login.idle.error',
+                      BACK: {
+                        target: '#authMachine.active.login.idle.error',
+                        actions: 'clearContext',
+                      },
                       FINISH_PASSKEY_LOGIN:
                         '#authMachine.active.login.verifyingRegisterPublicKeyCredential',
                     },
@@ -249,6 +257,7 @@ export const authMachine = createMachine(
                       registerUser: () => undefined,
                       socialProviderRegisterUser: () => undefined,
                       error: () => undefined,
+                      errorInfo: () => undefined,
                     }),
                   },
                 },
@@ -299,6 +308,7 @@ export const authMachine = createMachine(
                         registerUser: () => undefined,
                         socialProviderRegisterUser: () => undefined,
                         error: () => undefined,
+                        errorInfo: () => undefined,
                       }),
 
                       cond: 'isPasskeyEnabled',
@@ -388,6 +398,7 @@ export const authMachine = createMachine(
                     target: 'inputPassword',
                     actions: assign({
                       error: () => undefined,
+                      errorInfo: () => undefined,
                     }),
                   },
                 },
@@ -423,6 +434,7 @@ export const authMachine = createMachine(
                     target: 'inputPassword',
                     actions: assign({
                       error: () => undefined,
+                      errorInfo: () => undefined,
                     }),
                   },
                 },
@@ -476,6 +488,7 @@ export const authMachine = createMachine(
                     target: 'inputPassword',
                     actions: assign({
                       error: () => undefined,
+                      errorInfo: () => undefined,
                     }),
                   },
                 },
@@ -667,8 +680,12 @@ export const authMachine = createMachine(
                     {
                       target: '#authMachine.active.login.loginMethodSelection',
                       cond: 'isPasswordAndPasskeyEnabled',
+                      actions: 'clearContext',
                     },
-                    'idle.authScreen',
+                    {
+                      target: 'idle.authScreen',
+                      actions: 'clearContext',
+                    },
                   ],
                   PASSKEY_NOT_SUPPORTED: [
                     {
@@ -826,6 +843,7 @@ export const authMachine = createMachine(
                     target: 'idle',
                     actions: assign({
                       error: () => undefined,
+                      errorInfo: () => undefined,
                     }),
                   },
                   RESEND_CODE: 'resendingRegistrationEmail',
@@ -887,6 +905,7 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.login',
                     actions: assign({
                       error: () => undefined,
+                      errorInfo: () => undefined,
                     }),
                   },
                 },
@@ -1032,6 +1051,7 @@ export const authMachine = createMachine(
                   ],
                   BACK: {
                     target: '#authMachine.active.register.registerMethodSelection',
+                    actions: 'clearContext',
                   },
                 },
               },
@@ -1081,6 +1101,7 @@ export const authMachine = createMachine(
                       registerUser: () => undefined,
                       socialProviderRegisterUser: () => undefined,
                       error: () => undefined,
+                      errorInfo: () => undefined,
                     }),
                   },
                 },
@@ -1348,19 +1369,10 @@ export const authMachine = createMachine(
       setupRegisterUser: assign({
         registerUser: (_, event) => event?.registerUser || undefined,
       }),
-      clearContext: assign({
-        salt: () => undefined,
-        error: () => undefined,
-        active2fa: () => undefined,
-        registerUser: () => undefined,
-        googleOtpCode: () => undefined,
-        googleUser: () => undefined,
-        sessionUser: () => undefined,
-        forgeData: () => undefined,
-        CCRPublicKey: () => undefined,
-        RCRPublicKey: () => undefined,
-        authProviderConfigs: () => undefined,
-      }),
+      // clearError action removed; we now clear errors inline in each BACK transition
+      clearContext: assign(() => ({
+        ...initialContext,
+      })),
     },
   },
 );
@@ -1371,7 +1383,13 @@ let stateDefinition;
 if (typeof window !== 'undefined') {
   const authState = localStorage.getItem('authState');
   if (authState) {
-    stateDefinition = JSON.parse(authState);
+    const parsed = JSON.parse(authState);
+    // Drop persisted error on hydration
+    if (parsed?.context) {
+      parsed.context.error = undefined;
+      parsed.context.errorInfo = undefined;
+    }
+    stateDefinition = parsed;
   }
 }
 
@@ -1456,20 +1474,10 @@ export const authService = (services: {}, context: AuthMachineContext) => {
           setupRegisterUser: assign({
             registerUser: (_, event) => event?.registerUser || undefined,
           }),
-          clearContext: assign({
-            salt: () => undefined,
-            error: () => undefined,
-            active2fa: () => undefined,
-            registerUser: () => undefined,
-            socialProviderRegisterUser: () => undefined,
-            googleOtpCode: () => undefined,
-            googleUser: () => undefined,
-            sessionUser: () => undefined,
-            forgeData: () => undefined,
-            sessionId: () => undefined,
-            CCRPublicKey: () => undefined,
-            RCRPublicKey: () => undefined,
-          }),
+          // clearError action removed; errors are cleared inline on BACK transitions
+          clearContext: assign(() => ({
+            ...initialContext,
+          })),
         },
       },
       mergedContext,

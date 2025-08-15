@@ -92,11 +92,16 @@ const Auth = ({
   useEffect(() => {
     if (googleUser) {
       sendAuth([{ type: 'INITIALIZE', forgeId }, 'LOGIN', 'ADVANCE_TO_PASSWORD']);
+      return;
     }
 
     if (!sessionUser) {
-      sendAuth(['RESET', 'INITIALIZE', 'LOGIN']);
+      sendAuth(['CLEAR_ERROR', 'RESET', 'INITIALIZE']);
     }
+
+    return () => {
+      sendAuth(['CLEAR_ERROR']);
+    };
   }, []);
 
   useEffect(() => {
@@ -175,13 +180,7 @@ const Auth = ({
         onError({ message: err });
       }
     }
-  }, [
-    authState.event,
-    authState.context.error,
-    (authState.context as any).errorInfo,
-    onError,
-    onGoBack,
-  ]);
+  }, [authState.event, onGoBack]);
 
   return isClient ? (
     <div

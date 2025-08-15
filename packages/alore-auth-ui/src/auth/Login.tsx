@@ -892,7 +892,7 @@ const Login = ({
         </div>
       </div>
     );
-  }, [getValuesEmail(), isLoginSubmitDisabled, emailErrors, emailControl, isLoading]);
+  }, [getValuesEmail(), isLoginSubmitDisabled, emailErrors, emailControl, isLoading, authError]);
 
   const SelectLoginMethod = useMemo(() => {
     const { authErrorTitle, authErrorDescription } = getAuthError();
@@ -978,7 +978,7 @@ const Login = ({
         </div>
       </div>
     );
-  }, [isLoading, loginMethod, loginDictionary]);
+  }, [isLoading, loginMethod, loginDictionary, authError]);
 
   const PasswordInputStep = useMemo(
     () => (
@@ -1054,7 +1054,14 @@ const Login = ({
         </form>
       </>
     ),
-    [getValuesPassword(), isLoginSubmitDisabled, passwordErrors, passwordControl, isLoading],
+    [
+      getValuesPassword(),
+      isLoginSubmitDisabled,
+      passwordErrors,
+      passwordControl,
+      isLoading,
+      authError,
+    ],
   );
 
   const VerifyEmail = useMemo(
@@ -1183,7 +1190,7 @@ const Login = ({
         )}
       </div>
     ),
-    [isLoading, active2fa],
+    [isLoading, active2fa, authError],
   );
 
   const VerifySw2FAStep = useMemo(
@@ -1229,7 +1236,7 @@ const Login = ({
         </div>
       </div>
     ),
-    [secureCode2FA, isLoading, active2fa],
+    [secureCode2FA, isLoading, active2fa, authError],
   );
 
   const NewDeviceStep = useMemo(
@@ -1287,7 +1294,7 @@ const Login = ({
         </div>
       </div>
     ),
-    [secureCodeEmail, sendEmailCooldown, isLoading, newDeviceInfo],
+    [secureCodeEmail, sendEmailCooldown, isLoading, newDeviceInfo, authError],
   );
 
   if (authState.matches('active.login.successfulLogin')) return null;

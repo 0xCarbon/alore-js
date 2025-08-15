@@ -852,6 +852,7 @@ const Register = ({
       userInfoGetValues(),
       userInfoDirtyFields,
       isLoading,
+      authError,
     ],
   );
 
@@ -1025,7 +1026,7 @@ const Register = ({
         </div>
       </div>
     ),
-    [isLoading, registrationMethod],
+    [isLoading, registrationMethod, authError],
   );
 
   const Password = useMemo(
