@@ -1,5 +1,11 @@
 # @alore/auth-react-ui
 
+## 1.2.0-alpha.7
+
+### Patch Changes
+
+- 1ae4c34: detailed error message
+
 ## 1.2.0-alpha.6
 
 ### Patch Changes
