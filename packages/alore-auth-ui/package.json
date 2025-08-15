@@ -1,6 +1,6 @@
 {
   "name": "@alore/auth-react-ui",
-  "version": "1.2.0-alpha.7",
+  "version": "1.2.0-alpha.8",
   "repository": "https://github.com/0xCarbon/alore-js",
   "description": "React Auth UI component for Alore",
   "main": "dist/cjs/index.js",

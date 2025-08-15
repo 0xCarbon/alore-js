@@ -1,5 +1,11 @@
 # @alore/auth-react-ui
 
+## 1.2.0-alpha.8
+
+### Patch Changes
+
+- 34d2f9b: improvements in errors
+
 ## 1.2.0-alpha.7
 
 ### Patch Changes
