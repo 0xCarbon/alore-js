@@ -1,5 +1,11 @@
 # @alore/auth-react-sdk
 
+## 1.1.0-alpha.5
+
+### Patch Changes
+
+- 410c803: fix cf header
+
 ## 1.1.0-alpha.4
 
 ### Patch Changes
