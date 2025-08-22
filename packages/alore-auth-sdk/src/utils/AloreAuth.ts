@@ -954,7 +954,7 @@ export class AloreAuth {
       headers: {
         ...options?.headers,
         'X-CLIENT-ID': this.clientId,
-        ...(!isLocal && { 'CF-Connecting-IP': '127.0.0.1' }),
+        ...(isLocal && { 'CF-Connecting-IP': '127.0.0.1' }),
       },
     };
 
