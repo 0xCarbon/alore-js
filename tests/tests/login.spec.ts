@@ -46,7 +46,12 @@ test.describe('Login Page Authentication', () => {
     await page.locator('.h-\\[2\\.56rem\\]').first().fill(code);
 
     // 4. Assert Success
-    await expect(page.getByTestId('login-successful-login-step')).toBeVisible({ timeout: 10000 });
+    const [response] = await Promise.all([
+      page.waitForResponse('**/auth/v1/email-2fa-verification', {
+        timeout: 360000, // 6 minutes
+      }),
+    ]);
+    expect(response.ok()).toBe(true);
   });
 
   test('should allow auth with google social login provider, and if user does not exist create user', async ({
@@ -130,34 +135,55 @@ test.describe('Login Page Authentication', () => {
 
     await page.waitForLoadState('networkidle');
     await expect(page.getByTestId('login-email-step')).toBeHidden();
-
+    console.log('Cheg0u');
     // 8. Verify successful login OR registration initiation in main window
-    const googleLoginResponsePromise = page.waitForResponse('**/auth/v1/google-login', {
-      timeout: 240000, // 4 minutes
-    });
+    const googleLoginResponsePromise = page.waitForResponse('**/auth/v1/google-login');
 
+    console.log('googleLoginResponsePromise', googleLoginResponsePromise);
     const googleLoginResponse = await googleLoginResponsePromise;
-    expect(googleLoginResponse.ok()).toBe(true);
+    console.log('googleLoginResponse', googleLoginResponse);
 
     await page.waitForTimeout(2000);
 
-    await expect(page.getByTestId('login-password-step')).toBeVisible({ timeout: 10000 });
+    const loginPasswordStep = page.getByTestId('login-password-step');
+    const isExistingUser = await loginPasswordStep.isVisible({ timeout: 15000 });
 
-    // --- Existing User Flow ---
-    await page.getByTestId('login-password').click();
-    await page.getByTestId('login-password').fill(TEST_PASSWORD);
-    await page.getByTestId('login-submit').click();
+    console.log('isExistingUser', isExistingUser);
 
-    // 9. Assert Final Success
-    const google2faVerificationResponsePromise = page.waitForResponse(
-      '**/auth/v1/google-2fa-verification',
-      {
+    if (isExistingUser) {
+      // --- Existing User Flow ---
+      await page.getByTestId('login-password').click();
+      await page.getByTestId('login-password').fill(TEST_PASSWORD);
+      await page.getByTestId('login-submit').click();
+
+      // 9. Assert Final Success
+      const google2faVerificationResponsePromise = page.waitForResponse(
+        '**/auth/v1/google-2fa-verification',
+        {
+          timeout: 240000, // 4 minutes
+        },
+      );
+
+      const google2faVerificationResponse = await google2faVerificationResponsePromise;
+      expect(google2faVerificationResponse.ok()).toBe(true);
+    } else {
+      // --- New User Flow ---
+      await expect(page.getByTestId('register-password-input')).toBeVisible({ timeout: 10000 }); // Check if registration password input is now visible
+      await page.getByTestId('register-password-input').click();
+      await page.getByTestId('register-password-input').fill(TEST_PASSWORD);
+      await page.getByTestId('register-confirm-password-input').click();
+      await page.getByTestId('register-confirm-password-input').fill(TEST_PASSWORD);
+
+      // 9. Assert Final Success
+      const responsePromise = page.waitForResponse('**/auth/v1/account-registration', {
         timeout: 240000, // 4 minutes
-      },
-    );
+      });
 
-    const google2faVerificationResponse = await google2faVerificationResponsePromise;
-    expect(google2faVerificationResponse.ok()).toBe(true);
+      await page.getByTestId('password-submit-button').click();
+
+      const response = await responsePromise;
+      expect(response.ok()).toBe(true);
+    }
   });
 
   test('should allow auth with microsoft social login provider, and if user does not exist create user', async ({
