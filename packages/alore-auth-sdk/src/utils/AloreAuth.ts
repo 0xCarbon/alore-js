@@ -944,6 +944,9 @@ export class AloreAuth {
     let attempt = 0;
     let delayValue = initialDelay;
 
+    const isLocal =
+      this.aloreBaseUrl.includes('localhost') || this.aloreBaseUrl.includes('127.0.0.1');
+
     // eslint-disable-next-line no-undef
     const init: RequestInit = {
       ...options,
@@ -951,7 +954,7 @@ export class AloreAuth {
       headers: {
         ...options?.headers,
         'X-CLIENT-ID': this.clientId,
-        'CF-Connecting-IP': '127.0.0.1',
+        ...(!isLocal && { 'CF-Connecting-IP': '127.0.0.1' }),
       },
     };
 
