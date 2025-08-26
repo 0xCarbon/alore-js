@@ -160,7 +160,7 @@ export class AloreCrypto {
 
   private async verifyBackendStatus() {
     try {
-      const res = await fetch(`${this.endpoint}/health-check`);
+      const res = await fetch(`${this.endpoint}/health/ready`);
 
       if (!res.ok) {
         throw new Error('Failed to fetch');

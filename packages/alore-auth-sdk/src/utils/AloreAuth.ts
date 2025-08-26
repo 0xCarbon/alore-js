@@ -1,6 +1,6 @@
 import { startAuthentication } from '@simplewebauthn/browser';
 
-import {
+import type {
   AuthMachineContext,
   AuthProviderConfig,
   FetchWithProgressiveBackoffConfig,
@@ -976,31 +976,80 @@ export class AloreAuth {
       } catch (error) {
         console.error(error);
 
-        if (
-          error instanceof TypeError &&
-          error.message === 'Failed to fetch' &&
-          attempt >= maxAttempts
-        ) {
-          console.error('Connection refused, the backend is probably not running.');
-          this.verifyBackendStatus();
-        } else if (attempt < maxAttempts) {
+        // Treat any fetch TypeError as a network/CORS-style failure. Browsers localize the message.
+        const isFailedToFetch = error instanceof TypeError;
+
+        if (isFailedToFetch && attempt >= maxAttempts) {
+          // Determine whether backend is down or the request is likely blocked (e.g., CORS)
+          const origin = typeof window !== 'undefined' ? window.location.origin : undefined;
+          try {
+            // eslint-disable-next-line no-await-in-loop
+            const health = await this.verifyBackendStatus();
+
+            const fullUrl = `${this.aloreBaseUrl}${url}`;
+            const message = origin
+              ? `Request blocked by CORS policy. Endpoint: ${fullUrl}. Please ensure origin ${origin} is allowed.`
+              : `Request blocked by CORS policy. Endpoint: ${fullUrl}.`;
+
+            const corsErr = new AloreAuthError(ErrorTypes.CORS_BLOCKED, message);
+            // Preserve original fetch error and health-check details for diagnostics
+            // @ts-ignore
+            corsErr.data = {
+              originalError: this.extractErrorInfo(error),
+              healthCheck: { reachable: true, ...health },
+            };
+            throw corsErr;
+          } catch (healthError) {
+            // Backend health-check failed → server likely down/unreachable
+            const downErr = new AloreAuthError(
+              ErrorTypes.SERVER_DOWN,
+              `Server is unreachable at ${this.aloreBaseUrl}. Please try again later.`,
+            );
+            // @ts-ignore
+            downErr.data = {
+              originalError: this.extractErrorInfo(error),
+              healthCheck: { reachable: false, error: this.extractErrorInfo(healthError) },
+            };
+            throw downErr;
+          }
+        }
+
+        if (attempt < maxAttempts) {
           console.error(`Attempt ${attempt} failed, retrying in ${delayValue}ms...`);
         }
       }
     }
 
-    throw new Error(`Max attempts (${maxAttempts}) exceeded`);
+    // Final fallback (should rarely hit due to early throws above)
+    throw new AloreAuthError(
+      ErrorTypes.FAILED_TO_FETCH,
+      `Max attempts (${maxAttempts}) exceeded while contacting ${this.aloreBaseUrl}${url}`,
+    );
   }
 
   private async verifyBackendStatus() {
-    try {
-      const res = await fetch(`${this.aloreBaseUrl}/health-check`);
+    const endpoint = '/health/ready';
+    // eslint-disable-next-line no-undef
+    const init: RequestInit = { mode: 'no-cors', cache: 'no-store' } as any;
 
-      if (!res.ok) {
-        throw new Error('Failed to fetch');
-      }
+    try {
+      await fetch(`${this.aloreBaseUrl}${endpoint}`, init);
+      return { checkedEndpoints: [endpoint] };
     } catch {
       throw new Error('Server down');
+    }
+  }
+
+  // Capture a concise, serializable snapshot of an unknown error
+  // eslint-disable-next-line class-methods-use-this
+  private extractErrorInfo(error: unknown) {
+    if (error instanceof Error) {
+      return { name: error.name, message: error.message, stack: error.stack };
+    }
+    try {
+      return JSON.parse(JSON.stringify(error));
+    } catch {
+      return { error };
     }
   }
 }

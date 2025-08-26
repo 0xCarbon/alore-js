@@ -76,7 +76,7 @@ const Login = ({
   const [authState, sendAuth] = useActor(authServiceInstance);
   const {
     salt,
-    error: authError,
+    error: errorObj,
     active2fa,
     registerUser,
     googleOtpCode,
@@ -85,6 +85,10 @@ const Login = ({
     authProviderConfigs,
     credentialEmail,
   } = authState.context;
+
+  // Single UI-facing error message derived from the error object
+  const displayError = errorObj?.message || '';
+  const hasDisplayError = !!displayError;
 
   const { enablePasskeys, requireEmailVerification, enablePasswords, socialProviders } =
     authProviderConfigs || {};
@@ -712,30 +716,30 @@ const Login = ({
   );
 
   const otpError = useMemo(() => {
-    const authErrorLowerCase = authError?.toLowerCase();
+    const lower = displayError.toLowerCase?.();
     let errorMessage = '';
 
-    if (authErrorLowerCase?.includes('wrong')) {
+    if (lower?.includes('wrong')) {
       errorMessage = `${loginDictionary?.wrongCode}`;
-    } else if (authErrorLowerCase?.includes('expired')) {
+    } else if (lower?.includes('expired')) {
       errorMessage = `${loginDictionary?.codeExpired}`;
     }
 
     return errorMessage;
-  }, [authError]);
+  }, [displayError]);
 
   const getAuthError = () => {
     let authErrorTitle = loginDictionary?.somethingWrong;
     let authErrorDescription = loginDictionary?.defaultError;
 
-    const authErrorLowerCase = authError?.toLowerCase();
-    if (authErrorLowerCase?.includes('invalid credentials')) {
+    const lower = displayError.toLowerCase?.();
+    if (lower?.includes('invalid credentials')) {
       authErrorTitle = loginDictionary?.invalidEmailPassword;
       authErrorDescription = loginDictionary?.invalidEmailPasswordDescription;
-    } else if (authErrorLowerCase?.includes('no passkey found')) {
+    } else if (lower?.includes('no passkey found')) {
       authErrorTitle = loginDictionary?.noPasskey;
       authErrorDescription = loginDictionary?.noPasskeyDescription;
-    } else if (authErrorLowerCase?.includes('passkey')) {
+    } else if (lower?.includes('passkey')) {
       authErrorTitle = loginDictionary?.passkeyNotSupported;
       authErrorDescription = loginDictionary?.passkeyNotSupportedDescription;
     }
@@ -747,16 +751,16 @@ const Login = ({
     const { authErrorTitle, authErrorDescription } = getAuthError();
     return (
       <div data-testid="login-email-step">
-        {authError ? (
+        {hasDisplayError ? (
           <div className="flex flex-col items-center justify-center gap-5">
             <img
               src={authErrorImage}
               alt="alore logo"
               width={70}
             />
-            {authError?.includes('beta') ? (
+            {displayError?.includes('beta') ? (
               <span className="font-poppins text-alr-red text-center text-xl font-bold">
-                {authError}
+                {displayError}
               </span>
             ) : (
               <>
@@ -766,6 +770,9 @@ const Login = ({
                 <span className="text-alr-grey text-center font-medium">
                   {authErrorDescription}
                 </span>
+                {errorObj?.code && (
+                  <span className="mt-1 text-center text-xs text-gray-500">{`Error code: ${errorObj.code}`}</span>
+                )}
               </>
             )}
           </div>
@@ -892,7 +899,7 @@ const Login = ({
         </div>
       </div>
     );
-  }, [getValuesEmail(), isLoginSubmitDisabled, emailErrors, emailControl, isLoading, authError]);
+  }, [getValuesEmail(), isLoginSubmitDisabled, emailErrors, emailControl, isLoading, displayError]);
 
   const SelectLoginMethod = useMemo(() => {
     const { authErrorTitle, authErrorDescription } = getAuthError();
@@ -905,12 +912,15 @@ const Login = ({
         >
           {dictionary?.back}
         </BackButton>
-        {authError ? (
+        {hasDisplayError ? (
           <div className="my-4 flex flex-col items-center justify-center gap-2">
             <span className="font-poppins text-alr-red text-center text-xl font-bold">
               {authErrorTitle}
             </span>
             <span className="text-alr-grey text-center font-medium">{authErrorDescription}</span>
+            {errorObj?.code && (
+              <span className="text-center text-xs text-gray-500">{`Error code: ${errorObj.code}`}</span>
+            )}
           </div>
         ) : undefined}
         <div
@@ -978,7 +988,7 @@ const Login = ({
         </div>
       </div>
     );
-  }, [isLoading, loginMethod, loginDictionary, authError]);
+  }, [isLoading, loginMethod, loginDictionary, displayError]);
 
   const PasswordInputStep = useMemo(
     () => (
@@ -990,7 +1000,7 @@ const Login = ({
           {getValuesEmail('email') || googleUser?.email || credentialEmail}
         </BackButton>
 
-        {authError && (
+        {hasDisplayError && (
           <div className="flex flex-col items-center justify-center gap-5">
             <img
               src={authErrorImage}
@@ -998,15 +1008,18 @@ const Login = ({
               width={70}
             />
             <span className="font-poppins text-alr-red text-center text-xl font-bold">
-              {authError?.includes('Invalid credentials')
+              {displayError.toLowerCase?.().includes('invalid credentials')
                 ? loginDictionary?.invalidEmailPassword
                 : loginDictionary?.somethingWrong}
             </span>
             <span className="text-alr-grey text-center font-medium">
-              {authError?.includes('Invalid credentials')
+              {displayError.toLowerCase?.().includes('invalid credentials')
                 ? loginDictionary?.invalidEmailPasswordDescription
                 : loginDictionary?.defaultError}
             </span>
+            {errorObj?.code && (
+              <span className="text-center text-xs text-gray-500">{`Error code: ${errorObj.code}`}</span>
+            )}
           </div>
         )}
         <form
@@ -1040,7 +1053,7 @@ const Login = ({
             {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
             {loginDictionary?.login}
           </Button>
-          <span className="text-sm font-medium">
+          <span className="text-center text-sm font-medium">
             {loginDictionary?.dontHaveAccount}
             <div
               className="cursor-pointer text-[--primary-color]"
@@ -1060,7 +1073,7 @@ const Login = ({
       passwordErrors,
       passwordControl,
       isLoading,
-      authError,
+      displayError,
     ],
   );
 
@@ -1128,7 +1141,7 @@ const Login = ({
       <div>
         <BackButton onClick={() => sendAuth('BACK')} />
 
-        {authError?.includes('Failed authenticating with hardware key') ? (
+        {displayError?.includes('Failed authenticating with hardware key') ? (
           <div className="mt-6 flex w-full flex-col items-center gap-6">
             <img
               alt="fingerprint error"
@@ -1190,7 +1203,7 @@ const Login = ({
         )}
       </div>
     ),
-    [isLoading, active2fa, authError],
+    [isLoading, active2fa, displayError],
   );
 
   const VerifySw2FAStep = useMemo(
@@ -1211,7 +1224,7 @@ const Login = ({
               data-testid="secure-code-2FA"
               inputLength={6}
               errorMessage={
-                authError?.includes('Invalid 2FA code') ? loginDictionary?.wrongCode : undefined
+                displayError?.includes('Invalid 2FA code') ? loginDictionary?.wrongCode : undefined
               }
             />
           </div>
@@ -1236,7 +1249,7 @@ const Login = ({
         </div>
       </div>
     ),
-    [secureCode2FA, isLoading, active2fa, authError],
+    [secureCode2FA, isLoading, active2fa, displayError],
   );
 
   const NewDeviceStep = useMemo(
@@ -1267,7 +1280,7 @@ const Login = ({
               data-testid="secure-code-email"
               inputLength={6}
               errorMessage={
-                authError?.includes('Wrong code') ? loginDictionary?.wrongCode : undefined
+                displayError?.includes('Wrong code') ? loginDictionary?.wrongCode : undefined
               }
             />
           </div>
@@ -1294,7 +1307,7 @@ const Login = ({
         </div>
       </div>
     ),
-    [secureCodeEmail, sendEmailCooldown, isLoading, newDeviceInfo, authError],
+    [secureCodeEmail, sendEmailCooldown, isLoading, newDeviceInfo, displayError],
   );
 
   if (authState.matches('active.login.successfulLogin')) return null;

@@ -24,7 +24,7 @@ import { passwordRules, ruleValidation } from '../components/FormRules/helpers';
 import { base64UrlToArrayBuffer, verifyEmptyValues } from '../helpers';
 import useDictionary from '../hooks/useDictionary';
 import { AuthInstance } from '../machine/types';
-import { aloreLogoBlack, google, metamaskLogo, walletConnectLogo } from '../utils';
+import { aloreLogoBlack, authErrorImage, google, metamaskLogo, walletConnectLogo } from '../utils';
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -76,7 +76,7 @@ const Register = ({
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
   const {
     salt,
-    error: authError,
+    error: errorObj,
     registerUser,
     googleUser,
     CCRPublicKey,
@@ -85,6 +85,9 @@ const Register = ({
     socialProviderRegisterUser,
   } = authState.context;
 
+  const displayError = errorObj?.message || '';
+  const hasDisplayError = !!displayError;
+
   const { requireUsername, requireEmailVerification, enablePasskeys, enableWalletCreation } =
     authProviderConfigs || {};
 
@@ -92,17 +95,17 @@ const Register = ({
   const [registrationMethod, setRegistrationMethod] = useState('password');
 
   const otpError = useMemo(() => {
-    const authErrorLowerCase = authError?.toLowerCase();
+    const lower = displayError.toLowerCase?.();
     let errorMessage = '';
 
-    if (authErrorLowerCase?.includes('wrong')) {
+    if (lower?.includes('wrong')) {
       errorMessage = `${registerDictionary?.wrongCode}`;
-    } else if (authErrorLowerCase?.includes('expired')) {
+    } else if (lower?.includes('expired')) {
       errorMessage = `${registerDictionary?.codeExpired}`;
     }
 
     return errorMessage;
-  }, [authError]);
+  }, [displayError]);
 
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => {
@@ -717,10 +720,28 @@ const Register = ({
             {forgeId ? registerDictionary?.forgeTitle : registerDictionary?.title}
           </h1>
         )}
-        {authError?.includes('beta') && (
+        {displayError?.includes('beta') && (
           <span className="font-poppins text-alr-red text-center text-xl font-bold">
-            {authError}
+            {displayError}
           </span>
+        )}
+        {hasDisplayError && !displayError.includes('beta') && (
+          <div className="my-3 flex flex-col items-center justify-center gap-1">
+            <img
+              src={authErrorImage}
+              alt="alore logo"
+              width={70}
+            />
+            <span className="font-poppins text-alr-red text-center text-xl font-bold">
+              {dictionary?.auth.login?.somethingWrong}
+            </span>
+            <span className="text-alr-grey text-center font-medium">
+              {dictionary?.auth.login?.defaultError}
+            </span>
+            {errorObj?.code && (
+              <span className="mt-1 text-center text-xs text-gray-500">{`Error code: ${errorObj.code}`}</span>
+            )}
+          </div>
         )}
         <form
           onSubmit={userInfoHandleSubmit((data) => onSubmitUserData(data))}
@@ -852,7 +873,7 @@ const Register = ({
       userInfoGetValues(),
       userInfoDirtyFields,
       isLoading,
-      authError,
+      displayError,
     ],
   );
 
@@ -865,7 +886,7 @@ const Register = ({
         <h1 className="font-inter mb-3 text-center text-xl font-semibold text-gray-900">
           {registerDictionary?.passkeyCreatedButNotAuthenticated}
         </h1>
-        <p className="text-alr-grey mb-6 w-full text-center text-gray-600">
+        <p className="text-alr-grey mb-6 w-full text-center">
           {registerDictionary?.passkeyCreatedButNotAuthenticatedDescription}
         </p>
         <Button
@@ -937,7 +958,7 @@ const Register = ({
         </div>
       </div>
     ),
-    [secureCode, sendEmailCooldown, isLoading],
+    [secureCode, sendEmailCooldown, isLoading, otpError],
   );
 
   const SelectRegisterMethod = useMemo(
@@ -955,7 +976,7 @@ const Register = ({
           data-testid="register-method-selection-step"
         >
           {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
-          {authError?.toLocaleLowerCase().includes('passkey') && (
+          {displayError.toLowerCase?.().includes('passkey') && (
             <span className="font-poppins text-alr-red mb-4 text-center text-xl font-bold">
               {registerDictionary?.passkeyNotSupported}
             </span>
@@ -1026,7 +1047,7 @@ const Register = ({
         </div>
       </div>
     ),
-    [isLoading, registrationMethod, authError],
+    [isLoading, registrationMethod, displayError],
   );
 
   const Password = useMemo(

@@ -173,9 +173,8 @@ const Auth = ({
     }
     if (typeof onError === 'function') {
       const err = authState.context.error;
-      const info = (authState.context as any).errorInfo as AuthError | undefined;
-      if (info && (info.code || info.message)) {
-        onError(info);
+      if (err && typeof err === 'object') {
+        onError(err);
       } else if (err && typeof err === 'string') {
         onError({ message: err });
       }
