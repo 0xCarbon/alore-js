@@ -18,7 +18,8 @@ const aloreConfigs: AuthProviderConfig = {
   passwordMinLength: 8,
   enablePasswords: true,
   // Example: restrict to a domain or multiple
-  allowedEmailDomains: 'bealore.com',
+  allowedEmailDomains: ['gmail.com'],
+  allowedDomainBypassEmails: ['cadu@bealore.com'],
 };
 
 export default function Home() {

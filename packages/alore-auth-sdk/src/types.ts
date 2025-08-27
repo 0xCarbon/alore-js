@@ -23,6 +23,7 @@ export type KeyDerivationFunction = 'argon2d' | 'pbkdf2';
  * @property socialProviders - Optional social login providers.
  * @property enableWalletCreation - Optional boolean to enable wallet creation.
  * @property allowedEmailDomains - Optional allowed email domain(s). If provided, authentication will only allow emails from these domains. Accepts a single string (e.g., 'bealore.com' or '@bealore.com') or an array of strings.
+ * @property allowedDomainBypassEmails - Optional email(s) that bypass the allowedEmailDomains restriction. Only takes effect when allowedEmailDomains is set. Accepts a single string or an array of strings.
  */
 export interface AuthProviderConfig {
   rpDomain?: string;
@@ -41,6 +42,7 @@ export interface AuthProviderConfig {
   enableWalletCreation?: boolean;
   firebaseCompatible?: boolean;
   allowedEmailDomains?: string | string[];
+  allowedDomainBypassEmails?: string | string[];
 }
 
 export interface AuthMachineContext {

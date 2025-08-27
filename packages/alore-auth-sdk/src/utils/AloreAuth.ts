@@ -1,6 +1,6 @@
 import { startAuthentication } from '@simplewebauthn/browser';
 
-import {
+import type {
   AuthMachineContext,
   AuthProviderConfig,
   FetchWithProgressiveBackoffConfig,
@@ -36,8 +36,28 @@ export class AloreAuth {
           : Array.isArray(allowedConf)
             ? allowedConf
             : [];
+
+      // If no domain restriction, all emails are allowed
       if (allowedList.length === 0) return true;
       if (!email) return false;
+
+      // Bypass list: specific emails that should skip domain restriction
+      const bypassConf = context.authProviderConfigs?.allowedDomainBypassEmails;
+      const bypassList =
+        // eslint-disable-next-line no-nested-ternary
+        typeof bypassConf === 'string' ? [bypassConf] : Array.isArray(bypassConf) ? bypassConf : [];
+
+      const normalizeForBypass = (addr: string) => {
+        const lower = (addr || '').toLowerCase();
+        const [local, dom] = lower.split('@');
+        if (!local || !dom) return lower;
+        const baseLocal = local.split('+')[0];
+        return `${baseLocal}@${dom}`;
+      };
+
+      const normalizedEmail = normalizeForBypass(email);
+      if (bypassList.some((e) => normalizeForBypass(e) === normalizedEmail)) return true;
+
       const domain = (email.split('@')[1] || '').toLowerCase();
       // Allow items like '@bealore.com' or 'bealore.com'
       return allowedList.some((d) => {

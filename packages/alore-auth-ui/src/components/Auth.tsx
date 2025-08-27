@@ -87,9 +87,7 @@ const Auth = ({
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
 
-  useEffect(() => {
     if (googleUser) {
       sendAuth([{ type: 'INITIALIZE', forgeId }, 'LOGIN', 'ADVANCE_TO_PASSWORD']);
       return;
@@ -103,6 +101,10 @@ const Auth = ({
       sendAuth(['CLEAR_ERROR']);
     };
   }, []);
+
+  useEffect(() => {
+    sendAuth(['CLEAR_ERROR', 'RESET', 'INITIALIZE']);
+  }, [authProviderConfigs]);
 
   useEffect(() => {
     if (socialProviderRegisterUser) {

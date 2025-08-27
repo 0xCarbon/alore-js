@@ -399,6 +399,28 @@ const Login = ({
                 : [];
           if (allowed.length === 0) return true;
           if (!value) return false;
+
+          // bypass if value is explicitly allowed
+          const bypassConf = authProviderConfigs?.allowedDomainBypassEmails;
+          const bypass =
+            // eslint-disable-next-line no-nested-ternary
+            typeof bypassConf === 'string'
+              ? [bypassConf]
+              : Array.isArray(bypassConf)
+                ? bypassConf
+                : [];
+          const normalizeForBypass = (addr: string) => {
+            const lower = (addr || '').toLowerCase();
+            const [local, dom] = lower.split('@');
+            if (!local || !dom) return lower;
+            const baseLocal = local.split('+')[0];
+            return `${baseLocal}@${dom}`;
+          };
+
+          if (bypass.some((e) => normalizeForBypass(e) === normalizeForBypass(value))) {
+            sendAuth({ type: 'CLEAR_ERROR' });
+            return true;
+          }
           const domain = (value.split('@')[1] || '').toLowerCase();
           const isAllowed = allowed.some((d) => {
             const normalized = d.startsWith('@') ? d.slice(1) : d;
@@ -452,6 +474,8 @@ const Login = ({
     reset: resetEmail,
   } = useForm({
     resolver: yupResolver(emailFormSchema),
+    mode: 'onSubmit',
+    reValidateMode: 'onSubmit',
     defaultValues: emailDefaultValues,
   });
   useWatch({ control: emailControl, name: ['email'] });
