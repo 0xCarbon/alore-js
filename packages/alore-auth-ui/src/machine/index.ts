@@ -1420,6 +1420,14 @@ export const authService = (services: {}, context: AuthMachineContext) => {
     ...context,
   };
 
+  // If persisted authProviderConfigs differ from provided configs, start fresh (ignore persisted state)
+  const persistedConfig = resolvedState?.context?.authProviderConfigs;
+  const incomingConfig = mergedContext.authProviderConfigs;
+  const configsDiffer =
+    JSON.stringify(persistedConfig || {}) !== JSON.stringify(incomingConfig || {});
+
+  const startArg = configsDiffer ? undefined : resolvedState;
+
   return interpret(
     authMachine.withConfig(
       {
@@ -1509,5 +1517,5 @@ export const authService = (services: {}, context: AuthMachineContext) => {
         localStorage.setItem('authState', JSON.stringify(state));
       }
     })
-    .start(resolvedState);
+    .start(startArg);
 };
