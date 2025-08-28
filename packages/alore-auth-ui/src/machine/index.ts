@@ -1,6 +1,6 @@
 // @ts-nocheck
 /* eslint-disable no-unused-vars */
-import { assign, createMachine, interpret, State } from 'xstate';
+import { assign, createMachine, interpret, send, State } from 'xstate';
 
 import { AuthMachineContext, AuthMachineEvents, AuthMachineServices } from './types';
 
@@ -217,7 +217,7 @@ export const authMachine = createMachine(
 
                   SELECT_PASSWORD_METHOD: [
                     {
-                      target: '#authMachine.active.login.loginMethodSelection',
+                      target: 'retrievingSalt',
 
                       actions: assign({
                         credentialEmail: (_, event) => event.payload?.email,
@@ -236,7 +236,19 @@ export const authMachine = createMachine(
                       target: 'retrievingCredentialRCR',
                       cond: 'isPasskeyEnabled',
                     },
-                    'retrievingSalt',
+                    {
+                      target: 'retrievingSalt',
+                      actions: assign({
+                        credentialEmail: (_, event) => event.payload?.email,
+                        googleOtpCode: () => undefined,
+                        googleUser: () => undefined,
+                        registerUser: () => undefined,
+                        socialProviderRegisterUser: () => undefined,
+                        sessionId: () => undefined,
+                        CCRPublicKey: () => undefined,
+                        RCRPublicKey: () => undefined,
+                      }),
+                    },
                   ],
                 },
 
@@ -247,7 +259,13 @@ export const authMachine = createMachine(
 
               loginMethodSelection: {
                 on: {
-                  SELECT_PASSWORD: 'retrievingSalt',
+                  SELECT_PASSWORD: [
+                    {
+                      target: 'inputPassword',
+                      cond: 'hasSalt',
+                    },
+                    'retrievingSalt',
+                  ],
 
                   BACK: {
                     target: '#authMachine.active.login',
@@ -264,12 +282,40 @@ export const authMachine = createMachine(
               retrievingSalt: {
                 invoke: {
                   src: 'retrieveSalt',
-                  onDone: {
-                    target: '#authMachine.active.login.inputPassword',
-                    actions: assign({
-                      salt: (_context, event) => event.data?.salt,
-                    }),
-                  },
+                  onDone: [
+                    {
+                      target: '#authMachine.active.login.inputPassword',
+                      actions: [
+                        assign({
+                          salt: (_context, event) => event.data?.salt,
+                        }),
+                        send((context) => ({
+                          type: 'VERIFY_LOGIN',
+                          // @ts-ignore
+                          payload: context.pendingVerifyLogin,
+                        })),
+                        assign({
+                          // @ts-ignore
+                          pendingVerifyLogin: () => undefined,
+                        }),
+                      ],
+                      // @ts-ignore
+                      cond: (context) => !!context.pendingVerifyLogin,
+                    },
+                    {
+                      target: '#authMachine.active.login.loginMethodSelection',
+                      actions: assign({
+                        salt: (_context, event) => event.data?.salt,
+                      }),
+                      cond: 'isPasswordAndPasskeyEnabled',
+                    },
+                    {
+                      target: '#authMachine.active.login.inputPassword',
+                      actions: assign({
+                        salt: (_context, event) => event.data?.salt,
+                      }),
+                    },
+                  ],
                   onError: {
                     target: '#authMachine.active.login',
                     actions: assign((ctx, event) => ({
@@ -296,6 +342,20 @@ export const authMachine = createMachine(
 
               inputPassword: {
                 on: {
+                  VERIFY_LOGIN: [
+                    {
+                      target: 'verifyingLogin',
+                      cond: 'hasSalt',
+                    },
+                    {
+                      target: 'retrievingSalt',
+                      actions: assign({
+                        // @ts-ignore
+                        pendingVerifyLogin: (_, event) => event.payload,
+                      }),
+                    },
+                  ],
+
                   BACK: [
                     {
                       target: '#authMachine.active.login.loginMethodSelection',
@@ -313,7 +373,6 @@ export const authMachine = createMachine(
                   ],
 
                   COMPLETE_GOOGLE_SIGN_IN: 'verifyingGoogleLogin',
-                  VERIFY_LOGIN: 'verifyingLogin',
                 },
               },
 
@@ -1344,6 +1403,7 @@ export const authMachine = createMachine(
       // @ts-ignore
       isNewUser: (_, event) => !!event.data.isNewUser,
       forgeClaim: (_, event) => !!event.forgeId,
+      hasSalt: (context) => !!context.salt,
       hasHardware2FA: (context, event) => {
         const { data } = event;
         const HARDWARE = 1;
@@ -1436,6 +1496,7 @@ export const authService = (services: {}, context: AuthMachineContext) => {
           // @ts-ignore
           isNewUser: (_, event) => !!event.data.isNewUser,
           forgeClaim: (_, event) => !!event.forgeId,
+          hasSalt: (ctx) => !!ctx.salt,
           hasHardware2FA: (ctx, event) => {
             const { data } = event;
             const HARDWARE = 1;
