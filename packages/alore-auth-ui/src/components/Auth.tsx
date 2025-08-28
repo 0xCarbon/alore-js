@@ -95,9 +95,7 @@ const Auth = ({
       return;
     }
 
-    if (!sessionUser) {
-      sendAuth(['CLEAR_ERROR', 'RESET', 'INITIALIZE']);
-    }
+    sendAuth(['CLEAR_ERROR', 'RESET', 'INITIALIZE']);
 
     return () => {
       sendAuth(['CLEAR_ERROR']);
