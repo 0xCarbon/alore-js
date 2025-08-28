@@ -1,5 +1,11 @@
 # @alore/auth-react-sdk
 
+## 1.1.0-alpha.6
+
+### Patch Changes
+
+- 02934ec: improved error handling
+
 ## 1.1.0-alpha.5
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @alore/auth-react-ui
 
+## 1.2.0-alpha.10
+
+### Patch Changes
+
+- 02934ec: improved error handling
+- Updated dependencies [02934ec]
+  - @alore/auth-react-sdk@1.1.0-alpha.6
+
 ## 1.2.0-alpha.9
 
 ### Patch Changes
