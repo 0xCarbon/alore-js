@@ -23,8 +23,7 @@ export type SessionUser = {
 export interface AuthMachineContext {
   authProviderConfigs?: AuthProviderConfig;
   salt?: string;
-  error?: string;
-  errorInfo?: {
+  error?: {
     code?: string;
     message?: string;
     email?: string;
