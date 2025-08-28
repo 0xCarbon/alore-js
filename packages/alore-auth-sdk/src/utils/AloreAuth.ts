@@ -26,25 +26,6 @@ export class AloreAuth {
   }
 
   services = {
-    // Utility to check if an email is allowed based on allowedEmailDomains config
-    isEmailAllowed: (context: AuthMachineContext, email?: string | null) => {
-      const allowedConf = context.authProviderConfigs?.allowedEmailDomains;
-      const allowedList =
-        // eslint-disable-next-line no-nested-ternary
-        typeof allowedConf === 'string'
-          ? [allowedConf]
-          : Array.isArray(allowedConf)
-            ? allowedConf
-            : [];
-      if (allowedList.length === 0) return true;
-      if (!email) return false;
-      const domain = (email.split('@')[1] || '').toLowerCase();
-      // Allow items like '@bealore.com' or 'bealore.com'
-      return allowedList.some((d) => {
-        const normalized = d.startsWith('@') ? d.slice(1) : d;
-        return domain === normalized.toLowerCase();
-      });
-    },
     healthCheck: async () => {
       try {
         await this.verifyBackendStatus();
@@ -65,13 +46,6 @@ export class AloreAuth {
       },
     ) => {
       const { email } = event.payload;
-      if (!this.services.isEmailAllowed(context, email)) {
-        throw new AloreAuthError(
-          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-          'Email domain not allowed',
-          400,
-        );
-      }
       const { credentialEmail } = context;
 
       const response = await this.fetchWithProgressiveBackoff(
@@ -133,13 +107,6 @@ export class AloreAuth {
       },
     ) => {
       const { email, nickname, passwordHash, device } = event.payload;
-      if (!this.services.isEmailAllowed(context, email)) {
-        throw new AloreAuthError(
-          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-          'Email domain not allowed',
-          400,
-        );
-      }
       const { firebaseCompatible } = context.authProviderConfigs || {};
 
       const response = await this.fetchWithProgressiveBackoff(
@@ -215,13 +182,6 @@ export class AloreAuth {
           },
     ) => {
       const { email, nickname, locale } = event.payload;
-      if (!this.services.isEmailAllowed(context, email)) {
-        throw new AloreAuthError(
-          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-          'Email domain not allowed',
-          400,
-        );
-      }
       const searchParams = new URLSearchParams();
       const url = '/auth/v1/confirmation-email';
 
@@ -270,13 +230,6 @@ export class AloreAuth {
       },
     ) => {
       const { email } = event.payload;
-      if (!this.services.isEmailAllowed(context, email)) {
-        throw new AloreAuthError(
-          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-          'Email domain not allowed',
-          400,
-        );
-      }
       const response = await this.fetchWithProgressiveBackoff(`/reset-password`, {
         method: 'POST',
         headers: {
@@ -317,13 +270,6 @@ export class AloreAuth {
           },
     ) => {
       const { email, passwordHash, device, locale } = event.payload;
-      if (!this.services.isEmailAllowed(context, email || context.credentialEmail)) {
-        throw new AloreAuthError(
-          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-          'Email domain not allowed',
-          400,
-        );
-      }
       const { credentialEmail } = context;
 
       const searchParams = new URLSearchParams();
@@ -380,13 +326,6 @@ export class AloreAuth {
     ) => {
       const { rpDomain } = context.authProviderConfigs || {};
       const { email, nickname, device } = event.payload || context.registerUser;
-      if (email && !this.services.isEmailAllowed(context, email)) {
-        throw new AloreAuthError(
-          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-          'Email domain not allowed',
-          400,
-        );
-      }
 
       const startPasskeyRegistrationResponse = await this.fetchWithProgressiveBackoff(
         '/auth/v1/account-registration-passkey',
@@ -430,13 +369,6 @@ export class AloreAuth {
     ) => {
       const { rpDomain } = context.authProviderConfigs || {};
       const { email, nickname, device, passkeyRegistration } = event.payload || {};
-      if (email && !this.services.isEmailAllowed(context, email)) {
-        throw new AloreAuthError(
-          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-          'Email domain not allowed',
-          400,
-        );
-      }
 
       const response = await this.fetchWithProgressiveBackoff(
         '/auth/v1/account-registration-passkey-finish',
@@ -473,13 +405,6 @@ export class AloreAuth {
       const { rpDomain } = context.authProviderConfigs || {};
 
       const email = event.payload?.email;
-      if (email && !this.services.isEmailAllowed(context, email)) {
-        throw new AloreAuthError(
-          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-          'Email domain not allowed',
-          400,
-        );
-      }
 
       const searchParams = new URLSearchParams();
       const url = '/auth/v1/login-passkey';
@@ -708,13 +633,7 @@ export class AloreAuth {
     ) => {
       const { email, passwordHash, secureCode } = event.payload;
       const { credentialEmail, authProviderConfigs } = context;
-      if (!this.services.isEmailAllowed(context, email || credentialEmail)) {
-        throw new AloreAuthError(
-          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-          'Email domain not allowed',
-          400,
-        );
-      }
+
       const { firebaseCompatible } = authProviderConfigs || {};
 
       const response = await this.fetchWithProgressiveBackoff(
@@ -851,13 +770,6 @@ export class AloreAuth {
       const data = await response.json();
 
       if (response.ok) {
-        if (!this.services.isEmailAllowed(context, data.email)) {
-          throw new AloreAuthError(
-            ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-            'Email domain not allowed',
-            400,
-          );
-        }
         return {
           googleOtpCode: data.otpCode,
           salt: data.salt,
@@ -871,13 +783,6 @@ export class AloreAuth {
       }
 
       if (response.status === 404) {
-        if (!this.services.isEmailAllowed(context, data.email)) {
-          throw new AloreAuthError(
-            ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-            'Email domain not allowed',
-            400,
-          );
-        }
         return {
           isNewUser: true,
           socialProviderRegisterUser: {

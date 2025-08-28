@@ -391,38 +391,7 @@ const Login = ({
       email: yup
         .string()
         .required(dictionary?.formValidation.required)
-        .email(dictionary?.formValidation.invalidEmail)
-        .test('allowed-domain', dictionary?.auth.emailDomainNotAllowed!, (value) => {
-          const allowedConf = authProviderConfigs?.allowedEmailDomains;
-          const allowed =
-            // eslint-disable-next-line no-nested-ternary
-            typeof allowedConf === 'string'
-              ? [allowedConf]
-              : Array.isArray(allowedConf)
-                ? allowedConf
-                : [];
-          if (allowed.length === 0) return true;
-          if (!value) return false;
-          const domain = (value.split('@')[1] || '').toLowerCase();
-          const isAllowed = allowed.some((d) => {
-            const normalized = d.startsWith('@') ? d.slice(1) : d;
-            return domain === normalized.toLowerCase();
-          });
-          if (!isAllowed) {
-            sendAuth({
-              type: 'SET_ERROR',
-              error: 'EMAIL_DOMAIN_NOT_ALLOWED',
-              info: {
-                code: 'EMAIL_DOMAIN_NOT_ALLOWED',
-                message: dictionary?.auth.emailDomainNotAllowed!,
-                email: value,
-              },
-            });
-          } else {
-            sendAuth({ type: 'CLEAR_ERROR' });
-          }
-          return isAllowed;
-        }),
+        .email(dictionary?.formValidation.invalidEmail),
     })
     .required();
 
@@ -456,6 +425,8 @@ const Login = ({
     reset: resetEmail,
   } = useForm({
     resolver: yupResolver(emailFormSchema),
+    mode: 'onSubmit',
+    reValidateMode: 'onSubmit',
     defaultValues: emailDefaultValues,
   });
   useWatch({ control: emailControl, name: ['email'] });
