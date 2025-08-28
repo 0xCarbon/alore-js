@@ -703,12 +703,20 @@ const Register = ({
               alt="alore logo"
               width={70}
             />
-            <span className="font-poppins text-alr-red text-center text-xl font-bold">
-              {dictionary?.auth.login?.somethingWrong}
-            </span>
-            <span className="text-alr-grey text-center font-medium">
-              {dictionary?.auth.login?.defaultError}
-            </span>
+            {displayError === 'EMAIL_NOT_ALLOWED' ? (
+              <span className="font-poppins text-alr-red text-center text-xl font-bold">
+                {dictionary?.auth?.emailDomainNotAllowed}
+              </span>
+            ) : (
+              <>
+                <span className="font-poppins text-alr-red text-center text-xl font-bold">
+                  {dictionary?.auth.login?.somethingWrong}
+                </span>
+                <span className="text-alr-grey text-center font-medium">
+                  {dictionary?.auth.login?.defaultError}
+                </span>
+              </>
+            )}
             {errorObj?.code && (
               <span className="mt-1 text-center text-xs text-gray-500">{`Error code: ${errorObj.code}`}</span>
             )}

@@ -19,6 +19,8 @@ const initialContext: AuthMachineContext = {
   RCRPublicKey: undefined,
   // authProviderConfigs: undefined,
   credentialEmail: undefined,
+  // internal marker to know if salt fetch was initiated from method selection
+  saltFetchFromSelection: undefined,
 };
 
 export const authMachine = createMachine(
@@ -247,6 +249,8 @@ export const authMachine = createMachine(
                         sessionId: () => undefined,
                         CCRPublicKey: () => undefined,
                         RCRPublicKey: () => undefined,
+                        // mark that we came from method selection
+                        saltFetchFromSelection: () => true,
                       }),
                     },
                   ],
@@ -264,7 +268,12 @@ export const authMachine = createMachine(
                       target: 'inputPassword',
                       cond: 'hasSalt',
                     },
-                    'retrievingSalt',
+                    {
+                      target: 'retrievingSalt',
+                      actions: assign({
+                        saltFetchFromSelection: () => true,
+                      }),
+                    },
                   ],
 
                   BACK: {
@@ -306,6 +315,7 @@ export const authMachine = createMachine(
                       target: '#authMachine.active.login.loginMethodSelection',
                       actions: assign({
                         salt: (_context, event) => event.data?.salt,
+                        saltFetchFromSelection: () => undefined,
                       }),
                       cond: 'isPasswordAndPasskeyEnabled',
                     },
@@ -316,24 +326,97 @@ export const authMachine = createMachine(
                       }),
                     },
                   ],
-                  onError: {
-                    target: '#authMachine.active.login',
-                    actions: assign((ctx, event) => ({
-                      error:
-                        event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
-                          ? { code: event.data?.type, message: 'EMAIL_DOMAIN_NOT_ALLOWED' }
-                          : {
+                  onError: [
+                    {
+                      target: '#authMachine.active.login.inputPassword',
+                      cond: (context) => !!context.pendingVerifyLogin,
+                      actions: assign((ctx, event) => {
+                        const message = event.data?.message || event.data?.error || event.data;
+                        if (message === 'EMAIL_NOT_ALLOWED') {
+                          return {
+                            error: { code: 'EMAIL_NOT_ALLOWED', message: 'EMAIL_NOT_ALLOWED' },
+                          };
+                        }
+                        if (event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED') {
+                          return {
+                            error: { code: event.data?.type, message: 'EMAIL_DOMAIN_NOT_ALLOWED' },
+                          };
+                        }
+                        return {
+                          error: {
+                            code: event.data?.type,
+                            message,
+                            email:
+                              ctx.credentialEmail ||
+                              ctx.registerUser?.email ||
+                              ctx.googleUser?.email ||
+                              ctx.socialProviderRegisterUser?.email,
+                            data: event.data,
+                          },
+                        };
+                      }),
+                    },
+                    {
+                      target: '#authMachine.active.login.idle',
+                      cond: 'isPasswordAndPasskeyEnabled',
+                      actions: assign((ctx, event) => {
+                        const message = event.data?.message || event.data?.error || event.data;
+                        if (message === 'EMAIL_NOT_ALLOWED') {
+                          return {
+                            error: { code: 'EMAIL_NOT_ALLOWED', message: 'EMAIL_NOT_ALLOWED' },
+                          };
+                        }
+                        if (event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED') {
+                          return {
+                            error: {
                               code: event.data?.type,
-                              message: event.data?.message || event.data?.error,
-                              email:
-                                ctx.credentialEmail ||
-                                ctx.registerUser?.email ||
-                                ctx.googleUser?.email ||
-                                ctx.socialProviderRegisterUser?.email,
-                              data: event.data,
+                              message: 'EMAIL_DOMAIN_NOT_ALLOWED',
                             },
-                    })),
-                  },
+                          };
+                        }
+                        return {
+                          error: {
+                            code: event.data?.type,
+                            message,
+                            email:
+                              ctx.credentialEmail ||
+                              ctx.registerUser?.email ||
+                              ctx.googleUser?.email ||
+                              ctx.socialProviderRegisterUser?.email,
+                            data: event.data,
+                          },
+                        };
+                      }),
+                    },
+                    {
+                      target: '#authMachine.active.login.idle',
+                      actions: assign((ctx, event) => {
+                        const message = event.data?.message || event.data?.error || event.data;
+                        if (message === 'EMAIL_NOT_ALLOWED') {
+                          return {
+                            error: { code: 'EMAIL_NOT_ALLOWED', message: 'EMAIL_NOT_ALLOWED' },
+                          };
+                        }
+                        if (event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED') {
+                          return {
+                            error: { code: event.data?.type, message: 'EMAIL_DOMAIN_NOT_ALLOWED' },
+                          };
+                        }
+                        return {
+                          error: {
+                            code: event.data?.type,
+                            message,
+                            email:
+                              ctx.credentialEmail ||
+                              ctx.registerUser?.email ||
+                              ctx.googleUser?.email ||
+                              ctx.socialProviderRegisterUser?.email,
+                            data: event.data,
+                          },
+                        };
+                      }),
+                    },
+                  ],
                 },
                 entry: assign({
                   error: () => undefined,

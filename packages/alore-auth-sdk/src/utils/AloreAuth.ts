@@ -61,7 +61,9 @@ export class AloreAuth {
         const salt: string = await response.json();
         return { salt };
       }
-      return { error: response?.statusText };
+
+      // Propagate parsed error so machine receives full payload as event.data
+      await this.throwParsedResponseError(response);
     },
     verifyEmail: async (
       context: AuthMachineContext,
@@ -91,8 +93,7 @@ export class AloreAuth {
         return {};
       }
 
-      const data = await response.json();
-      throw new Error(data?.message || data?.error || data);
+      await this.throwParsedResponseError(response);
     },
     completeRegistration: async (
       context: AuthMachineContext,
@@ -129,7 +130,7 @@ export class AloreAuth {
 
       if (response.ok) return data;
 
-      throw new Error(data.message || data.error || 'Authentication failed');
+      await this.throwParsedResponseError(response);
     },
     confirmPassword: async (
       context: AuthMachineContext,
@@ -153,9 +154,9 @@ export class AloreAuth {
         }),
       });
 
-      if (!response.ok) return {};
+      if (!response.ok) await this.throwParsedResponseError(response);
 
-      return { error: response?.statusText };
+      return {};
     },
     sendConfirmationEmail: async (
       context: AuthMachineContext,
@@ -213,12 +214,8 @@ export class AloreAuth {
         return { salt, sessionId };
       }
 
-      if (response.status === 403) {
-        const resJson = await response.json();
-        throw new Error(resJson);
-      }
-
-      return { error: response?.statusText };
+      // Throw parsed error for machine to consume
+      await this.throwParsedResponseError(response);
     },
     sendCode: async (
       context: AuthMachineContext,
@@ -240,7 +237,7 @@ export class AloreAuth {
         }),
       });
 
-      if (!response.ok) return { error: response?.statusText };
+      if (!response.ok) await this.throwParsedResponseError(response);
 
       return {};
     },
@@ -307,7 +304,7 @@ export class AloreAuth {
         if (data?.error?.includes('2FA') || data?.error?.includes('device')) {
           return { error: data?.error };
         }
-        throw new Error(data?.message || data?.error || data);
+        await this.throwParsedResponseError(response);
       } else {
         return data;
       }
@@ -344,6 +341,9 @@ export class AloreAuth {
       );
 
       const data = await startPasskeyRegistrationResponse.json();
+
+      if (!startPasskeyRegistrationResponse.ok)
+        await this.throwParsedResponseError(startPasskeyRegistrationResponse);
 
       return data;
     },
@@ -484,7 +484,7 @@ export class AloreAuth {
 
       if (response.ok) return data;
 
-      throw new AloreAuthError(ErrorTypes.FAILED_TO_FETCH, data.message || data.error || data);
+      await this.throwParsedResponseError(response);
     },
     // Hardware 2FA flow
     verify2faCode: async (
@@ -518,7 +518,7 @@ export class AloreAuth {
 
       if (response.ok) return data;
 
-      throw new Error(data.message || data.error || 'Authentication failed');
+      await this.throwParsedResponseError(response);
     },
     authenticateWebauthn: async (
       context: AuthMachineContext,
@@ -581,7 +581,7 @@ export class AloreAuth {
 
       if (response.ok) return data;
 
-      throw new Error(data.message || data.error || 'Authentication failed');
+      await this.throwParsedResponseError(response);
     },
     verifyDeviceCode: async (
       context: AuthMachineContext,
@@ -684,7 +684,7 @@ export class AloreAuth {
 
       const data = await response.json();
 
-      if (!response.ok) throw new Error(data?.message || data?.error || data);
+      if (!response.ok) await this.throwParsedResponseError(response);
 
       return data;
     },
@@ -719,7 +719,7 @@ export class AloreAuth {
 
       if (response.ok) return data;
 
-      throw new Error(data || 'Authentication failed');
+      await this.throwParsedResponseError(response);
     },
     fetchForgeData: async (
       _: AuthMachineContext,
@@ -732,9 +732,7 @@ export class AloreAuth {
 
       const data = (await response.json()) as ForgeData;
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetchWithProgressiveBackoff: ${data}`);
-      }
+      if (!response.ok) await this.throwParsedResponseError(response);
 
       return data;
     },
@@ -793,7 +791,7 @@ export class AloreAuth {
         };
       }
 
-      if (!response.ok) throw new Error(data.error || data.message || data);
+      if (!response.ok) await this.throwParsedResponseError(response);
 
       return {};
     },
@@ -930,6 +928,41 @@ export class AloreAuth {
       ErrorTypes.FAILED_TO_FETCH,
       `Max attempts (${maxAttempts}) exceeded while contacting ${this.aloreBaseUrl}${url}`,
     );
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private async parseErrorResponse(response: Response) {
+    try {
+      const data = await response.json();
+      // Standardize to server payload when present
+      if (data && typeof data === 'object' && (data.message || data.status)) {
+        return {
+          status: data.status || response.status,
+          message: data.message || data.error || response.statusText,
+          timestamp: data.timestamp,
+        };
+      }
+      return { status: response.status, message: response.statusText } as const;
+    } catch {
+      return { status: response.status, message: response.statusText } as const;
+    }
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private async throwParsedResponseError(response: Response) {
+    const parsed = await this.parseErrorResponse(response);
+    // Normalize well-known auth errors for consistent UI handling
+    let normalizedMessage = parsed.message || 'Request failed';
+    if (parsed.status === 401) {
+      normalizedMessage = 'INVALID_CREDENTIALS';
+    } else if (parsed.status === 403 && parsed.message === 'EMAIL_NOT_ALLOWED') {
+      normalizedMessage = 'EMAIL_NOT_ALLOWED';
+    }
+
+    const err = new AloreAuthError(ErrorTypes.FAILED_TO_FETCH, normalizedMessage);
+    // @ts-ignore attach server payload for consumers
+    err.data = { ...parsed, message: normalizedMessage };
+    throw err;
   }
 
   private async verifyBackendStatus() {
