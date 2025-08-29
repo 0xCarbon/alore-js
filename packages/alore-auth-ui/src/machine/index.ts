@@ -1,6 +1,6 @@
 // @ts-nocheck
 /* eslint-disable no-unused-vars */
-import { assign, createMachine, interpret, State } from 'xstate';
+import { assign, createMachine, interpret, send, State } from 'xstate';
 
 import { AuthMachineContext, AuthMachineEvents, AuthMachineServices } from './types';
 
@@ -217,7 +217,7 @@ export const authMachine = createMachine(
 
                   SELECT_PASSWORD_METHOD: [
                     {
-                      target: '#authMachine.active.login.loginMethodSelection',
+                      target: 'retrievingSalt',
 
                       actions: assign({
                         credentialEmail: (_, event) => event.payload?.email,
@@ -236,7 +236,19 @@ export const authMachine = createMachine(
                       target: 'retrievingCredentialRCR',
                       cond: 'isPasskeyEnabled',
                     },
-                    'retrievingSalt',
+                    {
+                      target: 'retrievingSalt',
+                      actions: assign({
+                        credentialEmail: (_, event) => event.payload?.email,
+                        googleOtpCode: () => undefined,
+                        googleUser: () => undefined,
+                        registerUser: () => undefined,
+                        socialProviderRegisterUser: () => undefined,
+                        sessionId: () => undefined,
+                        CCRPublicKey: () => undefined,
+                        RCRPublicKey: () => undefined,
+                      }),
+                    },
                   ],
                 },
 
@@ -247,7 +259,15 @@ export const authMachine = createMachine(
 
               loginMethodSelection: {
                 on: {
-                  SELECT_PASSWORD: 'retrievingSalt',
+                  SELECT_PASSWORD: [
+                    {
+                      target: 'inputPassword',
+                      cond: 'hasSalt',
+                    },
+                    {
+                      target: 'retrievingSalt',
+                    },
+                  ],
 
                   BACK: {
                     target: '#authMachine.active.login',
@@ -264,30 +284,128 @@ export const authMachine = createMachine(
               retrievingSalt: {
                 invoke: {
                   src: 'retrieveSalt',
-                  onDone: {
-                    target: '#authMachine.active.login.inputPassword',
-                    actions: assign({
-                      salt: (_context, event) => event.data?.salt,
-                    }),
-                  },
-                  onError: {
-                    target: '#authMachine.active.login',
-                    actions: assign((ctx, event) => ({
-                      error:
-                        event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
-                          ? { code: event.data?.type, message: 'EMAIL_DOMAIN_NOT_ALLOWED' }
-                          : {
+                  onDone: [
+                    {
+                      target: '#authMachine.active.login.inputPassword',
+                      actions: [
+                        assign({
+                          salt: (_context, event) => event.data?.salt,
+                        }),
+                        send((context) => ({
+                          type: 'VERIFY_LOGIN',
+                          payload: context.pendingVerifyLogin,
+                        })),
+                        assign({
+                          pendingVerifyLogin: () => undefined,
+                        }),
+                      ],
+                      cond: (context) => !!context.pendingVerifyLogin,
+                    },
+                    {
+                      target: '#authMachine.active.login.loginMethodSelection',
+                      actions: assign({
+                        salt: (_context, event) => event.data?.salt,
+                      }),
+                      cond: 'isPasswordAndPasskeyEnabled',
+                    },
+                    {
+                      target: '#authMachine.active.login.inputPassword',
+                      actions: assign({
+                        salt: (_context, event) => event.data?.salt,
+                      }),
+                    },
+                  ],
+                  onError: [
+                    {
+                      target: '#authMachine.active.login.inputPassword',
+                      cond: (context) => !!context.pendingVerifyLogin,
+                      actions: assign((ctx, event) => {
+                        const message = event.data?.message || event.data?.error || event.data;
+                        if (message === 'EMAIL_NOT_ALLOWED') {
+                          return {
+                            error: { code: 'EMAIL_NOT_ALLOWED', message: 'EMAIL_NOT_ALLOWED' },
+                          };
+                        }
+                        if (event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED') {
+                          return {
+                            error: { code: event.data?.type, message: 'EMAIL_DOMAIN_NOT_ALLOWED' },
+                          };
+                        }
+                        return {
+                          error: {
+                            code: event.data?.type,
+                            message,
+                            email:
+                              ctx.credentialEmail ||
+                              ctx.registerUser?.email ||
+                              ctx.googleUser?.email ||
+                              ctx.socialProviderRegisterUser?.email,
+                            data: event.data,
+                          },
+                        };
+                      }),
+                    },
+                    {
+                      target: '#authMachine.active.login.idle',
+                      cond: 'isPasswordAndPasskeyEnabled',
+                      actions: assign((ctx, event) => {
+                        const message = event.data?.message || event.data?.error || event.data;
+                        if (message === 'EMAIL_NOT_ALLOWED') {
+                          return {
+                            error: { code: 'EMAIL_NOT_ALLOWED', message: 'EMAIL_NOT_ALLOWED' },
+                          };
+                        }
+                        if (event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED') {
+                          return {
+                            error: {
                               code: event.data?.type,
-                              message: event.data?.message || event.data?.error,
-                              email:
-                                ctx.credentialEmail ||
-                                ctx.registerUser?.email ||
-                                ctx.googleUser?.email ||
-                                ctx.socialProviderRegisterUser?.email,
-                              data: event.data,
+                              message: 'EMAIL_DOMAIN_NOT_ALLOWED',
                             },
-                    })),
-                  },
+                          };
+                        }
+                        return {
+                          error: {
+                            code: event.data?.type,
+                            message,
+                            email:
+                              ctx.credentialEmail ||
+                              ctx.registerUser?.email ||
+                              ctx.googleUser?.email ||
+                              ctx.socialProviderRegisterUser?.email,
+                            data: event.data,
+                          },
+                        };
+                      }),
+                    },
+                    {
+                      target: '#authMachine.active.login.idle',
+                      actions: assign((ctx, event) => {
+                        const message = event.data?.message || event.data?.error || event.data;
+                        if (message === 'EMAIL_NOT_ALLOWED') {
+                          return {
+                            error: { code: 'EMAIL_NOT_ALLOWED', message: 'EMAIL_NOT_ALLOWED' },
+                          };
+                        }
+                        if (event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED') {
+                          return {
+                            error: { code: event.data?.type, message: 'EMAIL_DOMAIN_NOT_ALLOWED' },
+                          };
+                        }
+                        return {
+                          error: {
+                            code: event.data?.type,
+                            message,
+                            email:
+                              ctx.credentialEmail ||
+                              ctx.registerUser?.email ||
+                              ctx.googleUser?.email ||
+                              ctx.socialProviderRegisterUser?.email,
+                            data: event.data,
+                          },
+                        };
+                      }),
+                    },
+                  ],
                 },
                 entry: assign({
                   error: () => undefined,
@@ -296,6 +414,19 @@ export const authMachine = createMachine(
 
               inputPassword: {
                 on: {
+                  VERIFY_LOGIN: [
+                    {
+                      target: 'verifyingLogin',
+                      cond: 'hasSalt',
+                    },
+                    {
+                      target: 'retrievingSalt',
+                      actions: assign({
+                        pendingVerifyLogin: (_, event) => event.payload,
+                      }),
+                    },
+                  ],
+
                   BACK: [
                     {
                       target: '#authMachine.active.login.loginMethodSelection',
@@ -313,7 +444,6 @@ export const authMachine = createMachine(
                   ],
 
                   COMPLETE_GOOGLE_SIGN_IN: 'verifyingGoogleLogin',
-                  VERIFY_LOGIN: 'verifyingLogin',
                 },
               },
 
@@ -1344,6 +1474,7 @@ export const authMachine = createMachine(
       // @ts-ignore
       isNewUser: (_, event) => !!event.data.isNewUser,
       forgeClaim: (_, event) => !!event.forgeId,
+      hasSalt: (context) => !!context.salt,
       hasHardware2FA: (context, event) => {
         const { data } = event;
         const HARDWARE = 1;
@@ -1420,6 +1551,14 @@ export const authService = (services: {}, context: AuthMachineContext) => {
     ...context,
   };
 
+  // If persisted authProviderConfigs differ from provided configs, start fresh (ignore persisted state)
+  const persistedConfig = resolvedState?.context?.authProviderConfigs;
+  const incomingConfig = mergedContext.authProviderConfigs;
+  const configsDiffer =
+    JSON.stringify(persistedConfig || {}) !== JSON.stringify(incomingConfig || {});
+
+  const startArg = configsDiffer ? undefined : resolvedState;
+
   return interpret(
     authMachine.withConfig(
       {
@@ -1428,6 +1567,7 @@ export const authService = (services: {}, context: AuthMachineContext) => {
           // @ts-ignore
           isNewUser: (_, event) => !!event.data.isNewUser,
           forgeClaim: (_, event) => !!event.forgeId,
+          hasSalt: (ctx) => !!ctx.salt,
           hasHardware2FA: (ctx, event) => {
             const { data } = event;
             const HARDWARE = 1;
@@ -1509,5 +1649,5 @@ export const authService = (services: {}, context: AuthMachineContext) => {
         localStorage.setItem('authState', JSON.stringify(state));
       }
     })
-    .start(resolvedState);
+    .start(startArg);
 };

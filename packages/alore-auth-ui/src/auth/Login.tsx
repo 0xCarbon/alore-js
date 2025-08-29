@@ -391,38 +391,7 @@ const Login = ({
       email: yup
         .string()
         .required(dictionary?.formValidation.required)
-        .email(dictionary?.formValidation.invalidEmail)
-        .test('allowed-domain', dictionary?.auth.emailDomainNotAllowed!, (value) => {
-          const allowedConf = authProviderConfigs?.allowedEmailDomains;
-          const allowed =
-            // eslint-disable-next-line no-nested-ternary
-            typeof allowedConf === 'string'
-              ? [allowedConf]
-              : Array.isArray(allowedConf)
-                ? allowedConf
-                : [];
-          if (allowed.length === 0) return true;
-          if (!value) return false;
-          const domain = (value.split('@')[1] || '').toLowerCase();
-          const isAllowed = allowed.some((d) => {
-            const normalized = d.startsWith('@') ? d.slice(1) : d;
-            return domain === normalized.toLowerCase();
-          });
-          if (!isAllowed) {
-            sendAuth({
-              type: 'SET_ERROR',
-              error: 'EMAIL_DOMAIN_NOT_ALLOWED',
-              info: {
-                code: 'EMAIL_DOMAIN_NOT_ALLOWED',
-                message: dictionary?.auth.emailDomainNotAllowed!,
-                email: value,
-              },
-            });
-          } else {
-            sendAuth({ type: 'CLEAR_ERROR' });
-          }
-          return isAllowed;
-        }),
+        .email(dictionary?.formValidation.invalidEmail),
     })
     .required();
 
@@ -456,6 +425,8 @@ const Login = ({
     reset: resetEmail,
   } = useForm({
     resolver: yupResolver(emailFormSchema),
+    mode: 'onSubmit',
+    reValidateMode: 'onSubmit',
     defaultValues: emailDefaultValues,
   });
   useWatch({ control: emailControl, name: ['email'] });
@@ -733,7 +704,15 @@ const Login = ({
     let authErrorDescription = loginDictionary?.defaultError;
 
     const lower = displayError.toLowerCase?.();
-    if (lower?.includes('invalid credentials')) {
+    const errData = errorObj?.data;
+    const serverPayload = errData?.data || errData;
+    const serverMessage = serverPayload?.message?.toLowerCase?.();
+
+    if (displayError === 'EMAIL_NOT_ALLOWED' || serverMessage === 'EMAIL_NOT_ALLOWED') {
+      authErrorTitle = dictionary?.auth?.emailDomainNotAllowed;
+      return { authErrorTitle, authErrorDescription };
+    }
+    if (displayError === 'INVALID_CREDENTIALS' || serverMessage === 'INVALID_CREDENTIALS') {
       authErrorTitle = loginDictionary?.invalidEmailPassword;
       authErrorDescription = loginDictionary?.invalidEmailPasswordDescription;
     } else if (lower?.includes('no passkey found')) {
@@ -990,8 +969,10 @@ const Login = ({
     );
   }, [isLoading, loginMethod, loginDictionary, displayError]);
 
-  const PasswordInputStep = useMemo(
-    () => (
+  const PasswordInputStep = useMemo(() => {
+    const { authErrorTitle, authErrorDescription } = getAuthError();
+
+    return (
       <>
         <BackButton
           className="mb-2.5"
@@ -1007,19 +988,15 @@ const Login = ({
               alt="alore logo"
               width={70}
             />
-            <span className="font-poppins text-alr-red text-center text-xl font-bold">
-              {displayError.toLowerCase?.().includes('invalid credentials')
-                ? loginDictionary?.invalidEmailPassword
-                : loginDictionary?.somethingWrong}
-            </span>
-            <span className="text-alr-grey text-center font-medium">
-              {displayError.toLowerCase?.().includes('invalid credentials')
-                ? loginDictionary?.invalidEmailPasswordDescription
-                : loginDictionary?.defaultError}
-            </span>
-            {errorObj?.code && (
-              <span className="text-center text-xs text-gray-500">{`Error code: ${errorObj.code}`}</span>
-            )}
+            <div className="my-4 flex flex-col items-center justify-center gap-2">
+              <span className="font-poppins text-alr-red text-center text-xl font-bold">
+                {authErrorTitle}
+              </span>
+              <span className="text-alr-grey text-center font-medium">{authErrorDescription}</span>
+              {errorObj?.code && (
+                <span className="text-center text-xs text-gray-500">{`Error code: ${errorObj.code}`}</span>
+              )}
+            </div>
           </div>
         )}
         <form
@@ -1066,16 +1043,15 @@ const Login = ({
           </span>
         </form>
       </>
-    ),
-    [
-      getValuesPassword(),
-      isLoginSubmitDisabled,
-      passwordErrors,
-      passwordControl,
-      isLoading,
-      displayError,
-    ],
-  );
+    );
+  }, [
+    getValuesPassword(),
+    isLoginSubmitDisabled,
+    passwordErrors,
+    passwordControl,
+    isLoading,
+    displayError,
+  ]);
 
   const VerifyEmail = useMemo(
     () => (

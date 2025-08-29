@@ -22,7 +22,6 @@ export type KeyDerivationFunction = 'argon2d' | 'pbkdf2';
  * @property logoUrl - Optional string for logo URL.
  * @property socialProviders - Optional social login providers.
  * @property enableWalletCreation - Optional boolean to enable wallet creation.
- * @property allowedEmailDomains - Optional allowed email domain(s). If provided, authentication will only allow emails from these domains. Accepts a single string (e.g., 'bealore.com' or '@bealore.com') or an array of strings.
  */
 export interface AuthProviderConfig {
   rpDomain?: string;
@@ -40,7 +39,6 @@ export interface AuthProviderConfig {
   socialProviders?: SocialProvider[];
   enableWalletCreation?: boolean;
   firebaseCompatible?: boolean;
-  allowedEmailDomains?: string | string[];
 }
 
 export interface AuthMachineContext {
