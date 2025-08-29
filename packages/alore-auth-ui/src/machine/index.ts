@@ -19,8 +19,6 @@ const initialContext: AuthMachineContext = {
   RCRPublicKey: undefined,
   // authProviderConfigs: undefined,
   credentialEmail: undefined,
-  // internal marker to know if salt fetch was initiated from method selection
-  saltFetchFromSelection: undefined,
 };
 
 export const authMachine = createMachine(
@@ -249,8 +247,6 @@ export const authMachine = createMachine(
                         sessionId: () => undefined,
                         CCRPublicKey: () => undefined,
                         RCRPublicKey: () => undefined,
-                        // mark that we came from method selection
-                        saltFetchFromSelection: () => true,
                       }),
                     },
                   ],
@@ -270,9 +266,6 @@ export const authMachine = createMachine(
                     },
                     {
                       target: 'retrievingSalt',
-                      actions: assign({
-                        saltFetchFromSelection: () => true,
-                      }),
                     },
                   ],
 
@@ -300,22 +293,18 @@ export const authMachine = createMachine(
                         }),
                         send((context) => ({
                           type: 'VERIFY_LOGIN',
-                          // @ts-ignore
                           payload: context.pendingVerifyLogin,
                         })),
                         assign({
-                          // @ts-ignore
                           pendingVerifyLogin: () => undefined,
                         }),
                       ],
-                      // @ts-ignore
                       cond: (context) => !!context.pendingVerifyLogin,
                     },
                     {
                       target: '#authMachine.active.login.loginMethodSelection',
                       actions: assign({
                         salt: (_context, event) => event.data?.salt,
-                        saltFetchFromSelection: () => undefined,
                       }),
                       cond: 'isPasswordAndPasskeyEnabled',
                     },
@@ -433,7 +422,6 @@ export const authMachine = createMachine(
                     {
                       target: 'retrievingSalt',
                       actions: assign({
-                        // @ts-ignore
                         pendingVerifyLogin: (_, event) => event.payload,
                       }),
                     },
