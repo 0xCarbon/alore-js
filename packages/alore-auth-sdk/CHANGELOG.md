@@ -1,5 +1,11 @@
 # @alore/auth-react-sdk
 
+## 1.1.0-alpha.7
+
+### Minor Changes
+
+- 0ff983c: provider config handle from backend
+
 ## 1.1.0-alpha.6
 
 ### Patch Changes
