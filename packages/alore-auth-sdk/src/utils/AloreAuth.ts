@@ -26,25 +26,6 @@ export class AloreAuth {
   }
 
   services = {
-    // Utility to check if an email is allowed based on allowedEmailDomains config
-    isEmailAllowed: (context: AuthMachineContext, email?: string | null) => {
-      const allowedConf = context.authProviderConfigs?.allowedEmailDomains;
-      const allowedList =
-        // eslint-disable-next-line no-nested-ternary
-        typeof allowedConf === 'string'
-          ? [allowedConf]
-          : Array.isArray(allowedConf)
-            ? allowedConf
-            : [];
-      if (allowedList.length === 0) return true;
-      if (!email) return false;
-      const domain = (email.split('@')[1] || '').toLowerCase();
-      // Allow items like '@bealore.com' or 'bealore.com'
-      return allowedList.some((d) => {
-        const normalized = d.startsWith('@') ? d.slice(1) : d;
-        return domain === normalized.toLowerCase();
-      });
-    },
     healthCheck: async () => {
       try {
         await this.verifyBackendStatus();
@@ -65,13 +46,6 @@ export class AloreAuth {
       },
     ) => {
       const { email } = event.payload;
-      if (!this.services.isEmailAllowed(context, email)) {
-        throw new AloreAuthError(
-          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-          'Email domain not allowed',
-          400,
-        );
-      }
       const { credentialEmail } = context;
 
       const response = await this.fetchWithProgressiveBackoff(
@@ -87,7 +61,9 @@ export class AloreAuth {
         const salt: string = await response.json();
         return { salt };
       }
-      return { error: response?.statusText };
+
+      // Propagate parsed error so machine receives full payload as event.data
+      await this.throwParsedResponseError(response);
     },
     verifyEmail: async (
       context: AuthMachineContext,
@@ -117,8 +93,7 @@ export class AloreAuth {
         return {};
       }
 
-      const data = await response.json();
-      throw new Error(data?.message || data?.error || data);
+      await this.throwParsedResponseError(response);
     },
     completeRegistration: async (
       context: AuthMachineContext,
@@ -133,13 +108,6 @@ export class AloreAuth {
       },
     ) => {
       const { email, nickname, passwordHash, device } = event.payload;
-      if (!this.services.isEmailAllowed(context, email)) {
-        throw new AloreAuthError(
-          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-          'Email domain not allowed',
-          400,
-        );
-      }
       const { firebaseCompatible } = context.authProviderConfigs || {};
 
       const response = await this.fetchWithProgressiveBackoff(
@@ -162,7 +130,7 @@ export class AloreAuth {
 
       if (response.ok) return data;
 
-      throw new Error(data.message || data.error || 'Authentication failed');
+      await this.throwParsedResponseError(response);
     },
     confirmPassword: async (
       context: AuthMachineContext,
@@ -186,9 +154,9 @@ export class AloreAuth {
         }),
       });
 
-      if (!response.ok) return {};
+      if (!response.ok) await this.throwParsedResponseError(response);
 
-      return { error: response?.statusText };
+      return {};
     },
     sendConfirmationEmail: async (
       context: AuthMachineContext,
@@ -215,13 +183,6 @@ export class AloreAuth {
           },
     ) => {
       const { email, nickname, locale } = event.payload;
-      if (!this.services.isEmailAllowed(context, email)) {
-        throw new AloreAuthError(
-          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-          'Email domain not allowed',
-          400,
-        );
-      }
       const searchParams = new URLSearchParams();
       const url = '/auth/v1/confirmation-email';
 
@@ -253,12 +214,8 @@ export class AloreAuth {
         return { salt, sessionId };
       }
 
-      if (response.status === 403) {
-        const resJson = await response.json();
-        throw new Error(resJson);
-      }
-
-      return { error: response?.statusText };
+      // Throw parsed error for machine to consume
+      await this.throwParsedResponseError(response);
     },
     sendCode: async (
       context: AuthMachineContext,
@@ -270,13 +227,6 @@ export class AloreAuth {
       },
     ) => {
       const { email } = event.payload;
-      if (!this.services.isEmailAllowed(context, email)) {
-        throw new AloreAuthError(
-          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-          'Email domain not allowed',
-          400,
-        );
-      }
       const response = await this.fetchWithProgressiveBackoff(`/reset-password`, {
         method: 'POST',
         headers: {
@@ -287,7 +237,7 @@ export class AloreAuth {
         }),
       });
 
-      if (!response.ok) return { error: response?.statusText };
+      if (!response.ok) await this.throwParsedResponseError(response);
 
       return {};
     },
@@ -317,13 +267,6 @@ export class AloreAuth {
           },
     ) => {
       const { email, passwordHash, device, locale } = event.payload;
-      if (!this.services.isEmailAllowed(context, email || context.credentialEmail)) {
-        throw new AloreAuthError(
-          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-          'Email domain not allowed',
-          400,
-        );
-      }
       const { credentialEmail } = context;
 
       const searchParams = new URLSearchParams();
@@ -361,7 +304,7 @@ export class AloreAuth {
         if (data?.error?.includes('2FA') || data?.error?.includes('device')) {
           return { error: data?.error };
         }
-        throw new Error(data?.message || data?.error || data);
+        await this.throwParsedResponseError(response);
       } else {
         return data;
       }
@@ -380,13 +323,6 @@ export class AloreAuth {
     ) => {
       const { rpDomain } = context.authProviderConfigs || {};
       const { email, nickname, device } = event.payload || context.registerUser;
-      if (email && !this.services.isEmailAllowed(context, email)) {
-        throw new AloreAuthError(
-          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-          'Email domain not allowed',
-          400,
-        );
-      }
 
       const startPasskeyRegistrationResponse = await this.fetchWithProgressiveBackoff(
         '/auth/v1/account-registration-passkey',
@@ -405,6 +341,9 @@ export class AloreAuth {
       );
 
       const data = await startPasskeyRegistrationResponse.json();
+
+      if (!startPasskeyRegistrationResponse.ok)
+        await this.throwParsedResponseError(startPasskeyRegistrationResponse);
 
       return data;
     },
@@ -430,13 +369,6 @@ export class AloreAuth {
     ) => {
       const { rpDomain } = context.authProviderConfigs || {};
       const { email, nickname, device, passkeyRegistration } = event.payload || {};
-      if (email && !this.services.isEmailAllowed(context, email)) {
-        throw new AloreAuthError(
-          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-          'Email domain not allowed',
-          400,
-        );
-      }
 
       const response = await this.fetchWithProgressiveBackoff(
         '/auth/v1/account-registration-passkey-finish',
@@ -473,13 +405,6 @@ export class AloreAuth {
       const { rpDomain } = context.authProviderConfigs || {};
 
       const email = event.payload?.email;
-      if (email && !this.services.isEmailAllowed(context, email)) {
-        throw new AloreAuthError(
-          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-          'Email domain not allowed',
-          400,
-        );
-      }
 
       const searchParams = new URLSearchParams();
       const url = '/auth/v1/login-passkey';
@@ -559,7 +484,7 @@ export class AloreAuth {
 
       if (response.ok) return data;
 
-      throw new AloreAuthError(ErrorTypes.FAILED_TO_FETCH, data.message || data.error || data);
+      await this.throwParsedResponseError(response);
     },
     // Hardware 2FA flow
     verify2faCode: async (
@@ -593,7 +518,7 @@ export class AloreAuth {
 
       if (response.ok) return data;
 
-      throw new Error(data.message || data.error || 'Authentication failed');
+      await this.throwParsedResponseError(response);
     },
     authenticateWebauthn: async (
       context: AuthMachineContext,
@@ -656,7 +581,7 @@ export class AloreAuth {
 
       if (response.ok) return data;
 
-      throw new Error(data.message || data.error || 'Authentication failed');
+      await this.throwParsedResponseError(response);
     },
     verifyDeviceCode: async (
       context: AuthMachineContext,
@@ -708,13 +633,7 @@ export class AloreAuth {
     ) => {
       const { email, passwordHash, secureCode } = event.payload;
       const { credentialEmail, authProviderConfigs } = context;
-      if (!this.services.isEmailAllowed(context, email || credentialEmail)) {
-        throw new AloreAuthError(
-          ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-          'Email domain not allowed',
-          400,
-        );
-      }
+
       const { firebaseCompatible } = authProviderConfigs || {};
 
       const response = await this.fetchWithProgressiveBackoff(
@@ -765,7 +684,7 @@ export class AloreAuth {
 
       const data = await response.json();
 
-      if (!response.ok) throw new Error(data?.message || data?.error || data);
+      if (!response.ok) await this.throwParsedResponseError(response);
 
       return data;
     },
@@ -800,7 +719,7 @@ export class AloreAuth {
 
       if (response.ok) return data;
 
-      throw new Error(data || 'Authentication failed');
+      await this.throwParsedResponseError(response);
     },
     fetchForgeData: async (
       _: AuthMachineContext,
@@ -813,9 +732,7 @@ export class AloreAuth {
 
       const data = (await response.json()) as ForgeData;
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetchWithProgressiveBackoff: ${data}`);
-      }
+      if (!response.ok) await this.throwParsedResponseError(response);
 
       return data;
     },
@@ -851,13 +768,6 @@ export class AloreAuth {
       const data = await response.json();
 
       if (response.ok) {
-        if (!this.services.isEmailAllowed(context, data.email)) {
-          throw new AloreAuthError(
-            ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-            'Email domain not allowed',
-            400,
-          );
-        }
         return {
           googleOtpCode: data.otpCode,
           salt: data.salt,
@@ -871,13 +781,6 @@ export class AloreAuth {
       }
 
       if (response.status === 404) {
-        if (!this.services.isEmailAllowed(context, data.email)) {
-          throw new AloreAuthError(
-            ErrorTypes.EMAIL_DOMAIN_NOT_ALLOWED,
-            'Email domain not allowed',
-            400,
-          );
-        }
         return {
           isNewUser: true,
           socialProviderRegisterUser: {
@@ -888,7 +791,7 @@ export class AloreAuth {
         };
       }
 
-      if (!response.ok) throw new Error(data.error || data.message || data);
+      if (!response.ok) await this.throwParsedResponseError(response);
 
       return {};
     },
@@ -1025,6 +928,41 @@ export class AloreAuth {
       ErrorTypes.FAILED_TO_FETCH,
       `Max attempts (${maxAttempts}) exceeded while contacting ${this.aloreBaseUrl}${url}`,
     );
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private async parseErrorResponse(response: Response) {
+    try {
+      const data = await response.json();
+      // Standardize to server payload when present
+      if (data && typeof data === 'object' && (data.message || data.status)) {
+        return {
+          status: data.status || response.status,
+          message: data.message || data.error || response.statusText,
+          timestamp: data.timestamp,
+        };
+      }
+      return { status: response.status, message: response.statusText } as const;
+    } catch {
+      return { status: response.status, message: response.statusText } as const;
+    }
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private async throwParsedResponseError(response: Response) {
+    const parsed = await this.parseErrorResponse(response);
+    // Normalize well-known auth errors for consistent UI handling
+    let normalizedMessage = parsed.message || 'Request failed';
+    if (parsed.status === 401) {
+      normalizedMessage = 'INVALID_CREDENTIALS';
+    } else if (parsed.status === 403 && parsed.message === 'EMAIL_NOT_ALLOWED') {
+      normalizedMessage = 'EMAIL_NOT_ALLOWED';
+    }
+
+    const err = new AloreAuthError(ErrorTypes.FAILED_TO_FETCH, normalizedMessage);
+    // @ts-ignore attach server payload for consumers
+    err.data = { ...parsed, message: normalizedMessage };
+    throw err;
   }
 
   private async verifyBackendStatus() {
