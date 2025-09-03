@@ -8,7 +8,6 @@ const initialContext: AuthMachineContext = {
   salt: undefined,
   error: undefined,
   active2fa: undefined,
-  sessionId: undefined,
   registerUser: undefined,
   socialProviderRegisterUser: undefined,
   googleOtpCode: undefined,
@@ -48,7 +47,6 @@ export const authMachine = createMachine(
         },
         exit: assign({
           error: () => undefined,
-          sessionId: () => undefined,
           credentialEmail: () => undefined,
         }),
       },
@@ -76,7 +74,6 @@ export const authMachine = createMachine(
                   registerUser: () => undefined,
                   socialProviderRegisterUser: () => undefined,
                   salt: () => undefined,
-                  sessionId: () => undefined,
                 }),
               },
 
@@ -85,7 +82,6 @@ export const authMachine = createMachine(
                   src: 'verifyEmailEligibility',
                   onDone: {
                     target: 'email2faCode',
-                    actions: 'setSessionId',
                   },
                   onError: {
                     target: 'emailInput',
@@ -225,7 +221,6 @@ export const authMachine = createMachine(
                         googleUser: () => undefined,
                         registerUser: () => undefined,
                         socialProviderRegisterUser: () => undefined,
-                        sessionId: () => undefined,
                         CCRPublicKey: () => undefined,
                         RCRPublicKey: () => undefined,
                       }),
@@ -471,7 +466,6 @@ export const authMachine = createMachine(
                     },
                     {
                       target: 'email2fa',
-                      actions: 'setSessionId',
                     },
                   ],
                   onError: {
@@ -536,7 +530,7 @@ export const authMachine = createMachine(
                       target: 'newDevice',
                       cond: 'isNewDevice',
                     },
-                    { target: 'successfulLogin', actions: 'setSessionUser' },
+                    { target: 'successfulLogin' },
                   ],
                   onError: {
                     target: 'software2fa',
@@ -576,7 +570,6 @@ export const authMachine = createMachine(
 
                   onDone: {
                     target: 'successfulLogin',
-                    actions: 'setSessionUser',
                   },
 
                   onError: {
@@ -641,7 +634,6 @@ export const authMachine = createMachine(
 
                   onDone: {
                     target: 'successfulLogin',
-                    actions: 'setSessionUser',
                   },
                 },
                 entry: assign({
@@ -654,7 +646,6 @@ export const authMachine = createMachine(
                   src: 'verifyLogin',
                   onDone: {
                     target: 'email2fa',
-                    actions: 'setSessionId',
                   },
                 },
                 entry: assign({
@@ -671,7 +662,7 @@ export const authMachine = createMachine(
                       target: 'newDevice',
                       cond: 'isNewDevice',
                     },
-                    { target: 'successfulLogin', actions: 'setSessionUser' },
+                    { target: 'successfulLogin' },
                   ],
 
                   onError: {
@@ -737,7 +728,6 @@ export const authMachine = createMachine(
                         googleOtpCode: (_, event) => event.data.googleOtpCode,
                         salt: (_, event) => event.data.salt,
                         googleUser: (_, event) => event.data.googleUser,
-                        sessionId: (_, event) => event.data.sessionId,
                       }),
                     },
                   ],
@@ -779,7 +769,6 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.login.signingCredentialRCR',
                     actions: assign({
                       RCRPublicKey: (_context, event) => event.data.requestChallengeResponse,
-                      sessionId: (_, event) => event.data.sessionId,
                     }),
                   },
                   onError: {
@@ -889,7 +878,6 @@ export const authMachine = createMachine(
             exit: assign({
               RCRPublicKey: () => undefined,
               CCRPublicKey: () => undefined,
-              sessionId: () => undefined,
             }),
           },
 
@@ -941,7 +929,6 @@ export const authMachine = createMachine(
                     target: 'emailValidation',
                     actions: assign({
                       salt: (_context, event) => event.data?.salt,
-                      sessionId: (_context, event) => event.data?.sessionId,
                     }),
                   },
                   onError: {
@@ -1080,7 +1067,6 @@ export const authMachine = createMachine(
                   src: 'sendConfirmationEmail',
                   onDone: {
                     target: 'emailValidation',
-                    actions: 'setSessionId',
                   },
                 },
                 entry: assign({
@@ -1107,7 +1093,6 @@ export const authMachine = createMachine(
                         googleOtpCode: (_, event) => event.data.googleOtpCode,
                         salt: (_, event) => event.data.salt,
                         googleUser: (_, event) => event.data.googleUser,
-                        sessionId: (_, event) => event.data.sessionId,
                       }),
                     },
                   ],
@@ -1139,7 +1124,6 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.register.localCCRSign',
                     actions: assign({
                       CCRPublicKey: (_context, event) => event.data.ccr,
-                      sessionId: (_, event) => event.data.sessionId,
                     }),
                   },
 
@@ -1207,7 +1191,6 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.register.waitingForRCR',
                     actions: assign({
                       RCRPublicKey: () => undefined,
-                      sessionId: () => undefined,
                     }),
                   },
                   onError: {
@@ -1243,7 +1226,6 @@ export const authMachine = createMachine(
                     target: '#authMachine.active.register.localRCRSign',
                     actions: assign({
                       RCRPublicKey: (_context, event) => event.data.requestChallengeResponse,
-                      sessionId: (_, event) => event.data.sessionId,
                     }),
                   },
                   onError: {
@@ -1616,9 +1598,6 @@ export const authService = (services: {}, context: AuthMachineContext) => {
               ...ctx.sessionUser!,
               accessToken: event.newAccessToken,
             }),
-          }),
-          setSessionId: assign({
-            sessionId: (_, event) => event.data.sessionId,
           }),
           setSessionUser: assign({
             sessionUser: (_, event) => event.data,

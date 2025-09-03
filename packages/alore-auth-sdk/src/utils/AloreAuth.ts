@@ -84,7 +84,6 @@ export class AloreAuth {
           },
           body: JSON.stringify({
             emailCode: secureCode,
-            sessionId: context.sessionId,
           }),
         },
       );
@@ -210,8 +209,8 @@ export class AloreAuth {
 
       if (response.ok) {
         const resJson = await response.json();
-        const { salt, sessionId } = resJson;
-        return { salt, sessionId };
+        const { salt } = resJson;
+        return { salt };
       }
 
       // Throw parsed error for machine to consume
@@ -295,19 +294,11 @@ export class AloreAuth {
         },
       );
 
-      const data = await response.json();
-
       if (!response.ok) {
-        if (response.status === 403) {
-          return { active2fa: data };
-        }
-        if (data?.error?.includes('2FA') || data?.error?.includes('device')) {
-          return { error: data?.error };
-        }
         await this.throwParsedResponseError(response);
-      } else {
-        return data;
       }
+
+      return {};
     },
     // Passkey registration flow
     startRegisterPasskey: async (
@@ -382,7 +373,6 @@ export class AloreAuth {
             userNickname: nickname || null,
             userDevice: device,
             passkeyRegistration,
-            sessionId: context.sessionId,
             rpOrigin: rpDomain,
           }),
         },
@@ -474,7 +464,6 @@ export class AloreAuth {
           },
           body: JSON.stringify({
             passkeyAuth,
-            sessionId: context.sessionId,
             rpOrigin: rpDomain,
           }),
         },
@@ -572,7 +561,6 @@ export class AloreAuth {
             passwordHash,
             device,
             credential,
-            sessionId: optionsData.sessionId,
           }),
         },
       );
@@ -609,7 +597,6 @@ export class AloreAuth {
             passwordHash,
             deviceSecret: device,
             emailCode: secureCode,
-            sessionId: context.sessionId,
           }),
         },
       );
@@ -644,7 +631,6 @@ export class AloreAuth {
             email: email || credentialEmail,
             passwordHash,
             emailCode: secureCode,
-            sessionId: context.sessionId,
           }),
           headers: {
             'Content-Type': 'application/json',
@@ -707,7 +693,6 @@ export class AloreAuth {
           body: JSON.stringify({
             email,
             emailCode,
-            sessionId: context.sessionId,
           }),
           headers: {
             'Content-Type': 'application/json',
@@ -776,7 +761,6 @@ export class AloreAuth {
             nickname: data.nickname,
             salt: data.salt,
           },
-          sessionId: data.sessionId,
         };
       }
 
@@ -814,7 +798,6 @@ export class AloreAuth {
           email,
           emailCode: otp,
           passwordHash,
-          sessionId: context.sessionId,
         }),
         headers: {
           'Content-Type': 'application/json',
