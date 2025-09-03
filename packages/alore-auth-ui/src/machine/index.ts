@@ -530,7 +530,7 @@ export const authMachine = createMachine(
                       target: 'newDevice',
                       cond: 'isNewDevice',
                     },
-                    { target: 'successfulLogin' },
+                    { target: 'successfulLogin', actions: 'setSessionUser' },
                   ],
                   onError: {
                     target: 'software2fa',
@@ -570,6 +570,7 @@ export const authMachine = createMachine(
 
                   onDone: {
                     target: 'successfulLogin',
+                    actions: 'setSessionUser',
                   },
 
                   onError: {
@@ -634,6 +635,7 @@ export const authMachine = createMachine(
 
                   onDone: {
                     target: 'successfulLogin',
+                    actions: 'setSessionUser',
                   },
                 },
                 entry: assign({
@@ -662,7 +664,10 @@ export const authMachine = createMachine(
                       target: 'newDevice',
                       cond: 'isNewDevice',
                     },
-                    { target: 'successfulLogin' },
+                    {
+                      target: 'successfulLogin',
+                      actions: 'setSessionUser',
+                    },
                   ],
 
                   onError: {
