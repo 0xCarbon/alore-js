@@ -8,6 +8,7 @@
     "example": "0.1.0"
   },
   "changesets": [
+    "eight-kiwis-live",
     "eleven-snails-smell",
     "evil-swans-float",
     "fancy-mice-own",

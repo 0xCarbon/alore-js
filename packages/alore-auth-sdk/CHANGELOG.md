@@ -1,5 +1,11 @@
 # @alore/auth-react-sdk
 
+## 1.1.0-alpha.8
+
+### Minor Changes
+
+- c5c6370: Removed session_id
+
 ## 1.1.0-alpha.7
 
 ### Minor Changes

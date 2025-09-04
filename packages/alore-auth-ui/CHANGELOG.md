@@ -1,5 +1,16 @@
 # @alore/auth-react-ui
 
+## 1.2.0-alpha.12
+
+### Minor Changes
+
+- c5c6370: Removed session_id
+
+### Patch Changes
+
+- Updated dependencies [c5c6370]
+  - @alore/auth-react-sdk@1.1.0-alpha.8
+
 ## 1.2.0-alpha.11
 
 ### Minor Changes
