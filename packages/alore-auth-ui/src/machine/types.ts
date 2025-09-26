@@ -30,6 +30,7 @@ export interface AuthMachineContext {
     data?: any;
   };
   active2fa?: TwoFactorAuth[];
+  sessionId?: string;
   registerUser?: {
     email: string;
     nickname: string;
@@ -269,6 +270,7 @@ type AuthReturn = {
   data: {
     error?: string;
     salt?: string;
+    sessionId?: string;
   };
 };
 

@@ -46,6 +46,7 @@ export interface AuthMachineContext {
   salt?: string;
   error?: string;
   active2fa?: TwoFactorAuth[];
+  sessionId?: string;
   registerUser?: {
     email: string;
     nickname: string;

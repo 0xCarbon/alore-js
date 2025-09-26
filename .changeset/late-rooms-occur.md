@@ -3,4 +3,4 @@
 '@alore/auth-react-ui': minor
 ---
 
-Removed session_id
+Added sessionId again
