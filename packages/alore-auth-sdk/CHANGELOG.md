@@ -1,5 +1,11 @@
 # @alore/auth-react-sdk
 
+## 1.1.0-alpha.9
+
+### Patch Changes
+
+- 6029d70: fix local url logic
+
 ## 1.1.0-alpha.8
 
 ### Minor Changes
