@@ -818,6 +818,22 @@ export class AloreAuth {
     await new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  private isLocalUrl(urlString: string): boolean {
+    try {
+      const parsed = new URL(urlString);
+      const isHttp = parsed.protocol === 'http:';
+      const isLoopbackHost =
+        parsed.hostname === 'localhost' ||
+        parsed.hostname === '127.0.0.1' ||
+        parsed.hostname === '::1';
+      const isPort8000 = parsed.port === '8000';
+      return isHttp || isLoopbackHost || isPort8000;
+    } catch (_e) {
+      return false;
+    }
+  }
+
   public async fetchWithProgressiveBackoff(
     // eslint-disable-next-line no-undef
     url: RequestInfo | URL,
@@ -830,8 +846,7 @@ export class AloreAuth {
     let attempt = 0;
     let delayValue = initialDelay;
 
-    const isLocal =
-      this.aloreBaseUrl.includes('localhost') || this.aloreBaseUrl.includes('127.0.0.1');
+    const isLocal = this.isLocalUrl(this.aloreBaseUrl);
 
     // eslint-disable-next-line no-undef
     const init: RequestInit = {
