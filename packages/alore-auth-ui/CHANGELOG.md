@@ -1,5 +1,16 @@
 # @alore/auth-react-ui
 
+## 1.2.0-alpha.14
+
+### Minor Changes
+
+- 86634cb: Added sessionId again
+
+### Patch Changes
+
+- Updated dependencies [86634cb]
+  - @alore/auth-react-sdk@1.1.0-alpha.10
+
 ## 1.2.0-alpha.13
 
 ### Patch Changes
