@@ -3,4 +3,4 @@
 '@alore/auth-react-ui': patch
 ---
 
-password reset funcionality
+password reset functionality

@@ -128,7 +128,7 @@
       "resetPasswordDescription": "Por favor informe seu e-mail",
       "sendCode": "Enviar código",
       "emailSentTitle": "Código enviado para seu e-mail",
-      "emailSentDescription": "Enviamos um e-mail com as instruções para resetar sua senha.",
+      "emailSentDescription": "Enviamos um e-mail com as instruções para modificar sua senha.",
       "backToLogin": "Voltar para login",
       "newPasswordTitle": "Crie uma nova senha",
       "newPasswordDescription": "Digite sua nova senha abaixo",
