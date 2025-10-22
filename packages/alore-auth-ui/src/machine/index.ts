@@ -19,6 +19,7 @@ const initialContext: AuthMachineContext = {
   RCRPublicKey: undefined,
   // authProviderConfigs: undefined,
   credentialEmail: undefined,
+  forgotPasswordSession: undefined,
 };
 
 export const authMachine = createMachine(
@@ -1306,11 +1307,28 @@ export const authMachine = createMachine(
           },
 
           forgotPassword: {
+            on: {
+              RESET_PASSWORD: {
+                target: '.newPassword',
+                actions: assign({
+                  forgotPasswordSession: (_, event) => ({
+                    salt: event.payload?.salt,
+                    token: event.payload?.token,
+                  }),
+                }),
+              },
+            },
+
             states: {
               idle: {
                 on: {
                   SEND_CODE: 'sendingCode',
-                  RESET_PASSWORD: 'newPassword',
+                  BACK: {
+                    target: '#authMachine.active.login',
+                    actions: assign({
+                      error: () => undefined,
+                    }),
+                  },
                 },
               },
 
@@ -1321,7 +1339,16 @@ export const authMachine = createMachine(
                   onError: {
                     target: 'idle',
                     actions: assign({
-                      error: (_context, event) => event.data?.error || event.data?.message,
+                      error: (_context, event) => {
+                        // Preserve the full error object if it has a code, otherwise use the message
+                        const errorData = event.data?.error || event.data;
+                        if (errorData?.message) {
+                          return {
+                            message: errorData.message,
+                          };
+                        }
+                        return errorData;
+                      },
                     }),
                   },
                 },
@@ -1330,11 +1357,28 @@ export const authMachine = createMachine(
                 }),
               },
 
-              codeSent: {},
+              codeSent: {
+                on: {
+                  BACK: {
+                    target: '#authMachine.active.login',
+                    actions: assign({
+                      error: () => undefined,
+                      forgotPasswordSession: () => undefined,
+                    }),
+                  },
+                },
+              },
 
               newPassword: {
                 on: {
                   CONFIRM_PASSWORD: 'savingPassword',
+                  BACK: {
+                    target: 'idle',
+                    actions: assign({
+                      error: () => undefined,
+                      forgotPasswordSession: () => undefined,
+                    }),
+                  },
                 },
               },
 
@@ -1345,7 +1389,16 @@ export const authMachine = createMachine(
                   onError: {
                     target: 'newPassword',
                     actions: assign({
-                      error: (_context, event) => event.data?.error || event.data?.message,
+                      error: (_context, event) => {
+                        // Preserve the full error object if it has a code, otherwise use the message
+                        const errorData = event.data?.error || event.data;
+                        if (errorData?.message) {
+                          return {
+                            message: errorData.message,
+                          };
+                        }
+                        return errorData;
+                      },
                     }),
                   },
                 },
@@ -1355,11 +1408,26 @@ export const authMachine = createMachine(
               },
 
               passwordSaved: {
-                type: 'final',
+                on: {
+                  BACK: {
+                    target: '#authMachine.active.login',
+                    actions: assign({
+                      forgotPasswordSession: () => undefined,
+                      error: () => undefined,
+                    }),
+                  },
+                },
+                entry: assign({
+                  forgotPasswordSession: () => undefined,
+                }),
               },
             },
 
             initial: 'idle',
+
+            entry: assign({
+              error: () => undefined,
+            }),
           },
         },
 

@@ -122,6 +122,25 @@
       "selectMethodDescription": "Selecione o método que deseja para criar sua conta",
       "selectMethodPassword": "Entre usando uma senha",
       "selectMethodPasskey": "Entre usando uma passkey"
+    },
+    "forgotPassword": {
+      "resetPassword": "Mudar sua senha",
+      "resetPasswordDescription": "Por favor informe seu e-mail",
+      "sendCode": "Enviar código",
+      "emailSentTitle": "Código enviado para seu e-mail",
+      "emailSentDescription": "Enviamos um e-mail com as instruções para resetar sua senha.",
+      "backToLogin": "Voltar para login",
+      "newPasswordTitle": "Crie uma nova senha",
+      "newPasswordDescription": "Digite sua nova senha abaixo",
+      "passwordLabel": "Nova senha",
+      "confirmPasswordLabel": "Confirme a nova senha",
+      "confirmButton": "Redefinir senha",
+      "successTitle": "Nova senha criada",
+      "successDescription": "Suas configurações de 2FA permanecerão as mesmas.",
+      "invalidLink": "Link inválido ou expirado",
+      "invalidLinkDescription": "Este link de redefinição de senha é inválido ou expirou. Por favor, solicite um novo.",
+      "expiredSessionTitle": "Sessão de redefinição expirada",
+      "expiredSessionDescription": "Sua sessão de redefinição de senha expirou. Por favor, solicite um novo link de redefinição de senha."
     }
   }
 }
