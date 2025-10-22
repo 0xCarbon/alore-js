@@ -127,7 +127,7 @@ const ForgotPassword = ({
 
   const onSubmitPassword = async (data: typeof passwordDefaultValues) => {
     const { password } = data;
-    const salt = forgotPasswordSession?.salt || getValuesEmail('email');
+    const salt = forgotPasswordSession?.salt;
     const token = forgotPasswordSession?.token;
     const { userAgent } = window.navigator;
     const device = hashUserInfo(userAgent);
