@@ -1,5 +1,13 @@
 # @alore/auth-react-ui
 
+## 1.2.0-alpha.15
+
+### Patch Changes
+
+- 09a0454: password reset functionality
+- Updated dependencies [09a0454]
+  - @alore/auth-react-sdk@1.1.0-alpha.11
+
 ## 1.2.0-alpha.14
 
 ### Minor Changes
