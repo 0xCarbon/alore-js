@@ -47,6 +47,10 @@ export interface AuthMachineContext {
     mediation?: CredentialMediationRequirement;
   };
   credentialEmail?: string;
+  forgotPasswordSession?: {
+    salt: string;
+    token: string;
+  };
 }
 
 export type AuthMachineEvents =
@@ -232,12 +236,12 @@ export type AuthMachineEvents =
         device: string;
       };
     }
-  | { type: 'SEND_CODE'; payload: { email: string } }
+  | { type: 'SEND_CODE'; payload: { email: string; locale?: string } }
   | {
       type: 'CONFIRM_PASSWORD';
-      payload: { email: string; passwordHash: string };
+      payload: { salt: string; token: string; passwordHash: string; device?: string };
     }
-  | { type: 'RESET_PASSWORD' }
+  | { type: 'RESET_PASSWORD'; payload: { salt: string; token: string } }
   | { type: 'LOGIN' }
   | { type: 'FORGOT_PASSWORD' }
   | { type: 'SIGN_UP' }

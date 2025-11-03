@@ -48,7 +48,7 @@ export function ruleValidation(
       return passwordValues.password === passwordValues.confirmPassword;
     }
     if (rule.name === 'dont_use_your_name_or_email') {
-      if (!userInfoValues) return true;
+      if (!userInfoValues?.nickname && !userInfoValues?.email) return true;
       return !passwordValues.password
         .toLowerCase()
         .match(

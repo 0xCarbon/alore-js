@@ -137,20 +137,22 @@ export class AloreAuth {
       event: {
         type: 'CONFIRM_PASSWORD';
         payload: {
-          email: string;
+          salt: string;
           passwordHash: string;
+          token: string;
         };
       },
     ) => {
-      const { email, passwordHash } = event.payload;
-      const response = await this.fetchWithProgressiveBackoff(`/auth/v1/password-creation`, {
+      const { salt, passwordHash, token } = event.payload;
+      const response = await this.fetchWithProgressiveBackoff(`/auth/v1/reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email,
-          newPasswordHash: passwordHash,
+          token,
+          salt,
+          newPassword: passwordHash,
         }),
       });
 
@@ -223,19 +225,30 @@ export class AloreAuth {
         type: 'SEND_CODE';
         payload: {
           email: string;
+          locale?: string;
         };
       },
     ) => {
-      const { email } = event.payload;
-      const response = await this.fetchWithProgressiveBackoff(`/reset-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const { email, locale } = event.payload;
+      const searchParams = new URLSearchParams();
+      const url = '/auth/v1/request-password-reset';
+
+      if (locale) {
+        searchParams.append('locale', locale);
+      }
+
+      const response = await this.fetchWithProgressiveBackoff(
+        searchParams.size > 0 ? `${url}?${searchParams.toString()}` : url,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email,
+          }),
         },
-        body: JSON.stringify({
-          email,
-        }),
-      });
+      );
 
       if (!response.ok) await this.throwParsedResponseError(response);
 
@@ -968,7 +981,7 @@ export class AloreAuth {
     const parsed = await this.parseErrorResponse(response);
     // Normalize well-known auth errors for consistent UI handling
     let normalizedMessage = parsed.message || 'Request failed';
-    if (parsed.status === 401) {
+    if (parsed.status === 401 && parsed.message !== 'INVALID_SESSION') {
       normalizedMessage = 'INVALID_CREDENTIALS';
     } else if (parsed.status === 403 && parsed.message === 'EMAIL_NOT_ALLOWED') {
       normalizedMessage = 'EMAIL_NOT_ALLOWED';
