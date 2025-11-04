@@ -1,5 +1,8 @@
 /* eslint-disable no-unused-vars */
 import { Auth, useAuthService } from '@alore/auth-react-ui';
+import Image from 'next/image';
+
+import jooriLogo from '../../public/JooriPro.png';
 
 export default function AuthComponent() {
   const [state, actor] = useAuthService();
@@ -25,6 +28,17 @@ export default function AuthComponent() {
         ) {
           // do something
         }
+      }}
+      styles={{
+        primaryColor: '#3a3a3a',
+        logoImage: (
+          <Image
+            data-test="alore-logo"
+            src={jooriLogo}
+            alt="aloreLogo"
+            className="w-24"
+          />
+        ),
       }}
     />
   );
