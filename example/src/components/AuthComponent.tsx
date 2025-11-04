@@ -29,17 +29,6 @@ export default function AuthComponent() {
           // do something
         }
       }}
-      styles={{
-        primaryColor: '#3a3a3a',
-        logoImage: (
-          <Image
-            data-test="alore-logo"
-            src={jooriLogo}
-            alt="aloreLogo"
-            className="w-24"
-          />
-        ),
-      }}
     />
   );
 }
