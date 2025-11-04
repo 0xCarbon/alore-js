@@ -57,6 +57,29 @@ export interface LoginProps {
       _keyDerivationFunction: 'argon2d' | 'pbkdf2',
     ) => Promise<string>;
   };
+  // Custom styling props
+  customStyles?: {
+    borderRadius?: string;
+    borderWidth?: string;
+    borderColor?: string;
+    backgroundColor?: string;
+    padding?: string;
+    boxShadow?: string;
+  };
+  // Content customization props
+  title?: string;
+  titleClassName?: string;
+  loginTitle?: string;
+  loginTitleClassName?: string;
+  emailInputLabel?: string;
+  inputClassName?: string;
+  contentAlignment?: 'left' | 'center' | 'right';
+  // Custom CSS class name for the Card component
+  customClassName?: string;
+  // Custom spacing between title/logo and card content
+  titleSpacing?: string;
+  // Custom className for logo container
+  logoContainerClassName?: string;
 }
 
 const Login = ({
@@ -66,6 +89,17 @@ const Login = ({
   logoImage,
   keyshareWorker,
   cryptoUtils,
+  customStyles,
+  title,
+  titleClassName,
+  loginTitle,
+  loginTitleClassName,
+  emailInputLabel,
+  inputClassName,
+  contentAlignment = 'center',
+  customClassName,
+  titleSpacing = 'gap-y-2 sm:gap-y-7',
+  logoContainerClassName,
 }: LoginProps) => {
   const { hashUserInfo, generateSecureHash } = cryptoUtils;
   const dictionary = useDictionary(locale);
@@ -756,8 +790,12 @@ const Login = ({
             )}
           </div>
         ) : (
-          <h1 className="font-inter text-center text-xl font-bold text-gray-700">
-            {forgeId ? loginDictionary?.forgeLogin : loginDictionary?.loginAccount}
+          <h1
+            className={
+              loginTitleClassName || 'font-inter text-center text-xl font-bold text-gray-700'
+            }
+          >
+            {loginTitle || (forgeId ? loginDictionary?.forgeLogin : loginDictionary?.loginAccount)}
           </h1>
         )}
         <div className="mt-4 flex flex-col gap-y-5">
@@ -768,11 +806,12 @@ const Login = ({
             >
               <InputForm
                 className="my-1"
+                inputClassName={inputClassName}
                 control={emailControl}
                 errors={emailErrors}
                 name="email"
                 type="text"
-                placeholder={loginDictionary?.enterEmail}
+                placeholder={emailInputLabel || loginDictionary?.enterEmail}
                 data-testid="login-email-input"
                 icon={envelopIcon}
                 autoComplete={
@@ -1005,6 +1044,7 @@ const Login = ({
           data-testid="login-password-step"
         >
           <InputForm
+            inputClassName={inputClassName}
             control={passwordControl}
             errors={passwordErrors}
             name="password"
@@ -1286,11 +1326,37 @@ const Login = ({
     [secureCodeEmail, sendEmailCooldown, isLoading, newDeviceInfo, displayError],
   );
 
+  // Create custom styles object for the Card component
+  const cardCustomStyles = useMemo(() => {
+    if (!customStyles) return {};
+
+    const styles: React.CSSProperties = {};
+
+    if (customStyles.borderRadius) styles.borderRadius = customStyles.borderRadius;
+    if (customStyles.borderWidth) styles.borderWidth = customStyles.borderWidth;
+    if (customStyles.borderColor) styles.borderColor = customStyles.borderColor;
+    if (customStyles.backgroundColor) styles.backgroundColor = customStyles.backgroundColor;
+    if (customStyles.padding) styles.padding = customStyles.padding;
+    if (customStyles.boxShadow) styles.boxShadow = customStyles.boxShadow;
+
+    return styles;
+  }, [customStyles]);
+
+  // Get alignment classes based on contentAlignment prop
+  const getAlignmentClasses = useMemo(() => {
+    const alignmentMap = {
+      left: 'items-start text-left',
+      center: 'items-center text-center',
+      right: 'items-end text-right',
+    };
+    return alignmentMap[contentAlignment];
+  }, [contentAlignment]);
+
   if (authState.matches('active.login.successfulLogin')) return null;
 
   return (
     <div
-      className="flex size-full min-h-screen flex-col items-center justify-center gap-y-2 sm:gap-y-7"
+      className={`flex size-full min-h-screen flex-col items-center justify-center ${titleSpacing}`}
       data-testid="login-page"
     >
       {forgeId ? (
@@ -1310,19 +1376,26 @@ const Login = ({
           </div>
         </div>
       ) : (
-        logoImage || (
-          <img
-            src={aloreLogoBlack}
-            alt="alore logo"
-            width={authState.matches('active.login.newDevice') ? 153 : 201}
-          />
-        )
+        <div
+          className={`mx-5 flex min-w-80 flex-col gap-3 px-6 md:mx-7 md:w-96 ${getAlignmentClasses} ${logoContainerClassName || ''}`}
+        >
+          {logoImage || (
+            <img
+              src={aloreLogoBlack}
+              alt="alore logo"
+              width={authState.matches('active.login.newDevice') ? 153 : 201}
+            />
+          )}
+          {title && <h2 className={titleClassName}>{title}</h2>}
+        </div>
       )}
       <Card
         className={twMerge(
           `md:child:!px-9 mx-5 flex min-w-[20rem] !rounded-2xl border-gray-200 px-2 py-4 md:mx-7 md:w-96`,
           isLoading ? 'pointer-events-none opacity-50' : '',
+          customClassName,
         )}
+        style={cardCustomStyles}
       >
         {isLoading ? (
           <Spinner className="my-20 !h-14 w-full !fill-[var(--primary-color)]" />
