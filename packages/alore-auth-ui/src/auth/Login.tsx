@@ -822,13 +822,12 @@ const Login = ({
                 autoFocus
               />
 
-              {/* <Link // TODO removed from beta
-                href="/forgot-password"
-                className="cursor-pointer self-end text-xs font-medium text-alr-red"
-                data-testid="forgot-password"
+              <span
+                onClick={() => sendAuth('FORGOT_PASSWORD')}
+                className="cursor-pointer text-xs font-medium text-[var(--primary-color)] hover:text-[var(--primary-hover)]"
               >
                 Forgot your password?
-              </Link> */}
+              </span>
               <Button
                 type="submit"
                 data-testid="login-button"
@@ -1055,13 +1054,12 @@ const Login = ({
             data-testid="login-password"
           />
 
-          {/* <Link // TODO removed from beta
-            href="/forgot-password"
-            className="cursor-pointer self-end text-xs font-medium text-alr-red"
-            data-testid="forgot-password"
+          <span
+            onClick={() => sendAuth('FORGOT_PASSWORD')}
+            className="cursor-pointer text-xs font-medium text-[var(--primary-color)] hover:text-[var(--primary-hover)]"
           >
             Forgot your password?
-          </Link> */}
+          </span>
           <Button
             type="submit"
             data-testid="login-submit"

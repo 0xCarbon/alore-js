@@ -9,6 +9,7 @@ import { createTheme, Spinner, ThemeProvider } from 'flowbite-react';
 import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { StateValue } from 'xstate';
 
+import ForgotPassword from '../auth/ForgotPassword';
 import Login from '../auth/Login';
 import Register from '../auth/Register';
 import { darkenHexColor } from '../helpers';
@@ -80,8 +81,13 @@ const Auth = ({
 }: AuthProps) => {
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
-  const { googleUser, sessionUser, authProviderConfigs, socialProviderRegisterUser } =
-    authState.context;
+  const {
+    googleUser,
+    sessionUser,
+    authProviderConfigs,
+    socialProviderRegisterUser,
+    forgotPasswordSession,
+  } = authState.context;
   const { locale } = authProviderConfigs || {};
 
   const [isClient, setIsClient] = useState(false);
@@ -116,6 +122,25 @@ const Auth = ({
   useEffect(() => {
     setIsClient(true);
 
+    // Check for password reset URL parameters
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const salt = params.get('salt');
+      const token = params.get('token');
+
+      if (salt && token) {
+        sendAuth([
+          { type: 'INITIALIZE', forgeId },
+          'FORGOT_PASSWORD',
+          {
+            type: 'RESET_PASSWORD',
+            payload: { salt, token },
+          },
+        ]);
+        return;
+      }
+    }
+
     if (googleUser) {
       sendAuth([{ type: 'INITIALIZE', forgeId }, 'LOGIN', 'ADVANCE_TO_PASSWORD']);
       return;
@@ -129,7 +154,10 @@ const Auth = ({
   }, []);
 
   useEffect(() => {
-    sendAuth(['CLEAR_ERROR', 'RESET', 'INITIALIZE']);
+    // Don't reset if we're in the middle of a password reset flow
+    if (!forgotPasswordSession) {
+      sendAuth(['CLEAR_ERROR', 'RESET', 'INITIALIZE']);
+    }
   }, [authProviderConfigs]);
 
   useEffect(() => {
@@ -137,6 +165,26 @@ const Auth = ({
       sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP', 'ADVANCE_TO_PASSWORD']);
     }
   }, [socialProviderRegisterUser]);
+
+  // Ensure we're in the correct state if forgotPasswordSession exists
+  useEffect(() => {
+    if (
+      forgotPasswordSession &&
+      !authState.matches('active.forgotPassword.newPassword') &&
+      !authState.matches('active.forgotPassword.savingPassword')
+    ) {
+      if (!authState.matches('active.forgotPassword')) {
+        sendAuth('FORGOT_PASSWORD');
+      }
+      sendAuth({
+        type: 'RESET_PASSWORD',
+        payload: {
+          salt: forgotPasswordSession.salt,
+          token: forgotPasswordSession.token,
+        },
+      });
+    }
+  }, [forgotPasswordSession, authState.value]);
 
   // Fire callbacks only when transitioning from a verifying state to success (not on hydration)
   const prevStateValueRef = React.useRef(authState.value);
@@ -263,6 +311,15 @@ const Auth = ({
                   inviteToken={inviteToken}
                   cryptoUtils={cryptoUtils}
                   keyshareWorker={keyshareWorker}
+                  logoImage={styles?.logoImage}
+                />
+              )}
+              {authState.matches('active.forgotPassword') && (
+                <ForgotPassword
+                  locale={locale}
+                  authServiceInstance={authServiceInstance}
+                  forgeId={forgeId}
+                  cryptoUtils={cryptoUtils}
                   logoImage={styles?.logoImage}
                 />
               )}

@@ -1,5 +1,11 @@
 # @alore/auth-react-sdk
 
+## 1.1.0-alpha.11
+
+### Patch Changes
+
+- 09a0454: password reset functionality
+
 ## 1.1.0-alpha.10
 
 ### Minor Changes
