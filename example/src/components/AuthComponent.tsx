@@ -1,8 +1,5 @@
 /* eslint-disable no-unused-vars */
 import { Auth, useAuthService } from '@alore/auth-react-ui';
-import Image from 'next/image';
-
-import jooriLogo from '../../public/JooriPro.png';
 
 export default function AuthComponent() {
   const [state, actor] = useAuthService();

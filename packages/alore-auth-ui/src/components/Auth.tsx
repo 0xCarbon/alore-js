@@ -42,6 +42,7 @@ export interface AuthProps {
   loginTitleClassName?: string;
   title?: string;
   titleClassName?: string;
+  emailInputLabel?: string;
   inputClassName?: string;
   contentAlignment?: 'left' | 'center' | 'right';
   titleSpacing?: string;
@@ -72,6 +73,7 @@ const Auth = ({
   loginTitleClassName,
   title,
   titleClassName,
+  emailInputLabel,
   inputClassName,
   contentAlignment,
   titleSpacing,
@@ -295,6 +297,7 @@ const Auth = ({
                   loginTitleClassName={loginTitleClassName}
                   title={title}
                   titleClassName={titleClassName}
+                  emailInputLabel={emailInputLabel}
                   inputClassName={inputClassName}
                   contentAlignment={contentAlignment}
                   titleSpacing={titleSpacing}
