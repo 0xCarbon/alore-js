@@ -916,7 +916,18 @@ const Login = ({
         </div>
       </div>
     );
-  }, [getValuesEmail(), isLoginSubmitDisabled, emailErrors, emailControl, isLoading, displayError]);
+  }, [
+    getValuesEmail(),
+    isLoginSubmitDisabled,
+    emailErrors,
+    emailControl,
+    isLoading,
+    displayError,
+    loginTitleClassName,
+    loginTitle,
+    inputClassName,
+    emailInputLabel,
+  ]);
 
   const SelectLoginMethod = useMemo(() => {
     const { authErrorTitle, authErrorDescription } = getAuthError();
