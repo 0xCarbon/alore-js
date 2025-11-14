@@ -15,6 +15,7 @@ interface Props extends TextInputProps {
   type?: string;
   'data-testid'?: string;
   className?: string;
+  inputClassName?: string;
 }
 
 const infoIcon = () => <i className="fa-solid fa-circle-info text-alr-red" />;
@@ -27,6 +28,7 @@ const InputForm = ({
   type = 'text',
   'data-testid': dataTest,
   className,
+  inputClassName,
   ...rest
 }: Props) => (
   <Controller
@@ -49,6 +51,7 @@ const InputForm = ({
           color={errors[field.name] ? 'failure' : 'gray'}
           rightIcon={errors[field.name] && infoIcon}
           data-testid={dataTest}
+          className={inputClassName}
         />
         <HelperText>
           {errors[field.name] && (
