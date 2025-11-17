@@ -37,6 +37,25 @@ export interface AuthProps {
   onRegister?: (_sessionUser: SessionUser) => void;
   onError?: (_error: string | AuthError) => void;
   onGoBack?: () => void;
+  // Login component styling and text props
+  loginTitle?: string;
+  loginTitleClassName?: string;
+  title?: string;
+  titleClassName?: string;
+  emailInputLabel?: string;
+  inputClassName?: string;
+  contentAlignment?: 'left' | 'center' | 'right';
+  titleSpacing?: string;
+  customClassName?: string;
+  customStyles?: {
+    borderRadius?: string;
+    borderWidth?: string;
+    borderColor?: string;
+    backgroundColor?: string;
+    padding?: string;
+    boxShadow?: string;
+  };
+  logoContainerClassName?: string;
 }
 
 const Auth = ({
@@ -50,6 +69,17 @@ const Auth = ({
   // eslint-disable-next-line no-unused-vars
   onError,
   onGoBack,
+  loginTitle,
+  loginTitleClassName,
+  title,
+  titleClassName,
+  emailInputLabel,
+  inputClassName,
+  contentAlignment,
+  titleSpacing,
+  customClassName,
+  customStyles,
+  logoContainerClassName,
 }: AuthProps) => {
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
@@ -263,6 +293,17 @@ const Auth = ({
                   cryptoUtils={cryptoUtils}
                   keyshareWorker={keyshareWorker}
                   logoImage={styles?.logoImage}
+                  loginTitle={loginTitle}
+                  loginTitleClassName={loginTitleClassName}
+                  title={title}
+                  titleClassName={titleClassName}
+                  emailInputLabel={emailInputLabel}
+                  inputClassName={inputClassName}
+                  contentAlignment={contentAlignment}
+                  titleSpacing={titleSpacing}
+                  customClassName={customClassName}
+                  customStyles={customStyles}
+                  logoContainerClassName={logoContainerClassName}
                 />
               )}
               {authState.matches('active.register') && (
