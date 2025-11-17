@@ -1,5 +1,11 @@
 # @alore/auth-react-ui
 
+## 1.2.0-alpha.16
+
+### Minor Changes
+
+- c87a10d: Login UI customization
+
 ## 1.2.0-alpha.15
 
 ### Patch Changes
