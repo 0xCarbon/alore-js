@@ -917,8 +917,7 @@ const Login = ({
       </div>
     );
   }, [
-    getValuesEmail(),
-    isLoginSubmitDisabled,
+    getValuesEmail,
     emailErrors,
     emailControl,
     isLoading,
@@ -927,6 +926,22 @@ const Login = ({
     loginTitle,
     inputClassName,
     emailInputLabel,
+    forgeId,
+    loginDictionary,
+    authAbortController,
+    isConditionalMediationAvailable,
+    sendAuth,
+    socialProviders,
+    dictionary,
+    handleSubmitEmail,
+    onSubmitEmail,
+    handlePasskeyButton,
+    handleGoogleLogin,
+    handleMicrosoftLogin,
+    onlyPasskeyLogin,
+    requireEmailVerification,
+    errorObj,
+    hasDisplayError,
   ]);
 
   const SelectLoginMethod = useMemo(() => {
@@ -1074,7 +1089,7 @@ const Login = ({
           <Button
             type="submit"
             data-testid="login-submit"
-            disabled={verifyEmptyValues(getValuesPassword('password'))}
+            disabled={isLoginSubmitDisabled}
           >
             {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
             {loginDictionary?.login}
@@ -1094,12 +1109,24 @@ const Login = ({
       </>
     );
   }, [
-    getValuesPassword(),
-    isLoginSubmitDisabled,
+    getValuesPassword,
+    getValuesEmail,
+    googleUser?.email,
+    credentialEmail,
     passwordErrors,
     passwordControl,
     isLoading,
     displayError,
+    hasDisplayError,
+    errorObj,
+    inputClassName,
+    loginDictionary,
+    dictionary,
+    sendAuth,
+    handleSubmitPassword,
+    onSubmitLogin,
+    forgeId,
+    isLoginSubmitDisabled,
   ]);
 
   const VerifyEmail = useMemo(
