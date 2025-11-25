@@ -37,6 +37,19 @@ export interface ForgotPasswordProps {
       _keyDerivationFunction: 'argon2d' | 'pbkdf2',
     ) => Promise<string>;
   };
+  // Content alignment and styling props
+  contentAlignment?: 'left' | 'center' | 'right';
+  titleSpacing?: string;
+  customClassName?: string;
+  customStyles?: {
+    borderRadius?: string;
+    borderWidth?: string;
+    borderColor?: string;
+    backgroundColor?: string;
+    padding?: string;
+    boxShadow?: string;
+  };
+  logoContainerClassName?: string;
 }
 
 const ForgotPassword = ({
@@ -45,6 +58,11 @@ const ForgotPassword = ({
   forgeId,
   logoImage,
   cryptoUtils,
+  contentAlignment = 'center',
+  titleSpacing = 'gap-y-2 sm:gap-y-7',
+  customClassName,
+  customStyles,
+  logoContainerClassName,
 }: ForgotPasswordProps) => {
   const { hashUserInfo, generateSecureHash } = cryptoUtils;
   const dictionary = useDictionary(locale);
@@ -161,6 +179,42 @@ const ForgotPassword = ({
     return !isValid;
   }, [getValuesPassword(), passwordDirtyFields]);
 
+  // Get alignment classes based on contentAlignment prop
+  const getAlignmentClasses = useMemo(() => {
+    const alignmentMap = {
+      left: 'items-start text-left',
+      center: 'items-center text-center',
+      right: 'items-end text-right',
+    };
+    return alignmentMap[contentAlignment];
+  }, [contentAlignment]);
+
+  // Helper function for text alignment only
+  const getTextAlignmentClass = useMemo(() => {
+    const textAlignmentMap = {
+      left: 'text-left',
+      center: 'text-center',
+      right: 'text-right',
+    };
+    return textAlignmentMap[contentAlignment];
+  }, [contentAlignment]);
+
+  // Create custom styles object for the Card component
+  const cardCustomStyles = useMemo(() => {
+    if (!customStyles) return {};
+
+    const styles: React.CSSProperties = {};
+
+    if (customStyles.borderRadius) styles.borderRadius = customStyles.borderRadius;
+    if (customStyles.borderWidth) styles.borderWidth = customStyles.borderWidth;
+    if (customStyles.borderColor) styles.borderColor = customStyles.borderColor;
+    if (customStyles.backgroundColor) styles.backgroundColor = customStyles.backgroundColor;
+    if (customStyles.padding) styles.padding = customStyles.padding;
+    if (customStyles.boxShadow) styles.boxShadow = customStyles.boxShadow;
+
+    return styles;
+  }, [customStyles]);
+
   const getAuthError = () => {
     let authErrorTitle = dictionary?.auth.login?.somethingWrong;
     let authErrorDescription = dictionary?.auth.login?.defaultError;
@@ -218,22 +272,30 @@ const ForgotPassword = ({
               alt="error"
               width={70}
             />
-            <div className="flex flex-col items-center justify-center gap-2">
-              <span className="font-poppins text-alr-red text-center text-xl font-bold">
+            <div className={`flex flex-col gap-2 ${getAlignmentClasses}`}>
+              <span
+                className={`font-poppins text-alr-red text-xl font-bold ${getTextAlignmentClass}`}
+              >
                 {authErrorTitle}
               </span>
-              <span className="text-alr-grey text-center font-medium">{authErrorDescription}</span>
+              <span className={`text-alr-grey font-medium ${getTextAlignmentClass}`}>
+                {authErrorDescription}
+              </span>
               {errorObj?.code && (
-                <span className="mt-1 text-center text-xs text-gray-500">{`Error code: ${errorObj.code}`}</span>
+                <span
+                  className={`mt-1 text-xs text-gray-500 ${getTextAlignmentClass}`}
+                >{`${forgotPasswordDictionary?.errorCode} ${errorObj.code}`}</span>
               )}
             </div>
           </div>
         ) : (
-          <div className="flex flex-col items-center">
-            <span className="font-poppins text-alr-grey mb-5 mt-6 font-bold">
+          <div className={`flex flex-col ${getAlignmentClasses}`}>
+            <span
+              className={`font-poppins text-alr-grey mb-5 mt-6 font-bold ${getTextAlignmentClass}`}
+            >
               {forgotPasswordDictionary?.resetPassword}
             </span>
-            <span className="text-alr-grey mb-3 text-center font-medium">
+            <span className={`text-alr-grey mb-3 font-medium ${getTextAlignmentClass}`}>
               {forgotPasswordDictionary?.resetPasswordDescription}
             </span>
           </div>
@@ -265,7 +327,7 @@ const ForgotPassword = ({
             </Button>
           </form>
           <div className="h-[0.5px] w-full bg-gray-300" />
-          <span className="text-center text-sm font-medium">
+          <span className={`text-sm font-medium ${getTextAlignmentClass}`}>
             {dictionary?.auth.login?.dontHaveAccount}
             <div
               data-testid="sign-up-button"
@@ -295,11 +357,13 @@ const ForgotPassword = ({
         >
           {dictionary?.back}
         </BackButton>
-        <div className="flex flex-col items-center justify-center">
-          <span className="font-poppins text-alr-grey mb-5 mt-14 text-center text-xl font-bold">
+        <div className={`flex flex-col ${getAlignmentClasses}`}>
+          <span
+            className={`font-poppins text-alr-grey mb-5 mt-14 text-xl font-bold ${getTextAlignmentClass}`}
+          >
             {forgotPasswordDictionary?.emailSentTitle}
           </span>
-          <span className="text-alr-grey mb-6 w-full text-center font-medium">
+          <span className={`text-alr-grey mb-6 w-full font-medium ${getTextAlignmentClass}`}>
             {forgotPasswordDictionary?.emailSentDescription}
           </span>
           <Button
@@ -338,21 +402,29 @@ const ForgotPassword = ({
               alt="error"
               width={70}
             />
-            <span className="font-poppins text-alr-red text-center text-xl font-bold">
+            <span
+              className={`font-poppins text-alr-red text-xl font-bold ${getTextAlignmentClass}`}
+            >
               {authErrorTitle}
             </span>
-            <span className="text-alr-grey text-center font-medium">{authErrorDescription}</span>
+            <span className={`text-alr-grey font-medium ${getTextAlignmentClass}`}>
+              {authErrorDescription}
+            </span>
             {errorObj?.code && (
-              <span className="text-center text-xs text-gray-500">{`Error code: ${errorObj.code}`}</span>
+              <span
+                className={`text-xs text-gray-500 ${getTextAlignmentClass}`}
+              >{`${forgotPasswordDictionary?.errorCode} ${errorObj.code}`}</span>
             )}
           </div>
         )}
 
-        <div className="flex w-full flex-col">
-          <span className="font-poppins text-alr-grey mb-5 text-center text-xl font-bold">
+        <div className={`flex w-full flex-col ${getAlignmentClasses}`}>
+          <span
+            className={`font-poppins text-alr-grey mb-5 text-xl font-bold ${getTextAlignmentClass}`}
+          >
             {forgotPasswordDictionary?.newPasswordTitle}
           </span>
-          <span className="text-alr-grey mb-5 text-center text-sm font-medium">
+          <span className={`text-alr-grey mb-5 text-sm font-medium ${getTextAlignmentClass}`}>
             {forgotPasswordDictionary?.newPasswordDescription}
           </span>
           <form
@@ -417,12 +489,14 @@ const ForgotPassword = ({
     () => (
       <div
         data-testid="forgot-password-success-step"
-        className="flex flex-col items-center justify-center"
+        className={`flex flex-col ${getAlignmentClasses}`}
       >
-        <span className="font-poppins text-alr-grey mb-5 mt-14 text-center text-2xl font-semibold">
+        <span
+          className={`font-poppins text-alr-grey mb-5 mt-14 text-2xl font-semibold ${getTextAlignmentClass}`}
+        >
           {forgotPasswordDictionary?.successTitle}
         </span>
-        <span className="text-alr-grey mb-6 w-full text-center font-medium">
+        <span className={`text-alr-grey mb-6 w-full font-medium ${getTextAlignmentClass}`}>
           {forgotPasswordDictionary?.successDescription}
         </span>
         <Button
@@ -442,7 +516,7 @@ const ForgotPassword = ({
 
   return (
     <div
-      className="flex size-full min-h-screen flex-col items-center justify-center gap-y-2 sm:gap-y-7"
+      className={`flex size-full min-h-screen flex-col items-center justify-center ${titleSpacing}`}
       data-testid="forgot-password-page"
     >
       {forgeId ? (
@@ -462,19 +536,25 @@ const ForgotPassword = ({
           </div>
         </div>
       ) : (
-        logoImage || (
-          <img
-            src={aloreLogoBlack}
-            alt="alore logo"
-            width={201}
-          />
-        )
+        <div
+          className={`mx-5 flex min-w-80 flex-col gap-3 px-6 md:mx-7 md:w-96 ${getAlignmentClasses} ${logoContainerClassName || ''}`}
+        >
+          {logoImage || (
+            <img
+              src={aloreLogoBlack}
+              alt="alore logo"
+              width={201}
+            />
+          )}
+        </div>
       )}
       <Card
         className={twMerge(
           `md:child:!px-9 mx-5 flex min-w-[20rem] !rounded-2xl border-gray-200 px-2 py-4 md:mx-7 md:w-96`,
           isLoading ? 'pointer-events-none opacity-50' : '',
+          customClassName,
         )}
+        style={cardCustomStyles}
       >
         {isLoading ? (
           <Spinner className="my-20 !h-14 w-full !fill-[var(--primary-color)]" />

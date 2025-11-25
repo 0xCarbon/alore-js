@@ -54,6 +54,19 @@ export interface RegisterProps {
       _keyDerivationFunction: 'argon2d' | 'pbkdf2',
     ) => Promise<string>;
   };
+  // Content alignment and styling props
+  contentAlignment?: 'left' | 'center' | 'right';
+  titleSpacing?: string;
+  customClassName?: string;
+  customStyles?: {
+    borderRadius?: string;
+    borderWidth?: string;
+    borderColor?: string;
+    backgroundColor?: string;
+    padding?: string;
+    boxShadow?: string;
+  };
+  logoContainerClassName?: string;
 }
 
 const Register = ({
@@ -64,6 +77,11 @@ const Register = ({
   inviteToken,
   keyshareWorker,
   cryptoUtils,
+  contentAlignment = 'center',
+  titleSpacing = 'gap-y-2 sm:gap-y-7',
+  customClassName,
+  customStyles,
+  logoContainerClassName,
 }: RegisterProps) => {
   const { hashUserInfo, generateSecureHash } = cryptoUtils;
   const dictionary = useDictionary(locale);
@@ -671,15 +689,51 @@ const Register = ({
     return !isValid;
   }, [passwordGetValues(), passwordDirtyFields]);
 
+  // Get alignment classes based on contentAlignment prop
+  const getAlignmentClasses = useMemo(() => {
+    const alignmentMap = {
+      left: 'items-start text-left',
+      center: 'items-center text-center',
+      right: 'items-end text-right',
+    };
+    return alignmentMap[contentAlignment];
+  }, [contentAlignment]);
+
+  // Helper function for text alignment only
+  const getTextAlignmentClass = useMemo(() => {
+    const textAlignmentMap = {
+      left: 'text-left',
+      center: 'text-center',
+      right: 'text-right',
+    };
+    return textAlignmentMap[contentAlignment];
+  }, [contentAlignment]);
+
+  // Create custom styles object for the Card component
+  const cardCustomStyles = useMemo(() => {
+    if (!customStyles) return {};
+
+    const styles: React.CSSProperties = {};
+
+    if (customStyles.borderRadius) styles.borderRadius = customStyles.borderRadius;
+    if (customStyles.borderWidth) styles.borderWidth = customStyles.borderWidth;
+    if (customStyles.borderColor) styles.borderColor = customStyles.borderColor;
+    if (customStyles.backgroundColor) styles.backgroundColor = customStyles.backgroundColor;
+    if (customStyles.padding) styles.padding = customStyles.padding;
+    if (customStyles.boxShadow) styles.boxShadow = customStyles.boxShadow;
+
+    return styles;
+  }, [customStyles]);
+
   const UserInfo = useMemo(
     () => (
       <div data-testid="register-user-info-step">
         {inviteToken ? (
-          <div className="flex flex-col gap-2.5">
-            <h1 className="text-alr-grey mb-1 text-center text-[1.75rem] font-bold">
+          <div className={`flex flex-col gap-2.5 ${getAlignmentClasses}`}>
+            <h1 className={`text-alr-grey mb-1 text-[1.75rem] font-bold ${getTextAlignmentClass}`}>
               {registerDictionary?.welcome}
             </h1>
-            <div className="mb-5 text-gray-600">
+            <div className={`mb-5 text-gray-600 ${getTextAlignmentClass}`}>
               {registerDictionary?.invitedBy}
               <span className="font-semibold"> 0xCarbon </span>
               {registerDictionary?.toJoin}
@@ -687,38 +741,44 @@ const Register = ({
             </div>
           </div>
         ) : (
-          <h1 className="font-inter text-center text-xl font-bold text-gray-700">
+          <h1 className={`font-inter text-xl font-bold text-gray-700 ${getTextAlignmentClass}`}>
             {forgeId ? registerDictionary?.forgeTitle : registerDictionary?.title}
           </h1>
         )}
         {displayError?.includes('beta') && (
-          <span className="font-poppins text-alr-red text-center text-xl font-bold">
+          <span className={`font-poppins text-alr-red text-xl font-bold ${getTextAlignmentClass}`}>
             {displayError}
           </span>
         )}
         {hasDisplayError && !displayError.includes('beta') && (
-          <div className="my-3 flex flex-col items-center justify-center gap-1">
+          <div className={`my-3 flex flex-col gap-1 ${getAlignmentClasses}`}>
             <img
               src={authErrorImage}
               alt="alore logo"
               width={70}
             />
             {displayError === 'EMAIL_NOT_ALLOWED' ? (
-              <span className="font-poppins text-alr-red text-center text-xl font-bold">
+              <span
+                className={`font-poppins text-alr-red text-xl font-bold ${getTextAlignmentClass}`}
+              >
                 {dictionary?.auth?.emailDomainNotAllowed}
               </span>
             ) : (
               <>
-                <span className="font-poppins text-alr-red text-center text-xl font-bold">
+                <span
+                  className={`font-poppins text-alr-red text-xl font-bold ${getTextAlignmentClass}`}
+                >
                   {dictionary?.auth.login?.somethingWrong}
                 </span>
-                <span className="text-alr-grey text-center font-medium">
+                <span className={`text-alr-grey font-medium ${getTextAlignmentClass}`}>
                   {dictionary?.auth.login?.defaultError}
                 </span>
               </>
             )}
             {errorObj?.code && (
-              <span className="mt-1 text-center text-xs text-gray-500">{`Error code: ${errorObj.code}`}</span>
+              <span
+                className={`mt-1 text-xs text-gray-500 ${getTextAlignmentClass}`}
+              >{`${registerDictionary?.errorCode} ${errorObj.code}`}</span>
             )}
           </div>
         )}
@@ -792,7 +852,7 @@ const Register = ({
         </form>
         <div
           data-testid="sign-in-button"
-          className="group mt-4 flex w-full cursor-pointer flex-row items-center justify-center gap-1.5 text-sm text-gray-500"
+          className={`group mt-4 flex w-full cursor-pointer flex-row gap-1.5 text-sm text-gray-500 ${getAlignmentClasses}`}
           onClick={() => {
             sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'LOGIN']);
           }}
@@ -860,12 +920,14 @@ const Register = ({
     () => (
       <div
         data-testid="passkey-created-but-not-authenticated-step"
-        className="flex flex-col items-center justify-center"
+        className={`flex flex-col ${getAlignmentClasses}`}
       >
-        <h1 className="font-inter mb-3 text-center text-xl font-semibold text-gray-900">
+        <h1
+          className={`font-inter mb-3 text-xl font-semibold text-gray-900 ${getTextAlignmentClass}`}
+        >
           {registerDictionary?.passkeyCreatedButNotAuthenticated}
         </h1>
-        <p className="text-alr-grey mb-6 w-full text-center">
+        <p className={`text-alr-grey mb-6 w-full ${getTextAlignmentClass}`}>
           {registerDictionary?.passkeyCreatedButNotAuthenticatedDescription}
         </p>
         <Button
@@ -891,13 +953,15 @@ const Register = ({
         </BackButton>
 
         <div
-          className="flex w-full flex-col items-center"
+          className={`flex w-full flex-col ${getAlignmentClasses}`}
           data-testid="register-verify-email-step"
         >
-          <span className="font-poppins text-alr-grey mb-6 text-2xl font-bold md:text-[1.75rem]">
+          <span
+            className={`font-poppins text-alr-grey mb-6 text-2xl font-bold md:text-[1.75rem] ${getTextAlignmentClass}`}
+          >
             {registerDictionary?.verifyEmail}
           </span>
-          <span className="text-alr-grey mb-6 w-full text-center font-medium">
+          <span className={`text-alr-grey mb-6 w-full font-medium ${getTextAlignmentClass}`}>
             {registerDictionary?.informCode}
           </span>
 
@@ -951,19 +1015,23 @@ const Register = ({
           {dictionary?.back}
         </BackButton>
         <div
-          className="mt-2 flex w-full flex-col items-center"
+          className={`mt-2 flex w-full flex-col ${getAlignmentClasses}`}
           data-testid="register-method-selection-step"
         >
           {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
           {displayError.toLowerCase?.().includes('passkey') && (
-            <span className="font-poppins text-alr-red mb-4 text-center text-xl font-bold">
+            <span
+              className={`font-poppins text-alr-red mb-4 text-xl font-bold ${getTextAlignmentClass}`}
+            >
               {registerDictionary?.passkeyNotSupported}
             </span>
           )}
-          <span className="font-poppins text-alr-grey mb-6 text-2xl font-bold md:text-[1.75rem]">
+          <span
+            className={`font-poppins text-alr-grey mb-6 text-2xl font-bold md:text-[1.75rem] ${getTextAlignmentClass}`}
+          >
             {registerDictionary?.selectMethodTitle}
           </span>
-          <span className="text-alr-grey mb-6 w-full text-center font-medium">
+          <span className={`text-alr-grey mb-6 w-full font-medium ${getTextAlignmentClass}`}>
             {registerDictionary?.selectMethodDescription}
           </span>
           <div className="flex flex-col gap-5">
@@ -1041,10 +1109,10 @@ const Register = ({
         </BackButton>
 
         <div
-          className="flex w-full flex-col"
+          className={`flex w-full flex-col ${getAlignmentClasses}`}
           data-testid="register-password-step"
         >
-          <span className="font-poppins text-alr-grey mb-5 text-center font-bold">
+          <span className={`font-poppins text-alr-grey mb-5 font-bold ${getTextAlignmentClass}`}>
             {registerDictionary?.createPassword}
           </span>
           <form
@@ -1110,7 +1178,7 @@ const Register = ({
 
   return (
     <div
-      className="flex size-full min-h-screen flex-col items-center justify-center gap-y-2 sm:gap-y-7"
+      className={`flex size-full min-h-screen flex-col items-center justify-center ${titleSpacing}`}
       data-testid="register-page"
     >
       <TermsModal
@@ -1140,19 +1208,25 @@ const Register = ({
           </div>
         </div>
       ) : (
-        logoImage || (
-          <img
-            src={aloreLogoBlack}
-            alt="alore logo"
-            width={authState.matches('active.login.newDevice') ? 153 : 201}
-          />
-        )
+        <div
+          className={`mx-5 flex min-w-80 flex-col gap-3 px-6 md:mx-7 md:w-96 ${getAlignmentClasses} ${logoContainerClassName || ''}`}
+        >
+          {logoImage || (
+            <img
+              src={aloreLogoBlack}
+              alt="alore logo"
+              width={authState.matches('active.login.newDevice') ? 153 : 201}
+            />
+          )}
+        </div>
       )}
       <Card
         className={twMerge(
           `md:child:!px-9 mx-5 flex min-w-[20rem] !rounded-2xl border-gray-200 px-2 py-4 md:mx-7 md:w-96`,
           isLoading ? 'pointer-events-none opacity-50' : '',
+          customClassName,
         )}
+        style={cardCustomStyles}
         data-testid="register-card"
       >
         {isLoading ? (

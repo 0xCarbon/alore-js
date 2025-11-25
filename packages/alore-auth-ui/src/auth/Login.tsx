@@ -760,6 +760,36 @@ const Login = ({
     return { authErrorTitle, authErrorDescription };
   };
 
+  // Get alignment classes based on contentAlignment prop
+  const getAlignmentClasses = useMemo(() => {
+    const alignmentMap = {
+      left: 'items-start text-left',
+      center: 'items-center text-center',
+      right: 'items-end text-right',
+    };
+    return alignmentMap[contentAlignment];
+  }, [contentAlignment]);
+
+  // Get text alignment class only
+  const getTextAlignment = useMemo(() => {
+    const alignmentMap = {
+      left: 'text-left',
+      center: 'text-center',
+      right: 'text-right',
+    };
+    return alignmentMap[contentAlignment];
+  }, [contentAlignment]);
+
+  // Get flex items alignment class only
+  const getItemsAlignment = useMemo(() => {
+    const alignmentMap = {
+      left: 'items-start',
+      center: 'items-center',
+      right: 'items-end',
+    };
+    return alignmentMap[contentAlignment];
+  }, [contentAlignment]);
+
   const IdleStep = useMemo(() => {
     const { authErrorTitle, authErrorDescription } = getAuthError();
     return (
@@ -784,7 +814,7 @@ const Login = ({
                   {authErrorDescription}
                 </span>
                 {errorObj?.code && (
-                  <span className="mt-1 text-center text-xs text-gray-500">{`Error code: ${errorObj.code}`}</span>
+                  <span className="mt-1 text-center text-xs text-gray-500">{`${loginDictionary?.errorCode} ${errorObj.code}`}</span>
                 )}
               </>
             )}
@@ -826,7 +856,7 @@ const Login = ({
                 onClick={() => sendAuth('FORGOT_PASSWORD')}
                 className="cursor-pointer text-xs font-medium text-[var(--primary-color)] hover:text-[var(--primary-hover)]"
               >
-                Forgot your password?
+                {loginDictionary?.forgotPassword}
               </span>
               <Button
                 type="submit"
@@ -897,7 +927,7 @@ const Login = ({
                     width={20}
                   />
                 </div>
-                Metamask/WalletConnect
+                {loginDictionary?.metamaskWalletConnect}
               </div>
             </Button>
           )}
@@ -956,25 +986,31 @@ const Login = ({
           {dictionary?.back}
         </BackButton>
         {hasDisplayError ? (
-          <div className="my-4 flex flex-col items-center justify-center gap-2">
-            <span className="font-poppins text-alr-red text-center text-xl font-bold">
+          <div className={`my-4 flex flex-col gap-2 ${getAlignmentClasses}`}>
+            <span className={`font-poppins text-alr-red text-xl font-bold ${getTextAlignment}`}>
               {authErrorTitle}
             </span>
-            <span className="text-alr-grey text-center font-medium">{authErrorDescription}</span>
+            <span className={`text-alr-grey font-medium ${getTextAlignment}`}>
+              {authErrorDescription}
+            </span>
             {errorObj?.code && (
-              <span className="text-center text-xs text-gray-500">{`Error code: ${errorObj.code}`}</span>
+              <span
+                className={`text-xs text-gray-500 ${getTextAlignment}`}
+              >{`${loginDictionary?.errorCode} ${errorObj.code}`}</span>
             )}
           </div>
         ) : undefined}
         <div
-          className="mt-4 flex w-full flex-col items-center"
+          className={`mt-4 flex w-full flex-col ${getAlignmentClasses}`}
           data-testid="login-method-selection-step"
         >
           {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
-          <span className="font-poppins text-alr-grey mb-6 text-center text-2xl font-bold md:text-[1.75rem]">
+          <span
+            className={`font-poppins text-alr-grey mb-6 text-2xl font-bold md:text-[1.75rem] ${getTextAlignment}`}
+          >
             {loginDictionary?.selectMethodTitle}
           </span>
-          <span className="text-alr-grey mb-6 w-full text-center font-medium">
+          <span className={`text-alr-grey mb-6 w-full font-medium ${getTextAlignment}`}>
             {loginDictionary?.selectMethodDescription}
           </span>
           <div className="flex flex-col gap-5">
@@ -985,16 +1021,16 @@ const Login = ({
                 color="light"
                 className={`${
                   loginMethod === 'password' ? '!border-[--primary-color]' : '!border-gray-300'
-                } child:h-full !h-fit w-full cursor-pointer items-start rounded-lg border-2 p-4 duration-300 focus:ring-0`}
+                } child:h-full !h-fit w-full cursor-pointer ${getItemsAlignment} rounded-lg border-2 p-4 duration-300 focus:ring-0`}
               >
-                <div className="flex flex-col items-start justify-center gap-2">
+                <div className={`flex flex-col justify-center gap-2 ${getItemsAlignment}`}>
                   <LockOpenIcon
                     className={`${
                       loginMethod === 'password' ? 'text-[--primary-color]' : 'text-gray-500'
                     } size-7 duration-300`}
                   />
                   <span className="font-semibold text-gray-900">{loginDictionary?.password}</span>
-                  <span className="text-start text-xs font-normal text-gray-600">
+                  <span className={`text-xs font-normal text-gray-600 ${getTextAlignment}`}>
                     {loginDictionary?.selectMethodPassword}
                   </span>
                 </div>
@@ -1005,16 +1041,16 @@ const Login = ({
                 color="light"
                 className={`${
                   loginMethod === 'passkey' ? '!border-[--primary-color]' : '!border-gray-300'
-                } child:h-full !h-fit w-full cursor-pointer items-start rounded-lg border-2 p-4 duration-300 focus:ring-0`}
+                } child:h-full !h-fit w-full cursor-pointer ${getItemsAlignment} rounded-lg border-2 p-4 duration-300 focus:ring-0`}
               >
-                <div className="flex flex-col items-start justify-center gap-2">
+                <div className={`flex flex-col justify-center gap-2 ${getItemsAlignment}`}>
                   <KeyIcon
                     className={`${
                       loginMethod === 'passkey' ? 'text-[--primary-color]' : 'text-gray-500'
                     } size-7 duration-300`}
                   />
                   <span className="font-semibold text-gray-900">{loginDictionary?.passkey}</span>
-                  <span className="text-start text-xs font-normal text-gray-600">
+                  <span className={`text-xs font-normal text-gray-600 ${getTextAlignment}`}>
                     {loginDictionary?.selectMethodPasskey}
                   </span>
                 </div>
@@ -1058,7 +1094,7 @@ const Login = ({
               </span>
               <span className="text-alr-grey text-center font-medium">{authErrorDescription}</span>
               {errorObj?.code && (
-                <span className="text-center text-xs text-gray-500">{`Error code: ${errorObj.code}`}</span>
+                <span className="text-center text-xs text-gray-500">{`${loginDictionary?.errorCode} ${errorObj.code}`}</span>
               )}
             </div>
           </div>
@@ -1084,7 +1120,7 @@ const Login = ({
             onClick={() => sendAuth('FORGOT_PASSWORD')}
             className="cursor-pointer text-xs font-medium text-[var(--primary-color)] hover:text-[var(--primary-hover)]"
           >
-            Forgot your password?
+            {loginDictionary?.forgotPassword}
           </span>
           <Button
             type="submit"
@@ -1141,13 +1177,15 @@ const Login = ({
         </BackButton>
 
         <div
-          className="flex w-full flex-col items-center"
+          className={`flex w-full flex-col ${getAlignmentClasses}`}
           data-testid="login-verify-email-step"
         >
-          <span className="font-poppins text-alr-grey mb-4 mt-2 text-[1.75rem] font-bold">
+          <span
+            className={`font-poppins text-alr-grey mb-4 mt-2 text-[1.75rem] font-bold ${getTextAlignment}`}
+          >
             {loginDictionary?.verifyEmail}
           </span>
-          <span className="mb-6 text-center font-medium text-gray-600">
+          <span className={`mb-6 font-medium text-gray-600 ${getTextAlignment}`}>
             {loginDictionary?.verifyEmailDescription}
           </span>
 
@@ -1194,12 +1232,14 @@ const Login = ({
         <BackButton onClick={() => sendAuth('BACK')} />
 
         {displayError?.includes('Failed authenticating with hardware key') ? (
-          <div className="mt-6 flex w-full flex-col items-center gap-6">
+          <div className={`mt-6 flex w-full flex-col gap-6 ${getAlignmentClasses}`}>
             <img
               alt="fingerprint error"
               src={fingerprintError}
             />
-            <span className="font-poppins text-alr-red text-center text-[1.3rem] font-bold">
+            <span
+              className={`font-poppins text-alr-red text-[1.3rem] font-bold ${getTextAlignment}`}
+            >
               {loginDictionary?.cantVerify2fa}
             </span>
             <Button
@@ -1231,11 +1271,13 @@ const Login = ({
             )}
           </div>
         ) : (
-          <div className="flex w-full flex-col items-center">
-            <span className="font-poppins text-alr-grey mb-10 mt-12 text-center text-[1.3rem] font-bold">
+          <div className={`flex w-full flex-col ${getAlignmentClasses}`}>
+            <span
+              className={`font-poppins text-alr-grey mb-10 mt-12 text-[1.3rem] font-bold ${getTextAlignment}`}
+            >
               {loginDictionary?.touchHardware}
             </span>
-            <span className="text-alr-grey mb-10 w-60 text-sm font-normal">
+            <span className={`text-alr-grey mb-10 w-60 text-sm font-normal ${getTextAlignment}`}>
               {loginDictionary?.touchHardwareDescription}
             </span>
             <img
@@ -1263,8 +1305,10 @@ const Login = ({
       <div>
         <BackButton onClick={() => sendAuth('BACK')} />
 
-        <div className="flex w-full flex-col items-center">
-          <span className="font-poppins text-alr-grey mb-10 mt-12 text-center text-[1.3rem] font-bold">
+        <div className={`flex w-full flex-col ${getAlignmentClasses}`}>
+          <span
+            className={`font-poppins text-alr-grey mb-10 mt-12 text-[1.3rem] font-bold ${getTextAlignment}`}
+          >
             {loginDictionary?.inform2FACode}
           </span>
 
@@ -1307,14 +1351,16 @@ const Login = ({
   const NewDeviceStep = useMemo(
     () => (
       <div>
-        <div className="flex w-full flex-col items-center">
-          <span className="font-poppins text-alr-grey mb-5 mt-14 text-[1.75rem] font-bold">
+        <div className={`flex w-full flex-col ${getAlignmentClasses}`}>
+          <span
+            className={`font-poppins text-alr-grey mb-5 mt-14 text-[1.75rem] font-bold ${getTextAlignment}`}
+          >
             {loginDictionary?.newDevice}
           </span>
-          <span className="text-alr-grey mb-3 w-[23.75rem] text-center font-medium">
+          <span className={`text-alr-grey mb-3 w-[23.75rem] font-medium ${getTextAlignment}`}>
             {loginDictionary?.verifyEmailDescription}
           </span>
-          <span className="mb-5 font-bold">{getValuesEmail('email')}</span>
+          <span className={`mb-5 font-bold ${getTextAlignment}`}>{getValuesEmail('email')}</span>
           <div className="mb-5 h-44 w-full">
             {/* {newDeviceInfo?.coordinates && (
               <Map
@@ -1378,16 +1424,6 @@ const Login = ({
     return styles;
   }, [customStyles]);
 
-  // Get alignment classes based on contentAlignment prop
-  const getAlignmentClasses = useMemo(() => {
-    const alignmentMap = {
-      left: 'items-start text-left',
-      center: 'items-center text-center',
-      right: 'items-end text-right',
-    };
-    return alignmentMap[contentAlignment];
-  }, [contentAlignment]);
-
   if (authState.matches('active.login.successfulLogin')) return null;
 
   return (
@@ -1422,7 +1458,13 @@ const Login = ({
               width={authState.matches('active.login.newDevice') ? 153 : 201}
             />
           )}
-          {title && <h2 className={titleClassName}>{title}</h2>}
+          {title &&
+            (authState.matches('active.login.idle') ||
+              authState.matches('active.login.googleLogin') ||
+              authState.matches('active.login.retrievingSalt') ||
+              authState.matches('active.login.verifyingRegisterPublicKeyCredential')) && (
+              <h2 className={titleClassName}>{title}</h2>
+            )}
         </div>
       )}
       <Card

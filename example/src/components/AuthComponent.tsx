@@ -16,6 +16,13 @@ export default function AuthComponent() {
       onRegister={(user) => {
         console.info('User registered:', user);
       }}
+      title="Bem-vindo!"
+      logoContainerClassName="[&>img]:max-w-[75px] [&>img]:mb-3 pl-7"
+      titleClassName="text-4xl text-[#333333] font-medium"
+      customClassName="border-none shadow-none [&>div]:!py-0 pt-2"
+      contentAlignment="left"
+      loginTitle="Insira o seu email para continuar"
+      loginTitleClassName="text-[#252525] text-gray-700"
       onError={(error) => {
         console.info('Error:', error);
         if (
