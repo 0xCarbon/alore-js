@@ -81,7 +81,10 @@
       "passkeyNotSupported": "Passkey not supported",
       "passkeyNotSupportedDescription": "Selected passkey is not supported in your browser.",
       "noPasskey": "No passkey found",
-      "noPasskeyDescription": "No passkey found for your account."
+      "noPasskeyDescription": "No passkey found for your account.",
+      "forgotPassword": "Forgot your password?",
+      "errorCode": "Error code:",
+      "metamaskWalletConnect": "Metamask/WalletConnect"
     },
     "register": {
       "password": "Password",
@@ -121,7 +124,8 @@
       "selectMethodTitle": "Create your account",
       "selectMethodDescription": "Select a method to register your account",
       "selectMethodPassword": "Login using a password",
-      "selectMethodPasskey": "Login using a passkey"
+      "selectMethodPasskey": "Login using a passkey",
+      "errorCode": "Error code:"
     },
     "forgotPassword": {
       "resetPassword": "Reset your password",
@@ -140,7 +144,8 @@
       "invalidLink": "Invalid or expired reset link",
       "invalidLinkDescription": "This password reset link is invalid or has expired. Please request a new one.",
       "expiredSessionTitle": "Reset session expired",
-      "expiredSessionDescription": "Your password reset session has expired. Please request a new password reset link."
+      "expiredSessionDescription": "Your password reset session has expired. Please request a new password reset link.",
+      "errorCode": "Error code:"
     }
   }
 }

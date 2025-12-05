@@ -315,6 +315,11 @@ const Auth = ({
                   cryptoUtils={cryptoUtils}
                   keyshareWorker={keyshareWorker}
                   logoImage={styles?.logoImage}
+                  contentAlignment={contentAlignment}
+                  titleSpacing={titleSpacing}
+                  customClassName={customClassName}
+                  customStyles={customStyles}
+                  logoContainerClassName={logoContainerClassName}
                 />
               )}
               {authState.matches('active.forgotPassword') && (
@@ -324,6 +329,11 @@ const Auth = ({
                   forgeId={forgeId}
                   cryptoUtils={cryptoUtils}
                   logoImage={styles?.logoImage}
+                  contentAlignment={contentAlignment}
+                  titleSpacing={titleSpacing}
+                  customClassName={customClassName}
+                  customStyles={customStyles}
+                  logoContainerClassName={logoContainerClassName}
                 />
               )}
             </Suspense>

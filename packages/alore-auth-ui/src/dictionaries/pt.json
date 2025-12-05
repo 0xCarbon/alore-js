@@ -81,7 +81,10 @@
       "passkeyNotSupported": "Passkey não suportada",
       "passkeyNotSupportedDescription": "A Passkey selecionada não é suportada no seu navegador.",
       "noPasskey": "Nenhuma passkey encontrada",
-      "noPasskeyDescription": "Nenhuma passkey encontrada para sua conta."
+      "noPasskeyDescription": "Nenhuma passkey encontrada para sua conta.",
+      "forgotPassword": "Esqueceu sua senha?",
+      "errorCode": "Código de erro:",
+      "metamaskWalletConnect": "Metamask/WalletConnect"
     },
     "register": {
       "password": "Senha",
@@ -121,7 +124,8 @@
       "selectMethodTitle": "Crie sua conta",
       "selectMethodDescription": "Selecione o método que deseja para criar sua conta",
       "selectMethodPassword": "Entre usando uma senha",
-      "selectMethodPasskey": "Entre usando uma passkey"
+      "selectMethodPasskey": "Entre usando uma passkey",
+      "errorCode": "Código de erro:"
     },
     "forgotPassword": {
       "resetPassword": "Mudar sua senha",
@@ -140,7 +144,8 @@
       "invalidLink": "Link inválido ou expirado",
       "invalidLinkDescription": "Este link de redefinição de senha é inválido ou expirou. Por favor, solicite um novo.",
       "expiredSessionTitle": "Sessão de redefinição expirada",
-      "expiredSessionDescription": "Sua sessão de redefinição de senha expirou. Por favor, solicite um novo link de redefinição de senha."
+      "expiredSessionDescription": "Sua sessão de redefinição de senha expirou. Por favor, solicite um novo link de redefinição de senha.",
+      "errorCode": "Código de erro:"
     }
   }
 }
