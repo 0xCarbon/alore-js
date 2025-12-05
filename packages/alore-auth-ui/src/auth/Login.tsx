@@ -1067,7 +1067,22 @@ const Login = ({
         </div>
       </div>
     );
-  }, [isLoading, loginMethod, loginDictionary, displayError]);
+  }, [
+    isLoading,
+    loginMethod,
+    loginDictionary,
+    displayError,
+    getAlignmentClasses,
+    getTextAlignment,
+    getItemsAlignment,
+    hasDisplayError,
+    errorObj,
+    dictionary,
+    sendAuth,
+    setLoginMethod,
+    selectLoginMethod,
+    getAuthError,
+  ]);
 
   const PasswordInputStep = useMemo(() => {
     const { authErrorTitle, authErrorDescription } = getAuthError();
@@ -1223,7 +1238,20 @@ const Login = ({
         </div>
       </div>
     ),
-    [secureCode2FA, sendEmailCooldown, isLoading, authState],
+    [
+      secureCode2FA,
+      sendEmailCooldown,
+      isLoading,
+      authState,
+      getAlignmentClasses,
+      getTextAlignment,
+      dictionary,
+      loginDictionary,
+      sendAuth,
+      otpError,
+      onClickSecureCodeSubmit,
+      resendSecureCode,
+    ],
   );
 
   const VerifyHw2FAStep = useMemo(
@@ -1297,7 +1325,18 @@ const Login = ({
         )}
       </div>
     ),
-    [isLoading, active2fa, displayError],
+    [
+      isLoading,
+      active2fa,
+      displayError,
+      getAlignmentClasses,
+      getTextAlignment,
+      loginDictionary,
+      sendAuth,
+      startHwAuth,
+      activeHw2fa,
+      activeSw2fa,
+    ],
   );
 
   const VerifySw2FAStep = useMemo(
@@ -1345,7 +1384,18 @@ const Login = ({
         </div>
       </div>
     ),
-    [secureCode2FA, isLoading, active2fa, displayError],
+    [
+      secureCode2FA,
+      isLoading,
+      active2fa,
+      displayError,
+      getAlignmentClasses,
+      getTextAlignment,
+      loginDictionary,
+      sendAuth,
+      onSubmitSecureCode2FA,
+      setSecure2FACode,
+    ],
   );
 
   const NewDeviceStep = useMemo(
@@ -1405,7 +1455,20 @@ const Login = ({
         </div>
       </div>
     ),
-    [secureCodeEmail, sendEmailCooldown, isLoading, newDeviceInfo, displayError],
+    [
+      secureCodeEmail,
+      sendEmailCooldown,
+      isLoading,
+      newDeviceInfo,
+      displayError,
+      getAlignmentClasses,
+      getTextAlignment,
+      loginDictionary,
+      getValuesEmail,
+      onSubmitSecureCodeEmail,
+      resendSecureCode,
+      setSecureCodeEmail,
+    ],
   );
 
   // Create custom styles object for the Card component

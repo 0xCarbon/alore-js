@@ -342,7 +342,15 @@ const ForgotPassword = ({
         </div>
       </div>
     );
-  }, [getValuesEmail(), emailErrors, emailControl, isLoading, displayError]);
+  }, [
+    getValuesEmail(),
+    emailErrors,
+    emailControl,
+    isLoading,
+    displayError,
+    getAlignmentClasses,
+    getTextAlignmentClass,
+  ]);
 
   const EmailSentStep = useMemo(
     () => (
@@ -379,7 +387,14 @@ const ForgotPassword = ({
         </div>
       </div>
     ),
-    [forgotPasswordDictionary],
+    [
+      forgotPasswordDictionary,
+      getAlignmentClasses,
+      getTextAlignmentClass,
+      isLoading,
+      dictionary,
+      sendAuth,
+    ],
   );
 
   const NewPasswordStep = useMemo(() => {
@@ -483,6 +498,8 @@ const ForgotPassword = ({
     passwordDirtyFields,
     isLoading,
     displayError,
+    getAlignmentClasses,
+    getTextAlignmentClass,
   ]);
 
   const SuccessStep = useMemo(
@@ -511,7 +528,7 @@ const ForgotPassword = ({
         </Button>
       </div>
     ),
-    [forgotPasswordDictionary],
+    [forgotPasswordDictionary, getAlignmentClasses, getTextAlignmentClass, sendAuth],
   );
 
   return (

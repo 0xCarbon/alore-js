@@ -913,6 +913,8 @@ const Register = ({
       userInfoDirtyFields,
       isLoading,
       displayError,
+      getAlignmentClasses,
+      getTextAlignmentClass,
     ],
   );
 
@@ -938,7 +940,7 @@ const Register = ({
         </Button>
       </div>
     ),
-    [],
+    [getAlignmentClasses, getTextAlignmentClass, registerDictionary, sendAuth],
   );
 
   const VerifyEmail = useMemo(
@@ -1001,7 +1003,19 @@ const Register = ({
         </div>
       </div>
     ),
-    [secureCode, sendEmailCooldown, isLoading, otpError],
+    [
+      secureCode,
+      sendEmailCooldown,
+      isLoading,
+      otpError,
+      getAlignmentClasses,
+      getTextAlignmentClass,
+      dictionary,
+      registerDictionary,
+      sendAuth,
+      onClickSecureCodeSubmit,
+      resendSecureCode,
+    ],
   );
 
   const SelectRegisterMethod = useMemo(
@@ -1094,7 +1108,18 @@ const Register = ({
         </div>
       </div>
     ),
-    [isLoading, registrationMethod, displayError],
+    [
+      isLoading,
+      registrationMethod,
+      displayError,
+      getAlignmentClasses,
+      getTextAlignmentClass,
+      dictionary,
+      registerDictionary,
+      sendAuth,
+      setRegistrationMethod,
+      selectRegisterMethod,
+    ],
   );
 
   const Password = useMemo(
@@ -1171,6 +1196,8 @@ const Register = ({
       passwordDirtyFields,
       isLoading,
       registerUser,
+      getAlignmentClasses,
+      getTextAlignmentClass,
     ],
   );
 
