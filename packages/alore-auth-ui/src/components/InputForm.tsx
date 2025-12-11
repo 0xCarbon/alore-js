@@ -38,7 +38,7 @@ const InputForm = ({
       <div className={twMerge('flex flex-col', className)}>
         {label && (
           <Label
-            className="mb-2 font-medium !text-gray-500"
+            className="mb-2 self-start text-left font-medium !text-gray-500"
             htmlFor={field.name}
           >
             {label}
