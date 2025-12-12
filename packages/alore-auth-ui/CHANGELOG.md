@@ -1,5 +1,11 @@
 # @alore/auth-react-ui
 
+## 1.2.0-alpha.18
+
+### Minor Changes
+
+- 83f6aea: default alignment at the input labels changed to left
+
 ## 1.2.0-alpha.17
 
 ### Minor Changes
