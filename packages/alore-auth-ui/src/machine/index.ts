@@ -453,6 +453,11 @@ export const authMachine = createMachine(
                   src: 'verifyLogin',
                   onDone: [
                     {
+                      target: 'successfulLogin',
+                      cond: 'isTrustedDevice',
+                      actions: 'setSessionUser',
+                    },
+                    {
                       target: 'hardware2fa',
                       cond: 'hasHardware2FA',
                       actions: assign({
@@ -1573,6 +1578,8 @@ export const authMachine = createMachine(
           return data?.active2fa?.find((item: any) => item?.twoFaTypeId === SOFTWARE);
         return false;
       },
+      // @ts-ignore
+      isTrustedDevice: (_, event) => !!event.data?.accessToken,
     },
     actions: {
       setSessionUser: assign({
@@ -1666,6 +1673,8 @@ export const authService = (services: {}, context: AuthMachineContext) => {
               return data?.active2fa?.find((item: any) => item?.twoFaTypeId === SOFTWARE);
             return false;
           },
+          // @ts-ignore
+          isTrustedDevice: (_, event) => !!event.data?.accessToken,
           isPasskeyEnabled: (ctx, _) => !!ctx.authProviderConfigs?.enablePasskeys,
           isPasswordEnabled: (ctx, _) => !!ctx.authProviderConfigs?.enablePasswords,
           isPasswordAndPasskeyEnabled: (ctx, _) =>

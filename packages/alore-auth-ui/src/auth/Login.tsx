@@ -129,6 +129,7 @@ const Login = ({
 
   const [currentDevice, setCurrentDevice] = useState('');
   const [loading, setLoading] = useState(false);
+  const [trustDevice, setTrustDevice] = useState(true);
   const [sendEmailCooldown, setSendEmailCooldown] = useState(0);
   const [cooldownMultiplier, setCooldownMultiplier] = useState(1);
   const [newDeviceInfo] = useState<NewDeviceInfo>();
@@ -653,6 +654,8 @@ const Login = ({
             email: getValuesEmail('email'),
             secureCode: secureCode2FA,
             passwordHash: secureHashArgon2d,
+            device,
+            trustThisDevice: trustDevice,
           },
         });
       }
@@ -1215,6 +1218,19 @@ const Login = ({
               disabled={isLoading}
             />
           </div>
+          <label
+            htmlFor="trust-device-checkbox"
+            className="mb-4 flex cursor-pointer items-center gap-2 text-sm text-gray-600"
+          >
+            <input
+              id="trust-device-checkbox"
+              type="checkbox"
+              checked={trustDevice}
+              onChange={(e) => setTrustDevice(e.target.checked)}
+              className="size-4 rounded border-gray-300 text-[--primary-color] focus:ring-[--primary-color]"
+            />
+            {loginDictionary?.trustThisDevice}
+          </label>
           <Button
             data-testid="secure-code-submit"
             onClick={() => onClickSecureCodeSubmit()}
@@ -1249,6 +1265,7 @@ const Login = ({
       loginDictionary,
       sendAuth,
       otpError,
+      trustDevice,
       onClickSecureCodeSubmit,
       resendSecureCode,
     ],

@@ -63,6 +63,7 @@
       "wrongCode": "You’ve sent the wrong code. Try again.",
       "codeExpired": "Code expired",
       "confirmCode": "Confirm Code",
+      "trustThisDevice": "Trust this device for 15 days",
       "resendCode": "Re-send code to your e-mail",
       "inform2FACode": "Please, inform your code located at your authenticator app.",
       "newDevice": "New device detected",

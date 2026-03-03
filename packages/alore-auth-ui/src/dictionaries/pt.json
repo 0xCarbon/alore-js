@@ -63,6 +63,7 @@
       "wrongCode": "Você digitou o código errado.",
       "codeExpired": "Código expirado",
       "confirmCode": "Confirmar código",
+      "trustThisDevice": "Confiar neste dispositivo por 15 dias",
       "resendCode": "Reenviar código para seu e-mail",
       "inform2FACode": "Por favor, informe seu código localizado em seu aplicativo autenticador.",
       "newDevice": "Novo dispositivo detectado",
