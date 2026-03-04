@@ -1,7 +1,8 @@
 'use client';
 
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/20/solid';
 import { HelperText, Label, TextInput, TextInputProps } from 'flowbite-react';
-import React from 'react';
+import React, { useState } from 'react';
 import { Control, Controller, FieldErrorsImpl, FieldValues } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 
@@ -30,40 +31,62 @@ const InputForm = ({
   className,
   inputClassName,
   ...rest
-}: Props) => (
-  <Controller
-    control={control}
-    name={name}
-    render={({ field }) => (
-      <div className={twMerge('flex flex-col', className)}>
-        {label && (
-          <Label
-            className="mb-2 self-start text-left font-medium !text-gray-500"
-            htmlFor={field.name}
-          >
-            {label}
-          </Label>
-        )}
-        <TextInput
-          {...field}
-          {...rest}
-          type={type}
-          color={errors[field.name] ? 'failure' : 'gray'}
-          rightIcon={errors[field.name] && infoIcon}
-          data-testid={dataTest}
-          className={inputClassName}
-        />
-        <HelperText>
-          {errors[field.name] && (
-            <InputErrorHelperText
-              id={dataTest}
-              message={String(errors?.[field.name]?.message)}
-            />
+}: Props) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = type === 'password';
+
+  return (
+    <Controller
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <div className={twMerge('flex flex-col', className)}>
+          {label && (
+            <Label
+              className="mb-2 self-start text-left font-medium !text-gray-500"
+              htmlFor={field.name}
+            >
+              {label}
+            </Label>
           )}
-        </HelperText>
-      </div>
-    )}
-  />
-);
+          <div className="relative">
+            <TextInput
+              {...field}
+              {...rest}
+              type={isPassword && showPassword ? 'text' : type}
+              color={errors[field.name] ? 'failure' : 'gray'}
+              rightIcon={errors[field.name] && infoIcon}
+              data-testid={dataTest}
+              className={inputClassName}
+            />
+            {isPassword && (
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500 hover:text-gray-700"
+                data-testid={dataTest ? `${dataTest}-toggle-visibility` : undefined}
+              >
+                {showPassword ? (
+                  <EyeSlashIcon className="size-4" />
+                ) : (
+                  <EyeIcon className="size-4" />
+                )}
+              </button>
+            )}
+          </div>
+          <HelperText>
+            {errors[field.name] && (
+              <InputErrorHelperText
+                id={dataTest}
+                message={String(errors?.[field.name]?.message)}
+              />
+            )}
+          </HelperText>
+        </div>
+      )}
+    />
+  );
+};
 
 export default InputForm;
