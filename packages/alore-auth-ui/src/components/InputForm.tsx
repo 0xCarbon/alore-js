@@ -1,9 +1,9 @@
 'use client';
 
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/20/solid';
 import { HelperText, Label, TextInput, TextInputProps } from 'flowbite-react';
 import React, { useState } from 'react';
 import { Control, Controller, FieldErrorsImpl, FieldValues } from 'react-hook-form';
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/20/solid';
 import { twMerge } from 'tailwind-merge';
 
 import InputErrorHelperText from './InputErrorHelperText';
