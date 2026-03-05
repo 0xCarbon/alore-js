@@ -167,7 +167,13 @@ export type AuthMachineEvents =
     }
   | {
       type: 'VERIFY_EMAIL_2FA';
-      payload: { email: string; secureCode: string; passwordHash: string };
+      payload: {
+        email: string;
+        secureCode: string;
+        passwordHash: string;
+        device?: string;
+        trustThisDevice?: boolean;
+      };
     }
   | {
       type: 'RESEND_CODE';

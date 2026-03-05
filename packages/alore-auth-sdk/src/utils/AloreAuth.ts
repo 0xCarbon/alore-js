@@ -293,6 +293,12 @@ export class AloreAuth {
         searchParams.append('template', this.emailTemplate);
       }
 
+      // Include device trust token if available (to skip email 2FA on trusted devices)
+      let trustToken: string | null = null;
+      if (typeof window !== 'undefined') {
+        trustToken = window.localStorage.getItem('deviceTrustToken');
+      }
+
       const response = await this.fetchWithProgressiveBackoff(
         searchParams.size > 0 ? `${url}?${searchParams.toString()}` : url,
         {
@@ -304,6 +310,7 @@ export class AloreAuth {
             email: email || credentialEmail,
             passwordHash,
             device,
+            ...(trustToken && { trustToken }),
           }),
         },
       );
@@ -641,10 +648,12 @@ export class AloreAuth {
           email: string;
           secureCode: string;
           passwordHash: string;
+          device?: string;
+          trustThisDevice?: boolean;
         };
       },
     ) => {
-      const { email, passwordHash, secureCode } = event.payload;
+      const { email, passwordHash, secureCode, device, trustThisDevice } = event.payload;
       const { credentialEmail, authProviderConfigs } = context;
 
       const { firebaseCompatible } = authProviderConfigs || {};
@@ -658,6 +667,8 @@ export class AloreAuth {
             passwordHash,
             emailCode: secureCode,
             sessionId: context.sessionId,
+            ...(device && { device }),
+            ...(trustThisDevice !== undefined && { trustThisDevice }),
           }),
           headers: {
             'Content-Type': 'application/json',
@@ -667,7 +678,15 @@ export class AloreAuth {
 
       const data = await response.json();
 
-      if (response.ok) return data;
+      if (response.ok) {
+        // Persist device trust token for future logins
+        if (data.deviceTrustToken && typeof window !== 'undefined') {
+          window.localStorage.setItem('deviceTrustToken', data.deviceTrustToken);
+        } else if (typeof window !== 'undefined') {
+          window.localStorage.removeItem('deviceTrustToken');
+        }
+        return data;
+      }
 
       throw new Error(data.message || data.error || 'Authentication failed');
     },
