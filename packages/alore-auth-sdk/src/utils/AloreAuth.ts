@@ -682,6 +682,8 @@ export class AloreAuth {
         // Persist device trust token for future logins
         if (data.deviceTrustToken && typeof window !== 'undefined') {
           window.localStorage.setItem('deviceTrustToken', data.deviceTrustToken);
+        } else if (typeof window !== 'undefined') {
+          window.localStorage.removeItem('deviceTrustToken');
         }
         return data;
       }
