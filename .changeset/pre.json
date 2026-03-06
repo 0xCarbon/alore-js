@@ -8,6 +8,7 @@
     "example": "0.1.0"
   },
   "changesets": [
+    "cool-geese-pump",
     "dark-seals-juggle",
     "eight-kiwis-live",
     "eleven-lizards-tap",
