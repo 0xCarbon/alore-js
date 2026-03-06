@@ -1,5 +1,16 @@
 # @alore/auth-react-ui
 
+## 1.2.0-alpha.19
+
+### Minor Changes
+
+- Add device trust flag for email 2FA.
+
+### Patch Changes
+
+- Updated dependencies
+  - @alore/auth-react-sdk@1.1.0-alpha.12
+
 ## 1.2.0-alpha.18
 
 ### Minor Changes

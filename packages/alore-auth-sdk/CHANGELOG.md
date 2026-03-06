@@ -1,5 +1,11 @@
 # @alore/auth-react-sdk
 
+## 1.1.0-alpha.12
+
+### Minor Changes
+
+- Add device trust flag for email 2FA.
+
 ## 1.1.0-alpha.11
 
 ### Patch Changes
