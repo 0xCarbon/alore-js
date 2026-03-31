@@ -1,5 +1,11 @@
 # @alore/auth-react-ui
 
+## 1.2.0-alpha.20
+
+### Patch Changes
+
+- 0a40829: Fix message of reset password final step
+
 ## 1.2.0-alpha.19
 
 ### Minor Changes
