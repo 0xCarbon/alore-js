@@ -367,23 +367,13 @@ const ForgotPassword = ({
         </BackButton>
         <div className={`flex flex-col ${getAlignmentClasses}`}>
           <span
-            className={`font-poppins text-alr-grey mb-5 mt-14 text-xl font-bold ${getTextAlignmentClass}`}
+            className={`font-poppins text-alr-grey mb-5 mt-4 px-4 text-xl font-bold ${getTextAlignmentClass}`}
           >
             {forgotPasswordDictionary?.emailSentTitle}
           </span>
           <span className={`text-alr-grey mb-6 w-full font-medium ${getTextAlignmentClass}`}>
             {forgotPasswordDictionary?.emailSentDescription}
           </span>
-          <Button
-            className="flex w-full items-center justify-center"
-            onClick={() => {
-              sendAuth('BACK');
-              window.history.replaceState({}, '', window.location.pathname);
-            }}
-            data-testid="back-to-login-button"
-          >
-            {forgotPasswordDictionary?.backToLogin}
-          </Button>
         </div>
       </div>
     ),
