@@ -328,6 +328,7 @@ const Register = ({
           challenge: base64UrlToArrayBuffer(publicKey.challenge),
           allowCredentials: allowCredentialsList, // Use the prepared list
           timeout: 120000,
+          // @ts-ignore
           extensions: {
             ...publicKey.extensions, // Include extensions from the server challenge
             // @ts-ignore - Spread our potentially modified extensions object
@@ -530,6 +531,27 @@ const Register = ({
       authState.matches('active.web3Connector.verifyingEmailEligibility'),
     [authState.value],
   );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const handleMethodSelectionEnter = (event: KeyboardEvent) => {
+      if (
+        event.key === 'Enter' &&
+        authState.matches('active.register.registerMethodSelection') &&
+        !isLoading
+      ) {
+        event.preventDefault();
+        selectRegisterMethod();
+      }
+    };
+
+    window.addEventListener('keydown', handleMethodSelectionEnter);
+
+    return () => {
+      window.removeEventListener('keydown', handleMethodSelectionEnter);
+    };
+  }, [authState.value, isLoading, selectRegisterMethod]);
 
   useEffect(() => {
     if (inviteToken) {
@@ -1142,7 +1164,7 @@ const Register = ({
           </span>
           <form
             onSubmit={passwordHandleSubmit((data) => onSubmitPassword(data))}
-            className="flex flex-col gap-y-4"
+            className="flex w-full flex-col gap-y-4"
           >
             <InputForm
               control={passwordControl}

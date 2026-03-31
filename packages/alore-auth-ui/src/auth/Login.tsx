@@ -320,6 +320,7 @@ const Login = ({
         // @ts-ignore
         challenge: Buffer.from(publicKey.challenge, 'base64'),
         rpId: publicKey.rpId,
+        // @ts-ignore
         extensions: {
           ...publicKey.extensions,
           // @ts-ignore
@@ -410,6 +411,27 @@ const Login = ({
       authState.matches('active.web3Connector.verifyingEmailEligibility'),
     [authState.value],
   );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const handleMethodSelectionEnter = (event: KeyboardEvent) => {
+      if (
+        event.key === 'Enter' &&
+        authState.matches('active.login.loginMethodSelection') &&
+        !isLoading
+      ) {
+        event.preventDefault();
+        selectLoginMethod();
+      }
+    };
+
+    window.addEventListener('keydown', handleMethodSelectionEnter);
+
+    return () => {
+      window.removeEventListener('keydown', handleMethodSelectionEnter);
+    };
+  }, [authState.value, isLoading, selectLoginMethod]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
