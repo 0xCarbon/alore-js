@@ -156,7 +156,14 @@ const Auth = ({
   }, []);
 
   useEffect(() => {
-    // Don't reset if we're in the middle of a password reset flow
+    // Don't reset if we're in the middle of a password reset flow.
+    // Check URL params directly to avoid stale-closure reads of forgotPasswordSession.
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('salt') && params.get('token')) {
+        return;
+      }
+    }
     if (!forgotPasswordSession) {
       sendAuth(['CLEAR_ERROR', 'RESET', 'INITIALIZE']);
     }
