@@ -1,5 +1,18 @@
 # @alore/auth-react-ui
 
+## 1.2.0-alpha.22
+
+### Patch Changes
+
+- 0154948: Keep the authenticated session when `authProviderConfigs` change. A new frontend
+  deploy bakes different env-derived values (URLs, flags) into the config object;
+  the persisted-state guard treated that as a reason to discard the entire
+  persisted auth snapshot — including the access/refresh tokens — logging every
+  user out on every deploy. Now a config change only resets login-flow UI state:
+  when the persisted snapshot is an authenticated session
+  (`active.login.successfulLogin` with a `sessionUser`), the session is kept and
+  the incoming configs are adopted.
+
 ## 1.2.0-alpha.21
 
 ### Patch Changes
