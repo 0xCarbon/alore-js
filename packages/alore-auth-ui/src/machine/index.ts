@@ -1632,7 +1632,28 @@ export const authService = (services: {}, context: AuthMachineContext) => {
   const configsDiffer =
     JSON.stringify(persistedConfig || {}) !== JSON.stringify(incomingConfig || {});
 
-  const startArg = configsDiffer ? undefined : resolvedState;
+  let startArg = configsDiffer ? undefined : resolvedState;
+
+  // A config change usually means a new frontend deploy baked different env-derived
+  // values (URLs, flags). That invalidates persisted login-flow UI state, but it must
+  // not cost an authenticated user their session: keep the logged-in snapshot and
+  // adopt the incoming configs instead of discarding the tokens (JOO-1964).
+  if (
+    configsDiffer &&
+    resolvedState?.context?.sessionUser &&
+    resolvedState.matches('active.login.successfulLogin')
+  ) {
+    const persistedSnapshot = JSON.parse(JSON.stringify(resolvedState));
+    const patchedState = State.create({
+      ...persistedSnapshot,
+      context: {
+        ...persistedSnapshot.context,
+        authProviderConfigs: incomingConfig,
+      },
+    });
+    // @ts-ignore
+    startArg = authMachine.resolveState(patchedState);
+  }
 
   return interpret(
     authMachine.withConfig(
