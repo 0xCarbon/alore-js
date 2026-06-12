@@ -219,6 +219,7 @@ ipfs
 ipstack
 Isahc
 JEF
+JOO
 jsonwebtoken
 jwt
 keccak

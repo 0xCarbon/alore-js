@@ -1632,7 +1632,39 @@ export const authService = (services: {}, context: AuthMachineContext) => {
   const configsDiffer =
     JSON.stringify(persistedConfig || {}) !== JSON.stringify(incomingConfig || {});
 
-  const startArg = configsDiffer ? undefined : resolvedState;
+  let startArg = configsDiffer ? undefined : resolvedState;
+
+  // A config change usually means a new frontend deploy baked different env-derived
+  // values (URLs, flags). That invalidates persisted login-flow UI state, but it must
+  // not cost an authenticated user their session: keep the logged-in snapshot and
+  // adopt the incoming configs instead of discarding the tokens (JOO-1964).
+  // Exception: passkeys are cryptographically bound to rpDomain — if it changed,
+  // a kept session could no longer complete any WebAuthn flow, so fall back to
+  // the old start-fresh behavior.
+  if (
+    configsDiffer &&
+    resolvedState?.context?.sessionUser &&
+    resolvedState.matches('active.login.successfulLogin') &&
+    persistedConfig?.rpDomain === incomingConfig?.rpDomain
+  ) {
+    const persistedSnapshot = JSON.parse(JSON.stringify(resolvedState));
+    const patchedState = State.create({
+      ...persistedSnapshot,
+      context: {
+        ...persistedSnapshot.context,
+        authProviderConfigs: incomingConfig,
+        // Login-flow leftovers; stale values must not survive into the kept session.
+        salt: undefined,
+        sessionId: undefined,
+      },
+    });
+    // @ts-ignore
+    startArg = authMachine.resolveState(patchedState);
+    // Persist right away: .start() does not fire a persisting transition
+    // (state.changed is undefined on boot), and without this every boot would
+    // re-run the patch until the next persisted transition.
+    localStorage.setItem('authState', JSON.stringify(startArg));
+  }
 
   return interpret(
     authMachine.withConfig(
