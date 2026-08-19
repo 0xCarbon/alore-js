@@ -31,8 +31,8 @@ jobs:
       # Trusted Publishing requires npm >= 11.5; Node 20 ships npm 10.x.
       # Also: no registry-url on setup-node and no NODE_AUTH_TOKEN below —
       # a configured token would take precedence over OIDC.
-      - name: Update npm (OIDC needs >= 11.5)
-        run: npm install -g npm@latest
+      - name: Update npm (OIDC needs >= 11.5, node-20 compatible)
+        run: npm install -g npm@11
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
