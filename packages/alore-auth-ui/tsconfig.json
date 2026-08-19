@@ -20,6 +20,6 @@
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules", "src/**/*.test.ts", "src/**/*.test.tsx"],
   "include": ["src", "assets.d.ts"]
 }
