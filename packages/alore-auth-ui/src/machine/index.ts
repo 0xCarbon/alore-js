@@ -1197,6 +1197,16 @@ export const authMachine = createMachine(
                   FINISH_PASSKEY_AUTH: '#authMachine.active.register.sendingAuthPublicCredential',
                   BACK_TO_IDLE: '#authMachine.active.register.idle',
                   USER_CREATE_ACCOUNT_BUT_NOT_LOGIN: 'passkeyCreatedButNotAuthenticated',
+                  // JOO-1792 / joori#2670: the account is already created server-side when
+                  // we are signing the first authentication challenge, so a passkey that
+                  // cannot yield a PRF/largeBlob secret must surface a recoverable state,
+                  // not an unhandled event that freezes the spinner.
+                  PASSKEY_NOT_SUPPORTED: {
+                    target: 'passkeyCreatedButNotAuthenticated',
+                    actions: assign({
+                      error: (_, event) => event.payload.error,
+                    }),
+                  },
                 },
               },
 

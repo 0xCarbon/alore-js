@@ -45,3 +45,7 @@ jobs:
 
       - name: Check Formatting with Prettier
         run: pnpm -w run format-check
+
+      - name: Run unit tests
+        if: matrix.package == 'alore-auth-ui'
+        run: pnpm run test

@@ -28,6 +28,7 @@ import {
   microsoftLogo,
   walletConnectLogo,
 } from '../utils';
+import { buildWalletExtensions, resolveWalletSecret } from '../utils/passkeyExtensions';
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -124,8 +125,13 @@ const Login = ({
   const displayError = errorObj?.message || '';
   const hasDisplayError = !!displayError;
 
-  const { enablePasskeys, requireEmailVerification, enablePasswords, socialProviders } =
-    authProviderConfigs || {};
+  const {
+    enablePasskeys,
+    requireEmailVerification,
+    enablePasswords,
+    socialProviders,
+    enableWalletCreation,
+  } = authProviderConfigs || {};
 
   const [currentDevice, setCurrentDevice] = useState('');
   const [loading, setLoading] = useState(false);
@@ -222,26 +228,18 @@ const Login = ({
   // eslint-disable-next-line no-undef
   const sendSignedCredential = async (credential: PublicKeyCredential) => {
     const extensionResults = credential.getClientExtensionResults();
-    let secretFromCredential;
-    // @ts-ignore
-    const hasPrf = !!extensionResults?.prf?.results?.first;
-    // @ts-ignore
-    const hasLargeBlob = !!extensionResults?.largeBlob?.blob;
 
-    if (hasPrf) {
-      // @ts-ignore
-      secretFromCredential = extensionResults?.prf?.results?.first;
-    } else if (hasLargeBlob) {
-      // @ts-ignore
-      secretFromCredential = extensionResults?.largeBlob?.blob;
-    }
+    // JOO-1792: with wallets disabled no secret is required (none was requested);
+    // with wallets enabled the previous PRF/largeBlob/Safari semantics are preserved.
+    const { supported: walletSecretSupported, secret: secretFromCredential } = resolveWalletSecret(
+      !!enableWalletCreation,
+      extensionResults,
+      {
+        isSafari,
+      },
+    );
 
-    if (hasLargeBlob && isSafari) {
-      // @ts-ignore
-      secretFromCredential = extensionResults?.largeBlob?.blob;
-    }
-
-    if (!secretFromCredential) {
+    if (!walletSecretSupported) {
       sendAuth({
         type: 'PASSKEY_NOT_SUPPORTED',
         payload: { error: loginDictionary?.passkeyNotSupported! },
@@ -276,7 +274,7 @@ const Login = ({
       },
     });
 
-    if (keyshareWorker) {
+    if (keyshareWorker && secretFromCredential) {
       keyshareWorker.postMessage({
         method: 'derive-password',
         payload: {
@@ -297,15 +295,7 @@ const Login = ({
 
     const { publicKey } = RCRPublicKey;
 
-    const extensions: {
-      prf?: { eval: { first: Uint8Array } };
-      largeBlob?: { read: boolean };
-    } = {
-      prf: { eval: { first: new TextEncoder().encode('Alore') } },
-      largeBlob: {
-        read: true,
-      },
-    };
+    const extensions = buildWalletExtensions('login', !!enableWalletCreation);
 
     // eslint-disable-next-line no-undef
     const credentialOptions: CredentialRequestOptions = {

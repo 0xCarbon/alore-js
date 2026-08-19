@@ -25,6 +25,7 @@ import { base64UrlToArrayBuffer, verifyEmptyValues } from '../helpers';
 import useDictionary from '../hooks/useDictionary';
 import { AuthInstance } from '../machine/types';
 import { aloreLogoBlack, authErrorImage, google, metamaskLogo, walletConnectLogo } from '../utils';
+import { buildWalletExtensions, resolveWalletSecret } from '../utils/passkeyExtensions';
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -171,23 +172,7 @@ const Register = ({
     const nickname = registerUser ? registerUser.nickname : userInfoGetValues('nickname');
     const device = hashUserInfo(window.navigator.userAgent);
 
-    let extensions: {
-      prf?: { eval: { first: Uint8Array } };
-      largeBlob?: { support: string };
-    } | null = null;
-
-    if (enableWalletCreation) {
-      extensions = {
-        prf: {
-          eval: {
-            first: new TextEncoder().encode('Alore'),
-          },
-        },
-        largeBlob: {
-          support: 'preferred',
-        },
-      };
-    }
+    const extensions = buildWalletExtensions('registration', !!enableWalletCreation);
 
     // eslint-disable-next-line no-undef
     const credentialCreationOptions: CredentialCreationOptions = {
@@ -306,19 +291,11 @@ const Register = ({
       id: Buffer.from(cred.id, 'base64'),
     }));
 
-    const extensions: {
-      prf?: { eval: { first: Uint8Array } };
-      largeBlob?: { write?: Uint8Array }; // Make write optional here
-    } = {
-      prf: { eval: { first: new TextEncoder().encode('Alore') } },
-    };
-
-    // Conditionally add largeBlob.write only if exactly one credential is allowed
-    if (allowCredentialsList?.length === 1) {
-      extensions.largeBlob = {
-        write: largeBlob,
-      };
-    }
+    const extensions = buildWalletExtensions('first-auth', !!enableWalletCreation, {
+      // largeBlob.write is only possible with exactly one allowed credential
+      singleAllowCredential: allowCredentialsList?.length === 1,
+      largeBlobWriteSecret: largeBlob,
+    });
 
     try {
       const firstLoginCredential = (await navigator.credentials.get({
@@ -343,27 +320,17 @@ const Register = ({
         return;
       }
       const extensionResults = firstLoginCredential.getClientExtensionResults();
-
-      // @ts-ignore
-      const prfWritten = !!extensionResults?.prf?.results?.first;
-      // @ts-ignore
-      const blobWritten = !!extensionResults?.largeBlob?.written;
-      let secretFromCredential;
-
-      if (prfWritten) {
-        // @ts-ignore
-        secretFromCredential = extensionResults?.prf?.results?.first;
-      } else if (blobWritten) {
-        secretFromCredential = largeBlob;
-      }
-
       const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-      if (blobWritten && isSafari) {
-        secretFromCredential = largeBlob;
-      }
+      // JOO-1792: with wallets disabled no secret is required (none was requested);
+      // with wallets enabled the previous PRF/largeBlob/Safari semantics are preserved.
+      const { supported: walletSecretSupported, secret: secretFromCredential } =
+        resolveWalletSecret(!!enableWalletCreation, extensionResults, {
+          largeBlobWriteSecret: largeBlob,
+          isSafari,
+        });
 
-      if (!secretFromCredential) {
+      if (!walletSecretSupported) {
         sendAuth({
           type: 'PASSKEY_NOT_SUPPORTED',
           payload: { error: registerDictionary?.passkeyNotSupported! },
@@ -401,7 +368,7 @@ const Register = ({
         },
       });
 
-      if (keyshareWorker) {
+      if (keyshareWorker && secretFromCredential) {
         keyshareWorker.postMessage({
           method: 'derive-password',
           payload: {

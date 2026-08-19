@@ -574,9 +574,9 @@ export class AloreAuth {
 
       const optionsData = await optionsResponse.json();
 
-      const credential = await startAuthentication(
-        optionsData.requestChallengeResponse.publicKey,
-      ).catch((err) => {
+      const credential = await startAuthentication({
+        optionsJSON: optionsData.requestChallengeResponse.publicKey,
+      }).catch((err) => {
         throw new Error(err);
       });
 

@@ -15,7 +15,6 @@
     "@heroicons/react": "2.0.16",
     "@hookform/resolvers": "3.1.0",
     "@react-oauth/google": "0.12.1",
-    "@simplewebauthn/browser": "7.4.0",
     "@types/argon2-browser": "1.18.1",
     "@types/react": "18.2.79",
     "@xstate/react": "3.2.2",
