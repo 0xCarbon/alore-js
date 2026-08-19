@@ -39,20 +39,19 @@ export function buildWalletExtensions(
 
   const prf = { eval: { first: new TextEncoder().encode(PRF_SALT) } };
 
-  switch (purpose) {
-    case 'registration':
-      return { prf, largeBlob: { support: 'preferred' as const } };
-    case 'first-auth': {
-      const extensions: WalletExtensionsRequest = { prf };
-      if (options.singleAllowCredential && options.largeBlobWriteSecret) {
-        extensions.largeBlob = { write: options.largeBlobWriteSecret };
-      }
-      return extensions;
-    }
-    case 'login':
-    default:
-      return { prf, largeBlob: { read: true as const } };
+  if (purpose === 'registration') {
+    return { prf, largeBlob: { support: 'preferred' as const } };
   }
+
+  if (purpose === 'first-auth') {
+    const extensions: WalletExtensionsRequest = { prf };
+    if (options.singleAllowCredential && options.largeBlobWriteSecret) {
+      extensions.largeBlob = { write: options.largeBlobWriteSecret };
+    }
+    return extensions;
+  }
+
+  return { prf, largeBlob: { read: true as const } };
 }
 
 export interface ResolveWalletSecretOptions {
@@ -87,26 +86,33 @@ export function resolveWalletSecret(
   }
 
   const prfSecret = extensionResults?.prf?.results?.first as Uint8Array | undefined;
+  // first-auth (write mode): the secret is the blob we wrote, not a returned value.
+  const blobWritten = !!extensionResults?.largeBlob?.written;
+  // login (read mode): largeBlob.blob is the stored secret itself.
+  const blobRead = extensionResults?.largeBlob?.blob as Uint8Array | undefined;
+
+  // Safari quirk (preserved from the original implementation): when Safari reports
+  // a largeBlob result alongside PRF, the blob wins — pre-refactor wallets on Safari
+  // derived their key from the blob, so preferring PRF would break them.
+  if (options.isSafari) {
+    if (blobWritten && options.largeBlobWriteSecret) {
+      return { supported: true, secret: options.largeBlobWriteSecret };
+    }
+    if (blobRead) {
+      return { supported: true, secret: blobRead };
+    }
+  }
+
   if (prfSecret) {
     return { supported: true, secret: prfSecret };
   }
 
-  // first-auth (write mode): the secret is the blob we wrote, not a returned value.
-  const blobWritten = !!extensionResults?.largeBlob?.written;
   if (blobWritten && options.largeBlobWriteSecret) {
     return { supported: true, secret: options.largeBlobWriteSecret };
   }
 
-  // login (read mode): largeBlob.blob is the stored secret itself.
-  const blobRead = extensionResults?.largeBlob?.blob as Uint8Array | undefined;
   if (blobRead) {
     return { supported: true, secret: blobRead };
-  }
-
-  // Safari quirk (preserved from the original implementation): it reports
-  // largeBlob.written even when PRF produced the secret path above did not run.
-  if (blobWritten && options.isSafari && options.largeBlobWriteSecret) {
-    return { supported: true, secret: options.largeBlobWriteSecret };
   }
 
   return { supported: false };

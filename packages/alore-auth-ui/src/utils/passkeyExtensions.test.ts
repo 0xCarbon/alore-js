@@ -60,7 +60,7 @@ describe('resolveWalletSecret (JOO-1792: no secret required without the gate)', 
     expect(r).toEqual({ supported: true, secret: blob });
   });
 
-  it('wallets enabled, Safari: written blob still resolves (quirk preserved)', () => {
+  it('wallets enabled, Safari, write mode fallback: written blob without PRF resolves', () => {
     const blob = new Uint8Array(32);
     const r = resolveWalletSecret(
       true,
@@ -71,6 +71,50 @@ describe('resolveWalletSecret (JOO-1792: no secret required without the gate)', 
       },
     );
     expect(r).toEqual({ supported: true, secret: blob });
+  });
+
+  it('Safari quirk preserved: blob wins over PRF when both are present (login read mode)', () => {
+    const prfResult = new Uint8Array([9, 9, 9]);
+    const storedBlob = new Uint8Array(32);
+    const r = resolveWalletSecret(
+      true,
+      { prf: { results: { first: prfResult } }, largeBlob: { blob: storedBlob } },
+      { isSafari: true },
+    );
+    expect(r).toEqual({ supported: true, secret: storedBlob });
+  });
+
+  it('Safari quirk preserved: written blob wins over PRF when both are present (first-auth)', () => {
+    const prfResult = new Uint8Array([9, 9, 9]);
+    const blob = new Uint8Array(32);
+    const r = resolveWalletSecret(
+      true,
+      { prf: { results: { first: prfResult } }, largeBlob: { written: true } },
+      { largeBlobWriteSecret: blob, isSafari: true },
+    );
+    expect(r).toEqual({ supported: true, secret: blob });
+  });
+
+  it('non-Safari: PRF wins over blob when both are present (login read mode)', () => {
+    const prfResult = new Uint8Array([9, 9, 9]);
+    const storedBlob = new Uint8Array(32);
+    const r = resolveWalletSecret(
+      true,
+      { prf: { results: { first: prfResult } }, largeBlob: { blob: storedBlob } },
+      { isSafari: false },
+    );
+    expect(r).toEqual({ supported: true, secret: prfResult });
+  });
+
+  it('non-Safari: PRF wins over written blob when both are present (first-auth)', () => {
+    const prfResult = new Uint8Array([9, 9, 9]);
+    const blob = new Uint8Array(32);
+    const r = resolveWalletSecret(
+      true,
+      { prf: { results: { first: prfResult } }, largeBlob: { written: true } },
+      { largeBlobWriteSecret: blob, isSafari: false },
+    );
+    expect(r).toEqual({ supported: true, secret: prfResult });
   });
 
   it('wallets enabled, login read mode: largeBlob.blob is the secret', () => {
