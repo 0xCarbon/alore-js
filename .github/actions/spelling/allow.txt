@@ -246,7 +246,7 @@ ossp
 otp
 otpauth
 pancakeswap
-Passwordless
+passwordless
 pegar
 photografos
 picsum
