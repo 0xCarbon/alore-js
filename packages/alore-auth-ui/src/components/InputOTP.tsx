@@ -150,7 +150,7 @@ const OTPInput = ({
             pattern="\d{1}"
             maxLength={inputLength}
             className={twMerge(
-              `h-[2.56rem] w-[2.56rem] rounded-md border text-center font-semibold duration-500`,
+              `h-[2.56rem] w-[2.56rem] rounded-md border text-center font-semibold duration-500 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]`,
               errorMessage ? 'border-alr-red' : 'border-gray-300',
             )}
             value={digit}

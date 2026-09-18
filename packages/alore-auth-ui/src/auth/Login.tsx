@@ -34,6 +34,7 @@ import { buildWalletExtensions, resolveWalletSecret } from '../utils/passkeyExte
 const InputForm = React.lazy(() => import('../components/InputForm'));
 const InputOTP = React.lazy(() => import('../components/InputOTP'));
 const BackButton = React.lazy(() => import('../components/BackButton'));
+const LinkButton = React.lazy(() => import('../components/LinkButton'));
 
 const envelopIcon = () => <EnvelopeIcon className="size-4 text-gray-500" />;
 const lockClosedIcon = () => <LockClosedIcon className="size-4 text-gray-500" />;
@@ -420,6 +421,33 @@ const Login = ({
       window.removeEventListener('keydown', handleMethodSelectionEnter);
     };
   }, [authState.value, isLoading, selectLoginMethod]);
+
+  const canGoBack = useMemo(
+    () =>
+      authState.matches('active.login.loginMethodSelection') ||
+      authState.matches('active.login.inputPassword') ||
+      authState.matches('active.login.email2fa') ||
+      authState.matches('active.login.hardware2fa') ||
+      authState.matches('active.login.software2fa'),
+    [authState.value],
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && canGoBack && !isLoading) {
+        event.preventDefault();
+        sendAuth('BACK');
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [canGoBack, isLoading, sendAuth]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -835,7 +863,8 @@ const Login = ({
         ) : (
           <h1
             className={
-              loginTitleClassName || 'font-inter text-center text-xl font-bold text-gray-700'
+              loginTitleClassName ||
+              `font-inter text-xl font-bold text-gray-700 ${getTextAlignment}`
             }
           >
             {loginTitle || (forgeId ? loginDictionary?.forgeLogin : loginDictionary?.loginAccount)}
@@ -848,7 +877,6 @@ const Login = ({
               onSubmit={handleSubmitEmail((data) => onSubmitEmail(data))}
             >
               <InputForm
-                className="my-1"
                 inputClassName={inputClassName}
                 control={emailControl}
                 errors={emailErrors}
@@ -865,12 +893,13 @@ const Login = ({
                 autoFocus
               />
 
-              <span
+              <LinkButton
+                data-testid="forgot-password-link"
                 onClick={() => sendAuth('FORGOT_PASSWORD')}
-                className="cursor-pointer text-xs font-medium text-[var(--primary-color)] hover:text-[var(--primary-hover)]"
+                className="text-xs"
               >
                 {loginDictionary?.forgotPassword}
-              </span>
+              </LinkButton>
               <Button
                 type="submit"
                 data-testid="login-button"
@@ -963,18 +992,21 @@ const Login = ({
               </div>
             </Button>
           )}
-          <span className="text-center text-sm font-medium">
-            {loginDictionary?.dontHaveAccount}
-            <div
+          {/* Deliberately centred and stacked, independent of `contentAlignment`:
+              the sign-up prompt is the one element the design centres under the
+              card regardless of how the rest of the form is aligned. */}
+          <div className="flex flex-col items-center gap-0.5 text-center text-sm font-medium">
+            <span>{loginDictionary?.dontHaveAccount}</span>
+            <LinkButton
               data-testid="sign-up-button"
-              className="cursor-pointer text-[var(--primary-color)] hover:text-[var(--primary-hover)]"
+              className="text-sm"
               onClick={() => {
                 sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
               }}
             >
               {loginDictionary?.signUp}
-            </div>
-          </span>
+            </LinkButton>
+          </div>
         </div>
       </div>
     );
@@ -1004,6 +1036,7 @@ const Login = ({
     requireEmailVerification,
     errorObj,
     hasDisplayError,
+    getTextAlignment,
   ]);
 
   const SelectLoginMethod = useMemo(() => {
@@ -1160,15 +1193,17 @@ const Login = ({
             icon={lockClosedIcon}
             type="password"
             label={dictionary?.password}
+            passwordToggleLabel={dictionary?.auth.togglePasswordVisibility}
             data-testid="login-password"
           />
 
-          <span
+          <LinkButton
+            data-testid="forgot-password-link"
             onClick={() => sendAuth('FORGOT_PASSWORD')}
-            className="cursor-pointer text-xs font-medium text-[var(--primary-color)] hover:text-[var(--primary-hover)]"
+            className="text-xs"
           >
             {loginDictionary?.forgotPassword}
-          </span>
+          </LinkButton>
           <Button
             type="submit"
             data-testid="login-submit"
@@ -1177,17 +1212,21 @@ const Login = ({
             {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
             {loginDictionary?.login}
           </Button>
-          <span className="text-center text-sm font-medium">
-            {loginDictionary?.dontHaveAccount}
-            <div
-              className="cursor-pointer text-[--primary-color]"
+          {/* Deliberately centred and stacked, independent of `contentAlignment`:
+              the sign-up prompt is the one element the design centres under the
+              card regardless of how the rest of the form is aligned. */}
+          <div className="flex flex-col items-center gap-0.5 text-center text-sm font-medium">
+            <span>{loginDictionary?.dontHaveAccount}</span>
+            <LinkButton
+              data-testid="sign-up-button"
+              className="text-sm"
               onClick={() => {
                 sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
               }}
             >
               {loginDictionary?.signUp}
-            </div>
-          </span>
+            </LinkButton>
+          </div>
         </form>
       </>
     );
@@ -1210,6 +1249,7 @@ const Login = ({
     onSubmitLogin,
     forgeId,
     isLoginSubmitDisabled,
+    getTextAlignment,
   ]);
 
   const VerifyEmail = useMemo(
@@ -1269,17 +1309,14 @@ const Login = ({
             {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
             {loginDictionary?.confirmCode}
           </Button>
-          <span
+          <LinkButton
+            data-testid="resend-code-button"
             onClick={() => resendSecureCode()}
-            className={twMerge(
-              `text-base font-medium text-gray-700 duration-300`,
-              sendEmailCooldown > 0
-                ? 'pointer-events-none opacity-50'
-                : 'cursor-pointer opacity-100 hover:text-[--primary-hover]',
-            )}
+            disabled={sendEmailCooldown > 0}
+            className={twMerge(`text-base`, sendEmailCooldown > 0 ? 'opacity-50' : 'opacity-100')}
           >
             {`${loginDictionary?.resendCode}${sendEmailCooldown ? ` (${sendEmailCooldown}s)` : ''}`}
-          </span>
+          </LinkButton>
         </div>
       </div>
     ),
@@ -1325,23 +1362,25 @@ const Login = ({
             {activeHw2fa?.length > 1 && (
               <>
                 <span>{loginDictionary?.tryHardware}</span>
-                <div
-                  className="text-alr-red flex cursor-pointer items-center gap-x-1 text-base font-semibold"
+                <LinkButton
+                  data-testid="use-another-hardware-button"
+                  className="flex items-center gap-x-1 text-base font-semibold"
                   onClick={() => startHwAuth(1)}
                 >
                   {loginDictionary?.useAnotherHardware}
                   <ArrowRightIcon className="size-5" />
-                </div>
+                </LinkButton>
               </>
             )}
             {activeSw2fa && (
-              <div
-                className="text-alr-red flex cursor-pointer items-center gap-x-1 text-base font-semibold"
+              <LinkButton
+                data-testid="use-software-2fa-button"
+                className="flex items-center gap-x-1 text-base font-semibold"
                 onClick={() => sendAuth('USE_SOFTWARE_2FA')}
               >
                 {loginDictionary?.useSw2fa}
                 <ArrowRightIcon className="size-5" />
-              </div>
+              </LinkButton>
             )}
           </div>
         ) : (
@@ -1359,13 +1398,14 @@ const Login = ({
               src={fingerprint}
             />
             {activeSw2fa && (
-              <div
-                className="text-alr-red mt-9 flex cursor-pointer items-center gap-x-1 text-base font-semibold"
+              <LinkButton
+                data-testid="use-software-2fa-button"
+                className="mt-9 flex items-center gap-x-1 text-base font-semibold"
                 onClick={() => sendAuth('USE_SOFTWARE_2FA')}
               >
                 {loginDictionary?.useSw2fa}
                 <ArrowRightIcon className="size-5" />
-              </div>
+              </LinkButton>
             )}
           </div>
         )}
@@ -1419,13 +1459,14 @@ const Login = ({
             {loginDictionary?.confirmCode}
           </Button>
           {active2fa?.find((item) => item.twoFaTypeId === HARDWARE) && (
-            <div
-              className="text-alr-red mt-9 flex cursor-pointer items-center gap-x-1 text-base font-semibold"
+            <LinkButton
+              data-testid="use-hardware-2fa-button"
+              className="mt-9 flex items-center gap-x-1 text-base font-semibold"
               onClick={() => sendAuth('USE_HARDWARE_2FA')}
             >
               {loginDictionary?.useHw2fa}
               <ArrowRightIcon className="size-5" />
-            </div>
+            </LinkButton>
           )}
         </div>
       </div>
@@ -1487,17 +1528,14 @@ const Login = ({
             {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
             {loginDictionary?.confirmCode}
           </Button>
-          <span
+          <LinkButton
+            data-testid="resend-code-button"
             onClick={() => resendSecureCode()}
-            className={twMerge(
-              `text-base font-medium duration-300`,
-              sendEmailCooldown > 0
-                ? 'pointer-events-none opacity-50'
-                : 'hover:text-alr-red cursor-pointer opacity-100',
-            )}
+            disabled={sendEmailCooldown > 0}
+            className={twMerge(`text-base`, sendEmailCooldown > 0 ? 'opacity-50' : 'opacity-100')}
           >
             {`${loginDictionary?.resendCode}${sendEmailCooldown ? ` (${sendEmailCooldown}s)` : ''}`}
-          </span>
+          </LinkButton>
         </div>
       </div>
     ),

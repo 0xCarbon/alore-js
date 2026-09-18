@@ -6,7 +6,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useActor } from '@xstate/react';
 import { Button, Card, Spinner } from 'flowbite-react';
 import { Locale } from 'get-dictionary';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { FieldValues, useForm, useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import * as yup from 'yup';
@@ -20,6 +20,7 @@ import { aloreLogoBlack, authErrorImage } from '../utils';
 const InputForm = React.lazy(() => import('../components/InputForm'));
 const BackButton = React.lazy(() => import('../components/BackButton'));
 const FormRules = React.lazy(() => import('../components/FormRules'));
+const LinkButton = React.lazy(() => import('../components/LinkButton'));
 
 const envelopIcon = () => <EnvelopeIcon className="size-4 text-gray-500" />;
 const lockClosedIcon = () => <LockClosedIcon className="size-4 text-gray-500" />;
@@ -130,6 +131,32 @@ const ForgotPassword = ({
       authState.matches('active.forgotPassword.savingPassword'),
     [authState.value],
   );
+
+  const canGoBack = useMemo(
+    () =>
+      authState.matches('active.forgotPassword.idle') ||
+      authState.matches('active.forgotPassword.codeSent') ||
+      authState.matches('active.forgotPassword.newPassword'),
+    [authState.value],
+  );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && canGoBack && !isLoading) {
+        event.preventDefault();
+        sendAuth('BACK');
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [canGoBack, isLoading, sendAuth]);
 
   const onSubmitEmail = async (data: typeof emailDefaultValues) => {
     const { email } = data;
@@ -327,18 +354,18 @@ const ForgotPassword = ({
             </Button>
           </form>
           <div className="h-[0.5px] w-full bg-gray-300" />
-          <span className={`text-sm font-medium ${getTextAlignmentClass}`}>
-            {dictionary?.auth.login?.dontHaveAccount}
-            <div
+          <p className={`text-sm font-medium ${getTextAlignmentClass}`}>
+            {dictionary?.auth.login?.dontHaveAccount}{' '}
+            <LinkButton
               data-testid="sign-up-button"
-              className="cursor-pointer text-[var(--primary-color)] hover:text-[var(--primary-hover)]"
+              className="text-sm"
               onClick={() => {
                 sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
               }}
             >
               {dictionary?.auth.login?.signUp}
-            </div>
-          </span>
+            </LinkButton>
+          </p>
         </div>
       </div>
     );
@@ -445,6 +472,7 @@ const ForgotPassword = ({
               placeholder={forgotPasswordDictionary?.passwordLabel}
               label={forgotPasswordDictionary?.passwordLabel}
               type="password"
+              passwordToggleLabel={dictionary?.auth.togglePasswordVisibility}
               data-testid="forgot-password-password-input"
               disabled={isLoading}
             />
@@ -457,6 +485,7 @@ const ForgotPassword = ({
               label={forgotPasswordDictionary?.confirmPasswordLabel}
               icon={lockClosedIcon}
               type="password"
+              passwordToggleLabel={dictionary?.auth.togglePasswordVisibility}
               data-testid="forgot-password-confirm-password-input"
               disabled={isLoading}
             />

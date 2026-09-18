@@ -947,6 +947,10 @@ export const authMachine = createMachine(
                   },
 
                   GOOGLE_LOGIN: 'googleLogin',
+                  // Signing up with Google enters the SAME state as login: the backend's
+                  // 201-vs-200 answer decides whether this ends in register.userCreated
+                  // or successfulLogin, so the entry point does not need its own branch.
+                  SOCIAL_LOGIN: '#authMachine.active.login.socialLogin',
 
                   SEND_REGISTRATION_EMAIL: {
                     target: 'sendingEmail',

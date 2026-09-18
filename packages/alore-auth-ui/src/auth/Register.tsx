@@ -1,15 +1,11 @@
 'use client';
 
 /* eslint-disable @next/next/no-img-element */
-import {
-  ArrowRightIcon,
-  EnvelopeIcon,
-  LockClosedIcon,
-  UserCircleIcon,
-} from '@heroicons/react/20/solid';
+import type { SocialProvider } from '@alore/auth-react-sdk';
+import { EnvelopeIcon, LockClosedIcon, UserCircleIcon } from '@heroicons/react/20/solid';
 import { KeyIcon, LockOpenIcon } from '@heroicons/react/24/outline';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useGoogleLogin } from '@react-oauth/google';
+import { GoogleLogin, useGoogleLogin } from '@react-oauth/google';
 import { useActor } from '@xstate/react';
 import { randomBytes } from 'crypto';
 import { Button, Card, Spinner } from 'flowbite-react';
@@ -35,9 +31,10 @@ const BackButton = React.lazy(() => import('../components/BackButton'));
 const CheckboxForm = React.lazy(() => import('../components/CheckboxForm'));
 const TermsModal = React.lazy(() => import('../components/TermsModal'));
 const FormRules = React.lazy(() => import('../components/FormRules'));
+const LinkButton = React.lazy(() => import('../components/LinkButton'));
 
-const envelopIcon = () => <EnvelopeIcon className="size-5 text-gray-500" />;
-const userIcon = () => <UserCircleIcon className="size-5 text-gray-500" />;
+const envelopIcon = () => <EnvelopeIcon className="size-4 text-gray-500" />;
+const userIcon = () => <UserCircleIcon className="size-4 text-gray-500" />;
 const lockClosedIcon = () => <LockClosedIcon className="size-4 text-gray-500" />;
 
 export interface RegisterProps {
@@ -107,8 +104,13 @@ const Register = ({
   const displayError = errorObj?.message || '';
   const hasDisplayError = !!displayError;
 
-  const { requireUsername, requireEmailVerification, enablePasskeys, enableWalletCreation } =
-    authProviderConfigs || {};
+  const {
+    requireUsername,
+    requireEmailVerification,
+    enablePasskeys,
+    enableWalletCreation,
+    socialProviders,
+  } = authProviderConfigs || {};
 
   const [userSalt, setUserSalt] = useState('');
   const [registrationMethod, setRegistrationMethod] = useState('password');
@@ -125,6 +127,27 @@ const Register = ({
 
     return errorMessage;
   }, [displayError]);
+
+  /**
+   * Sign up with Google. The credential Google hands back IS the id_token, which
+   * is what the backend can actually verify the audience of; `useGoogleLogin`
+   * below only yields an access_token and is kept for the legacy forge path.
+   *
+   * The backend answers 201 when it provisions the account, which is what makes
+   * this a real sign-up rather than a sign-in that happens to work.
+   */
+  const handleGoogleCredential = (credentialResponse: { credential?: string }) => {
+    if (!credentialResponse.credential) return;
+
+    resetUserInfo();
+    sendAuth({
+      type: 'SOCIAL_LOGIN',
+      payload: {
+        idToken: credentialResponse.credential,
+        providerName: 'google',
+      },
+    });
+  };
 
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: (tokenResponse) => {
@@ -520,6 +543,40 @@ const Register = ({
     };
   }, [authState.value, isLoading, selectRegisterMethod]);
 
+  // Escape mirrors whichever back button the current step renders; steps without
+  // one (idle, terms modal, passkey-created) send nothing.
+  const backEvent = useMemo(() => {
+    if (
+      authState.matches('active.register.emailValidation') ||
+      authState.matches('active.register.registerMethodSelection')
+    ) {
+      return 'BACK' as const;
+    }
+
+    if (authState.matches('active.register.createPassword')) {
+      return inviteToken || registerUser ? ('BACK_TO_IDLE' as const) : ('BACK' as const);
+    }
+
+    return undefined;
+  }, [authState.value, inviteToken, registerUser]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && backEvent && !isLoading) {
+        event.preventDefault();
+        sendAuth(backEvent);
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [backEvent, isLoading, sendAuth]);
+
   useEffect(() => {
     if (inviteToken) {
       try {
@@ -698,6 +755,16 @@ const Register = ({
     return textAlignmentMap[contentAlignment];
   }, [contentAlignment]);
 
+  // Get flex items alignment class only
+  const getItemsAlignment = useMemo(() => {
+    const alignmentMap = {
+      left: 'items-start',
+      center: 'items-center',
+      right: 'items-end',
+    };
+    return alignmentMap[contentAlignment];
+  }, [contentAlignment]);
+
   // Create custom styles object for the Card component
   const cardCustomStyles = useMemo(() => {
     if (!customStyles) return {};
@@ -773,7 +840,7 @@ const Register = ({
         )}
         <form
           onSubmit={userInfoHandleSubmit((data) => onSubmitUserData(data))}
-          className="mb-1 mt-4 flex flex-col gap-y-5"
+          className="mt-4 flex flex-col gap-y-5"
           data-testid="register-user-info-form"
         >
           <InputForm
@@ -810,23 +877,18 @@ const Register = ({
             name="agreedWithTerms"
             data-testid="register-agreed-with-terms-checkbox"
             label={
-              <div
-                onClick={() =>
-                  userInfoSetValue('agreedWithTerms', !userInfoGetValues('agreedWithTerms'))
-                }
-                className="flex flex-row items-center justify-center gap-1"
-              >
+              <span className="flex flex-row items-center justify-center gap-1">
                 <span className="text-xs font-light text-gray-400 md:text-sm md:font-normal">
                   {registerDictionary?.agreeTermsPart1}
                 </span>
-                <span
+                <LinkButton
                   onClick={() => sendAuth('SHOW_TERMS_MODAL')}
-                  className="cursor-pointer text-[var(--primary-color)] underline hover:text-[var(--primary-hover)]"
+                  className="text-xs font-light underline md:text-sm md:font-normal"
                   data-testid="terms-of-service"
                 >
                   {registerDictionary?.agreeTermsPart2}
-                </span>
-              </div>
+                </LinkButton>
+              </span>
             }
           />
 
@@ -839,19 +901,58 @@ const Register = ({
             {registerDictionary?.buttonStart}
           </Button>
         </form>
-        <div
-          data-testid="sign-in-button"
-          className={`group mt-4 flex w-full cursor-pointer flex-row gap-1.5 text-sm text-gray-500 ${getAlignmentClasses}`}
-          onClick={() => {
-            sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'LOGIN']);
-          }}
-        >
-          <span className="font-inter font-semibold duration-300 group-hover:text-[var(--primary-hover)]">
-            {registerDictionary?.alreadyHaveAccount}
-          </span>
-          <ArrowRightIcon className="size-4 duration-300 group-hover:text-[var(--primary-hover)]" />
+        {socialProviders?.length ? (
+          // Login keeps its social block inside the form, so it inherits that
+          // flex column's 20px rhythm. Here it is a sibling of the form, so it
+          // needs the same rhythm explicitly or the divider and button sit
+          // flush against the submit button.
+          <div className="mt-5 flex w-full flex-col gap-y-5">
+            <div className="h-[0.5px] w-full bg-gray-300" />
+            <div className="flex w-full flex-row gap-4">
+              {socialProviders.map((provider: SocialProvider) =>
+                provider.providerName === 'google' ? (
+                  <div
+                    key={provider.id}
+                    className="w-full"
+                    data-testid="register-social-google-button"
+                  >
+                    <GoogleLogin
+                      onSuccess={handleGoogleCredential}
+                      onError={() => console.error('Google sign-up failed')}
+                      shape="rectangular"
+                      size="large"
+                      width="100%"
+                      // Distinct from login's "continue_with": Google localises
+                      // this to the sign-up wording in every supported locale.
+                      text="signup_with"
+                      locale={locale}
+                    />
+                  </div>
+                ) : null,
+              )}
+            </div>
+            <div className="h-[0.5px] w-full bg-gray-300" />
+          </div>
+        ) : null}
+        {/* Mirrors Login's sign-up footer exactly: centred and stacked regardless
+            of `contentAlignment`, with the question as static text so only the
+            CTA is a click target. Previously the whole sentence (question
+            included) was one button with a trailing arrow — a different hit
+            area, colour token and icon from its counterpart on Login, and an
+            arrow implying "forward" on a link that goes back. */}
+        <div className="mt-5 flex flex-col items-center gap-0.5 text-center text-sm font-medium">
+          <span>{registerDictionary?.alreadyHaveAccount}</span>
+          <LinkButton
+            data-testid="sign-in-button"
+            className="text-sm"
+            onClick={() => {
+              sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'LOGIN']);
+            }}
+          >
+            {registerDictionary?.loginHere}
+          </LinkButton>
         </div>
-        {forgeId && (
+        {forgeId && !socialProviders?.length && (
           <>
             <div className="h-[0.5px] w-full bg-gray-300" />
             <Button
@@ -976,19 +1077,16 @@ const Register = ({
             {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
             {registerDictionary?.confirmCode}
           </Button>
-          <span
+          <LinkButton
+            data-testid="resend-code-button"
             onClick={() => resendSecureCode()}
-            className={twMerge(
-              `text-base font-medium duration-300`,
-              sendEmailCooldown > 0
-                ? 'pointer-events-none opacity-50'
-                : 'cursor-pointer opacity-100 hover:text-[--primary-hover]',
-            )}
+            disabled={sendEmailCooldown > 0}
+            className={twMerge(`text-base`, sendEmailCooldown > 0 ? 'opacity-50' : 'opacity-100')}
           >
             {`${registerDictionary?.resendCode}${
               sendEmailCooldown ? ` (${sendEmailCooldown}s)` : ''
             }`}
-          </span>
+          </LinkButton>
         </div>
       </div>
     ),
@@ -1047,9 +1145,9 @@ const Register = ({
                   registrationMethod === 'password'
                     ? '!border-[--primary-color]'
                     : '!border-gray-300'
-                } child:h-full !h-fit w-full cursor-pointer items-start rounded-lg border-2 !bg-white p-4 duration-300 hover:!bg-gray-100 focus:ring-0`}
+                } child:h-full !h-fit w-full cursor-pointer ${getItemsAlignment} rounded-lg border-2 p-4 duration-300 focus:ring-0`}
               >
-                <div className="flex flex-col items-start justify-center gap-2">
+                <div className={`flex flex-col justify-center gap-2 ${getItemsAlignment}`}>
                   <LockOpenIcon
                     className={`${
                       registrationMethod === 'password' ? 'text-[--primary-color]' : 'text-gray-500'
@@ -1058,7 +1156,7 @@ const Register = ({
                   <span className="font-semibold text-gray-900">
                     {registerDictionary?.password}
                   </span>
-                  <span className="text-start text-xs font-normal text-gray-600">
+                  <span className={`text-xs font-normal text-gray-600 ${getTextAlignmentClass}`}>
                     {registerDictionary?.selectMethodPassword}
                   </span>
                 </div>
@@ -1067,20 +1165,21 @@ const Register = ({
                 disabled={typeof window.PublicKeyCredential === 'undefined'}
                 data-testid="register-method-selection-passkey"
                 onClick={() => setRegistrationMethod('passkey')}
+                color="light"
                 className={`${
                   registrationMethod === 'passkey'
                     ? '!border-[--primary-color]'
                     : '!border-gray-300'
-                } child:h-full !h-fit w-full cursor-pointer items-start rounded-lg border-2 !bg-white p-4 duration-300 hover:!bg-gray-100 focus:ring-0`}
+                } child:h-full !h-fit w-full cursor-pointer ${getItemsAlignment} rounded-lg border-2 p-4 duration-300 focus:ring-0`}
               >
-                <div className="flex flex-col items-start justify-center gap-2">
+                <div className={`flex flex-col justify-center gap-2 ${getItemsAlignment}`}>
                   <KeyIcon
                     className={`${
                       registrationMethod === 'passkey' ? 'text-[--primary-color]' : 'text-gray-500'
                     } size-7 duration-300`}
                   />
                   <span className="font-semibold text-gray-900">{registerDictionary?.passkey}</span>
-                  <span className="text-start text-xs font-normal text-gray-600">
+                  <span className={`text-xs font-normal text-gray-600 ${getTextAlignmentClass}`}>
                     {registerDictionary?.selectMethodPasskey}
                   </span>
                 </div>
@@ -1108,6 +1207,7 @@ const Register = ({
       sendAuth,
       setRegistrationMethod,
       selectRegisterMethod,
+      getItemsAlignment,
     ],
   );
 
@@ -1126,7 +1226,9 @@ const Register = ({
           className={`flex w-full flex-col ${getAlignmentClasses}`}
           data-testid="register-password-step"
         >
-          <span className={`font-poppins text-alr-grey mb-5 font-bold ${getTextAlignmentClass}`}>
+          <span
+            className={`font-poppins text-alr-grey mb-6 text-2xl font-bold md:text-[1.75rem] ${getTextAlignmentClass}`}
+          >
             {registerDictionary?.createPassword}
           </span>
           <form
@@ -1142,6 +1244,7 @@ const Register = ({
               placeholder={registerDictionary?.passwordPlaceholder}
               label={registerDictionary?.passwordLabel}
               type="password"
+              passwordToggleLabel={dictionary?.auth.togglePasswordVisibility}
               data-testid="register-password-input"
               disabled={isLoading}
             />
@@ -1154,6 +1257,7 @@ const Register = ({
               label={registerDictionary?.passwordConfirmLabel}
               icon={lockClosedIcon}
               type="password"
+              passwordToggleLabel={dictionary?.auth.togglePasswordVisibility}
               data-testid="register-confirm-password-input"
               disabled={isLoading}
             />
