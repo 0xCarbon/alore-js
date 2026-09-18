@@ -6,7 +6,7 @@ import { useMsal } from '@azure/msal-react';
 import { ArrowRightIcon, EnvelopeIcon, KeyIcon, LockClosedIcon } from '@heroicons/react/20/solid';
 import { LockOpenIcon } from '@heroicons/react/24/outline';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useGoogleLogin } from '@react-oauth/google';
+import { GoogleLogin } from '@react-oauth/google';
 import { useActor } from '@xstate/react';
 import { Button, Card, Spinner } from 'flowbite-react';
 import { Locale } from 'get-dictionary';
@@ -23,7 +23,6 @@ import {
   authErrorImage,
   fingerprint,
   fingerprintError,
-  google,
   metamaskLogo,
   microsoftLogo,
   walletConnectLogo,
@@ -151,30 +150,17 @@ const Login = ({
     return enablePasskeys && !enablePasswords;
   }, [enablePasskeys, enablePasswords]);
 
-  const googleLogin = useGoogleLogin({
-    onSuccess: (tokenResponse) => {
-      resetEmail();
-      sendAuth({
-        type: 'GOOGLE_LOGIN',
-        payload: {
-          accessToken: tokenResponse.access_token,
-          providerName: 'google',
-        },
-      });
-    },
-  });
-
   const microsoftLogin = () => {
     instance
       .loginPopup({
         scopes: ['user.read'],
       })
       .then((response) => {
-        console.info('Login success:', response);
+        resetEmail();
         sendAuth({
-          type: 'GOOGLE_LOGIN',
+          type: 'SOCIAL_LOGIN',
           payload: {
-            accessToken: response.accessToken,
+            idToken: response.idToken,
             providerName: 'microsoft',
           },
         });
@@ -184,9 +170,20 @@ const Login = ({
       });
   };
 
-  const handleGoogleLogin = () => googleLogin();
-
   const handleMicrosoftLogin = () => microsoftLogin();
+
+  const handleGoogleCredential = (credentialResponse: { credential?: string }) => {
+    if (!credentialResponse.credential) return;
+
+    resetEmail();
+    sendAuth({
+      type: 'SOCIAL_LOGIN',
+      payload: {
+        idToken: credentialResponse.credential,
+        providerName: 'google',
+      },
+    });
+  };
 
   const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
@@ -392,6 +389,7 @@ const Login = ({
       authState.matches('active.login.verifyingEmail2fa') ||
       authState.matches('active.login.resendingEmailCode') ||
       authState.matches('active.login.googleLogin') ||
+      authState.matches('active.login.socialLogin') ||
       authState.matches('active.login.verifyingGoogleLogin') ||
       authState.matches('active.login.verifyingRegisterPublicKeyCredential') ||
       authState.matches('active.login.retrievingCredentialRCR') ||
@@ -895,29 +893,48 @@ const Login = ({
           {socialProviders?.length && (
             <>
               <div className="flex w-full flex-row gap-4">
-                {socialProviders.map((provider: SocialProvider) => (
-                  <Button
-                    key={provider.id}
-                    color="light"
-                    data-testid={`login-social-${provider.providerName}-button`}
-                    className="w-full"
-                    onClick={
-                      provider.providerName === 'google' ? handleGoogleLogin : handleMicrosoftLogin
-                    }
-                    outline
-                  >
-                    <div className="flex flex-row items-center justify-center gap-2">
-                      <img
-                        src={provider.providerName === 'google' ? google : microsoftLogo}
-                        alt={provider.providerName === 'google' ? 'google logo' : 'microsoft logo'}
-                        width={16}
+                {socialProviders.map((provider: SocialProvider) =>
+                  provider.providerName === 'google' ? (
+                    // Google's own button, because the credential it returns IS
+                    // the id_token. The custom button below cannot produce one:
+                    // useGoogleLogin yields an access_token, whose audience the
+                    // backend has no way to verify. Styling is limited to what
+                    // Google exposes here.
+                    <div
+                      key={provider.id}
+                      className="w-full"
+                      data-testid="login-social-google-button"
+                    >
+                      <GoogleLogin
+                        onSuccess={handleGoogleCredential}
+                        onError={() => console.error('Google sign-in failed')}
+                        shape="rectangular"
+                        size="large"
+                        width="100%"
+                        text="continue_with"
+                        locale={locale}
                       />
-                      {provider.providerName === 'google'
-                        ? dictionary?.auth.continueGoogle
-                        : dictionary?.auth.continueMicrosoft}
                     </div>
-                  </Button>
-                ))}
+                  ) : (
+                    <Button
+                      key={provider.id}
+                      color="light"
+                      data-testid={`login-social-${provider.providerName}-button`}
+                      className="w-full"
+                      onClick={handleMicrosoftLogin}
+                      outline
+                    >
+                      <div className="flex flex-row items-center justify-center gap-2">
+                        <img
+                          src={microsoftLogo}
+                          alt="microsoft logo"
+                          width={16}
+                        />
+                        {dictionary?.auth.continueMicrosoft}
+                      </div>
+                    </Button>
+                  ),
+                )}
               </div>
               <div className="h-[0.5px] w-full bg-gray-300" />
             </>
@@ -981,7 +998,7 @@ const Login = ({
     handleSubmitEmail,
     onSubmitEmail,
     handlePasskeyButton,
-    handleGoogleLogin,
+    handleGoogleCredential,
     handleMicrosoftLogin,
     onlyPasskeyLogin,
     requireEmailVerification,
