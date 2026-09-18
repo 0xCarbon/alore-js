@@ -213,6 +213,7 @@ export const authMachine = createMachine(
                 on: {
                   LOGIN_WITH_WEB3CONNECTOR: '#authMachine.active.web3Connector',
                   GOOGLE_LOGIN: 'googleLogin',
+                  SOCIAL_LOGIN: 'socialLogin',
                   ADVANCE_TO_PASSWORD: 'inputPassword',
                   SIGN_IN_WITH_PASSKEY: '#authMachine.active.login.idle.signWithPasskey',
 
@@ -721,6 +722,38 @@ export const authMachine = createMachine(
                     },
                   },
                 ],
+              },
+
+              socialLogin: {
+                invoke: {
+                  src: 'socialLogin',
+                  onDone: [
+                    {
+                      // 201: the backend created the account on this call, so
+                      // the consuming app must see onRegister, not onLogin.
+                      target: '#authMachine.active.register.userCreated',
+                      actions: 'setSessionUser',
+                      cond: 'isNewUser',
+                    },
+                    {
+                      target: 'successfulLogin',
+                      actions: 'setSessionUser',
+                    },
+                  ],
+                  onError: {
+                    target: 'idle',
+                    actions: assign((ctx, event) => ({
+                      error: {
+                        code: event.data?.type,
+                        message:
+                          event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
+                            ? 'EMAIL_DOMAIN_NOT_ALLOWED'
+                            : event.data?.message || event.data?.error || event.data,
+                        email: ctx.credentialEmail,
+                      },
+                    })),
+                  },
+                },
               },
 
               googleLogin: {
@@ -1544,6 +1577,9 @@ export const authMachine = createMachine(
         throw new Error('Not implemented');
       },
       fetchForgeData: async (_, event) => {
+        throw new Error('Not implemented');
+      },
+      socialLogin: async (_, event) => {
         throw new Error('Not implemented');
       },
       googleLogin: async (_, event) => {

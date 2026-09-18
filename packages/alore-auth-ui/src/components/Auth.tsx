@@ -224,7 +224,8 @@ const Auth = ({
       matchesValue(prev, 'active.login.verifying2faCode') ||
       matchesValue(prev, 'active.login.verifyingCode') ||
       matchesValue(prev, 'active.login.verifyingRegisterPublicKeyCredential') ||
-      matchesValue(prev, 'active.login.verifyingGoogleLogin');
+      matchesValue(prev, 'active.login.verifyingGoogleLogin') ||
+      matchesValue(prev, 'active.login.socialLogin');
 
     if (
       sessionUser &&
@@ -239,7 +240,11 @@ const Auth = ({
     const cameFromRegisterVerification =
       matchesValue(prev, 'active.register.completingRegistration') ||
       matchesValue(prev, 'active.register.sendingAuthPublicCredential') ||
-      matchesValue(prev, 'active.register.sendingPublicCredential');
+      matchesValue(prev, 'active.register.sendingPublicCredential') ||
+      // A 201 from /auth/v1/social-login lands in register.userCreated while
+      // coming FROM the login branch, so this state has to appear in both
+      // lists or a brand new social user never reaches onRegister.
+      matchesValue(prev, 'active.login.socialLogin');
 
     if (
       sessionUser &&

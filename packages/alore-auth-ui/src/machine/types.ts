@@ -77,6 +77,16 @@ export type AuthMachineEvents =
       };
     }
   | {
+      type: 'SOCIAL_LOGIN';
+      payload: {
+        /** An OIDC id_token. Not an access token — the backend rejects those. */
+        idToken: string;
+        providerName: string;
+        device?: string;
+        nonce?: string;
+      };
+    }
+  | {
       type: 'START_PASSKEY_LOGIN';
       payload: {
         email: string;

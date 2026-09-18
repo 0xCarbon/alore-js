@@ -768,6 +768,56 @@ export class AloreAuth {
 
       return data;
     },
+    /**
+     * Passwordless social sign-in.
+     *
+     * Sends an OIDC id_token, not an access token: an access token carries no
+     * audience the backend can verify, so the older googleLogin flow below
+     * cannot tell a token minted for this app from one minted for any other.
+     * On success the backend returns a full session — there is no OTP and no
+     * password step.
+     */
+    socialLogin: async (
+      context: AuthMachineContext,
+      event: {
+        type: 'SOCIAL_LOGIN';
+        payload: {
+          idToken: string;
+          providerName: string;
+          device?: string;
+          nonce?: string;
+        };
+      },
+    ) => {
+      const { idToken, providerName, device, nonce } = event.payload;
+      const { authProviderConfigs } = context;
+      const { firebaseCompatible } = authProviderConfigs || {};
+
+      const response = await this.fetchWithProgressiveBackoff(
+        `/auth/v1/social-login${firebaseCompatible ? `?firebaseCompatibleToken=${firebaseCompatible}` : ''}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            idToken,
+            provider: providerName,
+            ...(device ? { device } : {}),
+            ...(nonce ? { nonce } : {}),
+          }),
+        },
+      );
+
+      if (!response.ok) await this.throwParsedResponseError(response);
+
+      const sessionUser = await response.json();
+
+      // 201 means the backend provisioned the account on this call. The
+      // consuming app keys its own user creation off that, so it has to survive
+      // as far as the onRegister/onLogin split in Auth.tsx.
+      return { sessionUser, isNewUser: response.status === 201 };
+    },
     // Google login flow
     googleLogin: async (
       context: AuthMachineContext,
