@@ -732,12 +732,12 @@ export const authMachine = createMachine(
                       // 201: the backend created the account on this call, so
                       // the consuming app must see onRegister, not onLogin.
                       target: '#authMachine.active.register.userCreated',
-                      actions: 'setSessionUser',
+                      actions: 'setSocialSessionUser',
                       cond: 'isNewUser',
                     },
                     {
                       target: 'successfulLogin',
-                      actions: 'setSessionUser',
+                      actions: 'setSocialSessionUser',
                     },
                   ],
                   onError: {
@@ -1630,6 +1630,13 @@ export const authMachine = createMachine(
     actions: {
       setSessionUser: assign({
         sessionUser: (_, event) => event.data,
+      }),
+      // socialLogin resolves { sessionUser, isNewUser } rather than the user
+      // itself, because the 201-vs-200 distinction drives which callback the
+      // consuming app sees. Unwrap it, or every reader of sessionUser gets the
+      // envelope and reads undefined off it.
+      setSocialSessionUser: assign({
+        sessionUser: (_, event) => event.data?.sessionUser,
       }),
       setupRegisterUser: assign({
         registerUser: (_, event) => event?.registerUser || undefined,

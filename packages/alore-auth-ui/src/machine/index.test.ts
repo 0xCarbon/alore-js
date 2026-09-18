@@ -161,6 +161,13 @@ describe('login.socialLogin (id_token flow)', () => {
     await settle();
 
     expect(service.state.matches('active.login.successfulLogin')).toBe(true);
+    // The service resolves an { sessionUser, isNewUser } envelope. Storing that
+    // envelope as the user is invisible to a state assertion but hands the
+    // consuming app undefined ids, which silently strands the login.
+    expect(service.state.context.sessionUser).toMatchObject({
+      id: 'u1',
+      email: 'someone@example.com',
+    });
     service.stop();
   });
 
@@ -174,6 +181,10 @@ describe('login.socialLogin (id_token flow)', () => {
     await settle();
 
     expect(service.state.matches('active.register.userCreated')).toBe(true);
+    expect(service.state.context.sessionUser).toMatchObject({
+      id: 'u1',
+      email: 'someone@example.com',
+    });
     service.stop();
   });
 });
