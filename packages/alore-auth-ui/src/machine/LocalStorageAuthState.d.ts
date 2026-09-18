@@ -2,6 +2,7 @@ interface SessionUser {
   id: string;
   email: string;
   nickname: null | string;
+  picture: null | string;
   status: string;
   createdAt: string;
   lastLogin: null | string;
