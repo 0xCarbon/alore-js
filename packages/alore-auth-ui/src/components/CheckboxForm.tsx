@@ -29,13 +29,14 @@ const CheckboxForm = ({
           <Checkbox
             {...field}
             {...rest}
+            id={field.name}
             value={String(field.value)}
             checked={field.value}
             data-testid={dataTest}
           />
           <Label
             className="text-sm font-normal text-gray-500"
-            htmlFor="agreedWithTerms"
+            htmlFor={field.name}
           >
             {label}
           </Label>

@@ -14,7 +14,10 @@ export type SessionUser = {
   id: string;
   lastLogin: string | null;
   lastTransaction: string | null;
-  nickname: string;
+  nickname: string | null;
+  /** Provider-hosted profile photo URL, when the account was created or
+   * linked through social login. Always https; null otherwise. */
+  picture: string | null;
   status: string;
   accessToken: string;
   refreshToken: string;
@@ -74,6 +77,16 @@ export type AuthMachineEvents =
       payload: {
         accessToken: string;
         providerName: string;
+      };
+    }
+  | {
+      type: 'SOCIAL_LOGIN';
+      payload: {
+        /** An OIDC id_token. Not an access token — the backend rejects those. */
+        idToken: string;
+        providerName: string;
+        device?: string;
+        nonce?: string;
       };
     }
   | {
