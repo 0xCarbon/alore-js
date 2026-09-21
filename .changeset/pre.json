@@ -8,6 +8,7 @@
     "example": "0.1.0"
   },
   "changesets": [
+    "auth-ux-keyboard-consistency",
     "cool-geese-pump",
     "dark-seals-juggle",
     "eight-kiwis-live",
@@ -29,6 +30,8 @@
     "rare-groups-kneel",
     "real-tips-glow",
     "shaky-yaks-agree",
+    "social-login-id-token",
+    "social-login-profile-claims",
     "two-words-flash",
     "weak-cloths-happen",
     "whole-humans-see"
