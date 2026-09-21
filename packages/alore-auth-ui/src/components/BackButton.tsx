@@ -12,19 +12,21 @@ interface Props {
 }
 
 const BackButton = ({ onClick, disabled = false, children, className = '', ...props }: Props) => (
-  <span
+  <button
     {...props}
+    type="button"
     data-testid="back-button"
-    onClick={!disabled ? onClick : undefined}
+    onClick={onClick}
+    disabled={disabled}
     className={twMerge(
-      `flex w-fit cursor-pointer items-center gap-x-1 text-base text-[var(--primary-color)]`,
+      `flex w-fit cursor-pointer items-center gap-x-1 rounded text-base text-[var(--primary-color)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-color)] focus-visible:ring-offset-2`,
       disabled ? 'cursor-not-allowed' : '',
       className,
     )}
   >
     <ArrowLeftIcon className="size-4" />
     <span className="ml-1 text-sm">{children}</span>
-  </span>
+  </button>
 );
 
 export default BackButton;

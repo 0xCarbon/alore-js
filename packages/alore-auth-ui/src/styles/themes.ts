@@ -20,7 +20,9 @@ export const buttonTheme: ButtonTheme = {
   color: {
     ...flowbiteButtonTheme?.color,
     default:
-      'bg-[var(--primary-color)] hover:bg-[var(--primary-hover)] group relative flex items-center justify-center border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-0',
+      'bg-[var(--primary-color)] hover:bg-[var(--primary-hover)] group relative flex items-center justify-center border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[var(--primary-color)] focus-visible:ring-offset-2',
+    light:
+      'border border-gray-300 bg-white text-gray-900 hover:bg-gray-100 focus:z-10 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[var(--primary-color)] focus-visible:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700',
   },
 };
 
@@ -46,7 +48,7 @@ export const textInputTheme: TextInputTheme = {
         lg: 'sm:text-md p-4',
       },
       colors: {
-        gray: 'duration-300 !bg-gray-100 text-gray-900 outline-none border-0 focus:border-0 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-cyan-500 dark:focus:ring-cyan-500',
+        gray: 'duration-300 !bg-gray-100 text-gray-900 outline-none border-0 focus:border-0 focus:ring-2 focus:ring-[var(--primary-color)] dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400 dark:focus:border-cyan-500 dark:focus:ring-cyan-500',
         info: 'border-cyan-500 bg-cyan-50 text-cyan-900 placeholder-cyan-700 focus:border-cyan-500 focus:ring-cyan-500 dark:border-cyan-400 dark:bg-cyan-100 dark:focus:border-cyan-500 dark:focus:ring-cyan-500',
         failure:
           'border-red-500 bg-red-50 text-red-900 placeholder-red-700 focus:border-red-500 focus:ring-red-500 dark:border-red-400 dark:bg-red-100 dark:focus:border-red-500 dark:focus:ring-red-500',

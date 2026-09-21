@@ -17,6 +17,7 @@ interface Props extends TextInputProps {
   'data-testid'?: string;
   className?: string;
   inputClassName?: string;
+  passwordToggleLabel?: string;
 }
 
 const infoIcon = () => <i className="fa-solid fa-circle-info text-alr-red" />;
@@ -30,6 +31,7 @@ const InputForm = ({
   'data-testid': dataTest,
   className,
   inputClassName,
+  passwordToggleLabel,
   ...rest
 }: Props) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -62,9 +64,10 @@ const InputForm = ({
             {isPassword && (
               <button
                 type="button"
-                tabIndex={-1}
+                aria-label={passwordToggleLabel}
+                aria-pressed={showPassword}
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500 hover:text-gray-700"
+                className="absolute inset-y-0 right-0 flex items-center rounded-full pl-2 pr-4 text-gray-500 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary-color)]"
                 data-testid={dataTest ? `${dataTest}-toggle-visibility` : undefined}
               >
                 {showPassword ? (

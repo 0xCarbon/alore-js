@@ -213,6 +213,7 @@ export const authMachine = createMachine(
                 on: {
                   LOGIN_WITH_WEB3CONNECTOR: '#authMachine.active.web3Connector',
                   GOOGLE_LOGIN: 'googleLogin',
+                  SOCIAL_LOGIN: 'socialLogin',
                   ADVANCE_TO_PASSWORD: 'inputPassword',
                   SIGN_IN_WITH_PASSKEY: '#authMachine.active.login.idle.signWithPasskey',
 
@@ -723,6 +724,38 @@ export const authMachine = createMachine(
                 ],
               },
 
+              socialLogin: {
+                invoke: {
+                  src: 'socialLogin',
+                  onDone: [
+                    {
+                      // 201: the backend created the account on this call, so
+                      // the consuming app must see onRegister, not onLogin.
+                      target: '#authMachine.active.register.userCreated',
+                      actions: 'setSocialSessionUser',
+                      cond: 'isNewUser',
+                    },
+                    {
+                      target: 'successfulLogin',
+                      actions: 'setSocialSessionUser',
+                    },
+                  ],
+                  onError: {
+                    target: 'idle',
+                    actions: assign((ctx, event) => ({
+                      error: {
+                        code: event.data?.type,
+                        message:
+                          event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
+                            ? 'EMAIL_DOMAIN_NOT_ALLOWED'
+                            : event.data?.message || event.data?.error || event.data,
+                        email: ctx.credentialEmail,
+                      },
+                    })),
+                  },
+                },
+              },
+
               googleLogin: {
                 invoke: {
                   src: 'googleLogin',
@@ -914,6 +947,10 @@ export const authMachine = createMachine(
                   },
 
                   GOOGLE_LOGIN: 'googleLogin',
+                  // Signing up with Google enters the SAME state as login: the backend's
+                  // 201-vs-200 answer decides whether this ends in register.userCreated
+                  // or successfulLogin, so the entry point does not need its own branch.
+                  SOCIAL_LOGIN: '#authMachine.active.login.socialLogin',
 
                   SEND_REGISTRATION_EMAIL: {
                     target: 'sendingEmail',
@@ -1546,6 +1583,9 @@ export const authMachine = createMachine(
       fetchForgeData: async (_, event) => {
         throw new Error('Not implemented');
       },
+      socialLogin: async (_, event) => {
+        throw new Error('Not implemented');
+      },
       googleLogin: async (_, event) => {
         throw new Error('Not implemented');
       },
@@ -1594,6 +1634,13 @@ export const authMachine = createMachine(
     actions: {
       setSessionUser: assign({
         sessionUser: (_, event) => event.data,
+      }),
+      // socialLogin resolves { sessionUser, isNewUser } rather than the user
+      // itself, because the 201-vs-200 distinction drives which callback the
+      // consuming app sees. Unwrap it, or every reader of sessionUser gets the
+      // envelope and reads undefined off it.
+      setSocialSessionUser: assign({
+        sessionUser: (_, event) => event.data?.sessionUser,
       }),
       setupRegisterUser: assign({
         registerUser: (_, event) => event?.registerUser || undefined,

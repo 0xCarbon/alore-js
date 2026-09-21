@@ -109,3 +109,82 @@ describe('login.idle.localPasskeySign PASSKEY_NOT_SUPPORTED (regression lock)', 
     service.stop();
   });
 });
+
+/**
+ * Social login (id_token flow).
+ *
+ * The 200/201 split is load-bearing well beyond the machine: Auth.tsx fires
+ * onLogin or onRegister based on which state the machine lands in, and the
+ * consuming app creates its own user record off onRegister. If a provisioning
+ * response landed in successfulLogin, a brand new user would sign in with no
+ * record on the consumer's side.
+ */
+function startSocialMachine(isNewUser: boolean): Service {
+  const service = interpret(
+    authMachine
+      .withConfig({
+        services: {
+          ...resolvingServices,
+          socialLogin: () =>
+            Promise.resolve({
+              sessionUser: { id: 'u1', email: 'someone@example.com' },
+              isNewUser,
+            }),
+        } as never,
+        guards: {
+          isPasskeyEnabled: () => true,
+          requireEmailVerification: () => false,
+          isPasswordAndPasskeyEnabled: () => true,
+        } as never,
+      })
+      .withContext({
+        authProviderConfigs: {
+          enablePasskeys: true,
+          enablePasswords: true,
+          enableWalletCreation: false,
+          requireEmailVerification: false,
+        },
+      } as never) as never,
+  );
+  service.start();
+  return service;
+}
+
+describe('login.socialLogin (id_token flow)', () => {
+  it('an existing user lands in successfulLogin, so onLogin fires', async () => {
+    const service = startSocialMachine(false);
+    service.send({ type: 'INITIALIZE' } as never);
+    service.send({
+      type: 'SOCIAL_LOGIN',
+      payload: { idToken: 'header.payload.signature', providerName: 'google' },
+    } as never);
+    await settle();
+
+    expect(service.state.matches('active.login.successfulLogin')).toBe(true);
+    // The service resolves an { sessionUser, isNewUser } envelope. Storing that
+    // envelope as the user is invisible to a state assertion but hands the
+    // consuming app undefined ids, which silently strands the login.
+    expect(service.state.context.sessionUser).toMatchObject({
+      id: 'u1',
+      email: 'someone@example.com',
+    });
+    service.stop();
+  });
+
+  it('a provisioned user lands in register.userCreated, so onRegister fires', async () => {
+    const service = startSocialMachine(true);
+    service.send({ type: 'INITIALIZE' } as never);
+    service.send({
+      type: 'SOCIAL_LOGIN',
+      payload: { idToken: 'header.payload.signature', providerName: 'google' },
+    } as never);
+    await settle();
+
+    expect(service.state.matches('active.register.userCreated')).toBe(true);
+    expect(service.state.context.sessionUser).toMatchObject({
+      id: 'u1',
+      email: 'someone@example.com',
+    });
+    service.stop();
+  });
+});

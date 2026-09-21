@@ -26,6 +26,7 @@
     "signWithPasskey": "Sign in with a passkey",
     "continueApple": "Continue with Apple",
     "emailDomainNotAllowed": "Email domain not allowed",
+    "togglePasswordVisibility": "Show or hide password",
     "layout": {
       "default": {
         "title": "Where user experience and DeFi meets.",
