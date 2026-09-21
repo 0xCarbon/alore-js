@@ -1,5 +1,58 @@
 # @alore/auth-react-ui
 
+## 1.2.0-alpha.24
+
+### Patch Changes
+
+- 41ebe9c: Keyboard operability and visual consistency across the auth screens
+
+  Several controls could not be reached by keyboard at all, and the two screens had drifted apart visually.
+
+  **Keyboard**
+
+  - Primary buttons had **no focus indicator**: `buttonTheme` carried `focus:ring-0`, which cancelled flowbite's base ring. Added a `focus-visible` ring (kept `focus:ring-0` so a mouse click stays clean).
+  - `BackButton` was a `<span onClick>` — unreachable on every step that has a back action. Now a real `<button>`.
+  - The password show/hide toggle had `tabIndex={-1}`, deliberately skipping it. Removed, with `aria-label`/`aria-pressed` added.
+  - Forgot-password, sign-up/sign-in, resend-code and the 2FA method switches were `<div onClick>` and absent from the tab order. All are now buttons via a new `LinkButton`.
+  - The terms checkbox label pointed at nothing (`htmlFor="agreedWithTerms"` against a `Checkbox` with no `id`), so clicking the label did nothing natively — which is why a wrapper `div onClick` faked it and also toggled the box when you clicked "termos de serviço". Fixed the association and removed the wrapper.
+  - OTP digit inputs and text inputs gained visible focus rings.
+  - Escape now triggers the same back action the visible back button does, on the steps that have one.
+
+  **Consistency**
+
+  - Register aligned to Login: icon sizes, form spacing, heading size on `createPassword`, and the method-selection cards now use the shared alignment helpers. The passkey card was missing `color="light"` and rendered as a filled primary button next to a light one.
+  - Both footers are now centred and stacked, with the question as static text and only the call to action clickable — previously Register wrapped the whole sentence (question included) in the button, with a trailing arrow pointing forward on a link that goes back.
+
+  **Sign up with Google**
+
+  Register now renders the same verified-`id_token` Google button as Login, gated on the project's `socialProviders` rather than `forgeId`, and dispatches `SOCIAL_LOGIN`. The machine's register branch accepts that event, entering the same `socialLogin` state — the backend's 201-vs-200 answer already decides whether it ends in `register.userCreated` or `successfulLogin`. Google's own localised `signup_with` wording distinguishes it from Login's `continue_with`. The legacy `forgeId` access-token button now only renders when no social provider is configured, so nobody sees two Google buttons.
+
+- c3d62ce: Passwordless social login over a verified id_token (JOO social-login)
+
+  The existing `googleLogin` flow posts a provider **access token**. An access token carries no audience a relying party can verify, so the backend could not distinguish a token minted for this app from one minted for any other Google application. The new `/auth/v1/social-login` endpoint takes an OIDC **id_token**, verifies it against the provider's published keys (signature, `iss`, `aud`, `exp`, `nonce`), and returns a full session — no OTP round trip and no password step.
+
+  - `sdk`: new `socialLogin` service posting `{ idToken, provider }`, reporting `isNewUser` from a `201`
+  - `ui`: `socialLogin` machine state — `201` targets `register.userCreated` so `onRegister` fires, anything else lands in `successfulLogin` for `onLogin`
+  - `ui`: `active.login.socialLogin` added to **both** callback allowlists in `Auth.tsx`; a state missing from either means neither callback fires and the user is bounced back to the login screen holding valid tokens
+  - `ui`: Google now uses the rendered `<GoogleLogin>` button, because its `credential` **is** the id_token — `useGoogleLogin` only yields an access token. Microsoft keeps its existing button and sends `response.idToken`, which MSAL already returns
+  - `ui`: Portuguese copy overrides that Joori carried as a `dist/` patch are now in the package, so that patch can be deleted
+  - tests: the 200/201 split is pinned in the machine suite
+
+  The legacy `googleLogin` / `verifyGoogleLogin` pair is untouched and still password-backed.
+
+  **Consumer note:** a project must have social login enabled and a provider `client_id` configured on the Alore side before `/auth/v1/social-login` will answer; it returns `403 SOCIAL_LOGIN_DISABLED` or `403 SOCIAL_PROVIDER_NOT_CONFIGURED` otherwise. A Microsoft token can currently only sign in an already-linked subject — Microsoft documents its `email` claim as mutable and not for authorization, so it cannot be used to find or create an account.
+
+- 7559e22: Expose the social provider's profile photo on the session user
+
+  `SessionUser` gains `picture` (the provider-hosted photo URL, always https, or
+  `null`), so a consuming app can seed an avatar from the first social sign-in.
+  `nickname` is typed `string | null` to match what the server actually returns —
+  a social account with no `name` claim, and any passwordless account, has none.
+
+- Updated dependencies [c3d62ce]
+- Updated dependencies [7559e22]
+  - @alore/auth-react-sdk@1.1.0-alpha.14
+
 ## 1.2.0-alpha.23
 
 ### Patch Changes
