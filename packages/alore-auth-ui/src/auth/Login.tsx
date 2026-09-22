@@ -108,6 +108,7 @@ const Login = ({
 
   const [secureCode2FA, setSecure2FACode] = useState('');
   const [secureCodeEmail, setSecureCodeEmail] = useState('');
+  const [socialEmailCode, setSocialEmailCode] = useState('');
   const [authState, sendAuth] = useActor(authServiceInstance);
   const {
     salt,
@@ -119,6 +120,7 @@ const Login = ({
     RCRPublicKey,
     authProviderConfigs,
     credentialEmail,
+    socialChallenge,
   } = authState.context;
 
   // Single UI-facing error message derived from the error object
@@ -172,6 +174,26 @@ const Login = ({
   };
 
   const handleMicrosoftLogin = () => microsoftLogin();
+
+  // Answering the emailed-code challenge: the SAME id_token goes back with the
+  // session and the code. The backend re-verifies it and requires the session's
+  // address and identity to match it, so nothing else can be substituted here.
+  const onSubmitSocialEmailCode = () => {
+    if (!socialChallenge) return;
+
+    sendAuth({
+      type: 'SOCIAL_LOGIN',
+      payload: {
+        idToken: socialChallenge.idToken,
+        providerName: socialChallenge.providerName,
+        ...(socialChallenge.device ? { device: socialChallenge.device } : {}),
+        sessionId: socialChallenge.sessionId,
+        emailCode: socialEmailCode,
+      },
+    });
+
+    setSocialEmailCode('');
+  };
 
   const handleGoogleCredential = (credentialResponse: { credential?: string }) => {
     if (!credentialResponse.credential) return;
@@ -544,6 +566,12 @@ const Login = ({
       onSubmitSecureCodeEmail();
     }
   }, [secureCodeEmail]);
+
+  useEffect(() => {
+    if (socialEmailCode.length === 6) {
+      onSubmitSocialEmailCode();
+    }
+  }, [socialEmailCode]);
 
   useEffect(() => {
     if (sendEmailCooldown <= 0) {
@@ -922,48 +950,59 @@ const Login = ({
           {socialProviders?.length && (
             <>
               <div className="flex w-full flex-row gap-4">
-                {socialProviders.map((provider: SocialProvider) =>
-                  provider.providerName === 'google' ? (
-                    // Google's own button, because the credential it returns IS
-                    // the id_token. The custom button below cannot produce one:
-                    // useGoogleLogin yields an access_token, whose audience the
-                    // backend has no way to verify. Styling is limited to what
-                    // Google exposes here.
-                    <div
-                      key={provider.id}
-                      className="w-full"
-                      data-testid="login-social-google-button"
-                    >
-                      <GoogleLogin
-                        onSuccess={handleGoogleCredential}
-                        onError={() => console.error('Google sign-in failed')}
-                        shape="rectangular"
-                        size="large"
-                        width="100%"
-                        text="continue_with"
-                        locale={locale}
-                      />
-                    </div>
-                  ) : (
-                    <Button
-                      key={provider.id}
-                      color="light"
-                      data-testid={`login-social-${provider.providerName}-button`}
-                      className="w-full"
-                      onClick={handleMicrosoftLogin}
-                      outline
-                    >
-                      <div className="flex flex-row items-center justify-center gap-2">
-                        <img
-                          src={microsoftLogo}
-                          alt="microsoft logo"
-                          width={16}
+                {socialProviders.map((provider: SocialProvider) => {
+                  if (provider.providerName === 'google') {
+                    return (
+                      // Google's own button, because the credential it returns IS
+                      // the id_token. The custom button below cannot produce one:
+                      // useGoogleLogin yields an access_token, whose audience the
+                      // backend has no way to verify. Styling is limited to what
+                      // Google exposes here.
+                      <div
+                        key={provider.id}
+                        className="w-full"
+                        data-testid="login-social-google-button"
+                      >
+                        <GoogleLogin
+                          onSuccess={handleGoogleCredential}
+                          onError={() => console.error('Google sign-in failed')}
+                          shape="rectangular"
+                          size="large"
+                          width="100%"
+                          text="continue_with"
+                          locale={locale}
                         />
-                        {dictionary?.auth.continueMicrosoft}
                       </div>
-                    </Button>
-                  ),
-                )}
+                    );
+                  }
+
+                  if (provider.providerName === 'microsoft') {
+                    return (
+                      <Button
+                        key={provider.id}
+                        color="light"
+                        data-testid="login-social-microsoft-button"
+                        className="w-full"
+                        onClick={handleMicrosoftLogin}
+                        outline
+                      >
+                        <div className="flex flex-row items-center justify-center gap-2">
+                          <img
+                            src={microsoftLogo}
+                            alt="microsoft logo"
+                            width={16}
+                          />
+                          {dictionary?.auth.continueMicrosoft}
+                        </div>
+                      </Button>
+                    );
+                  }
+
+                  // A provider this build has no button for. Rendering the
+                  // Microsoft one for it, as this used to, signs the user into
+                  // the wrong provider.
+                  return null;
+                })}
               </div>
               <div className="h-[0.5px] w-full bg-gray-300" />
             </>
@@ -1337,6 +1376,67 @@ const Login = ({
     ],
   );
 
+  // Shown when the provider's word on the address is not enough — Microsoft's
+  // never is — and the backend has emailed a code to the address the token
+  // claimed. No trust-this-device box: there is no password step behind this
+  // one to skip next time.
+  const VerifySocialEmail = useMemo(
+    () => (
+      <div data-testid="login-social-verify-email-step">
+        <BackButton
+          className="mb-4"
+          disabled={isLoading}
+          onClick={() => sendAuth('BACK')}
+        >
+          {dictionary?.back}
+        </BackButton>
+
+        <div className={`flex w-full flex-col ${getAlignmentClasses}`}>
+          <span
+            className={`font-poppins text-alr-grey mb-4 mt-2 text-[1.75rem] font-bold ${getTextAlignment}`}
+          >
+            {loginDictionary?.verifyEmail}
+          </span>
+          <span className={`mb-6 font-medium text-gray-600 ${getTextAlignment}`}>
+            {loginDictionary?.verifyEmailDescription}
+          </span>
+
+          <div className="mb-6 flex">
+            <InputOTP
+              className="child:gap-x-3 md:child:gap-x-5 [&>div>input]:!h-9 [&>div>input]:!w-9"
+              value={socialEmailCode}
+              onChange={(value) => setSocialEmailCode(value)}
+              inputLength={6}
+              data-testid="social-email-code"
+              errorMessage={displayError}
+              disabled={isLoading}
+            />
+          </div>
+          <Button
+            data-testid="social-email-code-submit"
+            onClick={() => onSubmitSocialEmailCode()}
+            className="group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent bg-[--primary-color] p-0.5 text-center font-medium text-white duration-300 hover:bg-[--primary-hover] focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
+            disabled={socialEmailCode.length !== 6 || isLoading}
+          >
+            {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
+            {loginDictionary?.confirmCode}
+          </Button>
+        </div>
+      </div>
+    ),
+    [
+      socialEmailCode,
+      isLoading,
+      displayError,
+      getAlignmentClasses,
+      getTextAlignment,
+      dictionary,
+      loginDictionary,
+      sendAuth,
+      onSubmitSocialEmailCode,
+    ],
+  );
+
   const VerifyHw2FAStep = useMemo(
     () => (
       <div>
@@ -1644,6 +1744,11 @@ const Login = ({
               authState.matches('active.login.resendingEmailCode') ||
               authState.matches('active.login.verifyingEmail2fa')) &&
               VerifyEmail}
+            {/* Kept mounted while the second call is in flight, so the screen
+                does not blink away mid-submit and back again on a wrong code. */}
+            {(authState.matches('active.login.socialEmailCode') ||
+              (authState.matches('active.login.socialLogin') && !!socialChallenge)) &&
+              VerifySocialEmail}
             {(authState.matches('active.login.hardware2fa') ||
               authState.matches('active.login.verifyingHwAuth')) &&
               VerifyHw2FAStep}

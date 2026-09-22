@@ -2,6 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 import type { SocialProvider } from '@alore/auth-react-sdk';
+import { useMsal } from '@azure/msal-react';
 import { EnvelopeIcon, LockClosedIcon, UserCircleIcon } from '@heroicons/react/20/solid';
 import { KeyIcon, LockOpenIcon } from '@heroicons/react/24/outline';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -20,7 +21,14 @@ import { passwordRules, ruleValidation } from '../components/FormRules/helpers';
 import { base64UrlToArrayBuffer, verifyEmptyValues } from '../helpers';
 import useDictionary from '../hooks/useDictionary';
 import { AuthInstance } from '../machine/types';
-import { aloreLogoBlack, authErrorImage, google, metamaskLogo, walletConnectLogo } from '../utils';
+import {
+  aloreLogoBlack,
+  authErrorImage,
+  google,
+  metamaskLogo,
+  microsoftLogo,
+  walletConnectLogo,
+} from '../utils';
 import { buildWalletExtensions, resolveWalletSecret } from '../utils/passkeyExtensions';
 
 /* eslint-disable @next/next/no-img-element */
@@ -83,6 +91,7 @@ const Register = ({
 }: RegisterProps) => {
   const { hashUserInfo, generateSecureHash } = cryptoUtils;
   const dictionary = useDictionary(locale);
+  const msal = useMsal();
   const registerDictionary = dictionary?.auth.register;
 
   const [secureCode, setSecureCode] = useState('');
@@ -147,6 +156,31 @@ const Register = ({
         providerName: 'google',
       },
     });
+  };
+
+  /**
+   * Sign up with Microsoft. Same state as Google's — the backend's 201-vs-200
+   * answer is what makes it a sign-up — but the address Entra reports is never
+   * proof of anything, so this ends on the emailed-code step rather than
+   * straight in a session. That screen lives on Login, which is what renders
+   * once SOCIAL_LOGIN moves the machine into the login branch.
+   */
+  const handleMicrosoftSignUp = () => {
+    msal.instance
+      .loginPopup({ scopes: ['user.read'] })
+      .then((response) => {
+        resetUserInfo();
+        sendAuth({
+          type: 'SOCIAL_LOGIN',
+          payload: {
+            idToken: response.idToken,
+            providerName: 'microsoft',
+          },
+        });
+      })
+      .catch((error) => {
+        console.error('Microsoft sign-up failed:', error);
+      });
   };
 
   const handleGoogleLogin = useGoogleLogin({
@@ -929,6 +963,27 @@ const Register = ({
                     />
                   </div>
                 ) : null,
+              )}
+              {socialProviders.some(
+                (provider: SocialProvider) =>
+                  provider.providerName === 'microsoft' && provider.enabled !== false,
+              ) && (
+                <Button
+                  color="light"
+                  data-testid="register-social-microsoft-button"
+                  className="w-full"
+                  onClick={handleMicrosoftSignUp}
+                  outline
+                >
+                  <div className="flex flex-row items-center justify-center gap-2">
+                    <img
+                      src={microsoftLogo}
+                      alt="microsoft logo"
+                      width={16}
+                    />
+                    {dictionary?.auth.continueMicrosoft}
+                  </div>
+                </Button>
               )}
             </div>
             <div className="h-[0.5px] w-full bg-gray-300" />

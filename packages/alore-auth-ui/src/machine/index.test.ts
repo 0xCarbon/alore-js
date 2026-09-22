@@ -188,3 +188,125 @@ describe('login.socialLogin (id_token flow)', () => {
     service.stop();
   });
 });
+
+/**
+ * The emailed-code branch.
+ *
+ * Microsoft's id_token is never proof of the address it carries — Entra has no
+ * email_verified claim — so the backend emails a code and answers 403 with the
+ * session holding it. That is a step in the flow, not a failure: dropping the
+ * user back to idle here, as an unhandled 403 would, loses the id_token and
+ * there is nothing to retry with.
+ */
+function startChallengeMachine(responses: unknown[]): Service {
+  const queue = [...responses];
+
+  const service = interpret(
+    authMachine
+      .withConfig({
+        services: {
+          ...resolvingServices,
+          socialLogin: () => {
+            const next = queue.shift();
+            return next instanceof Error ? Promise.reject(next) : Promise.resolve(next);
+          },
+        } as never,
+        guards: {
+          isPasskeyEnabled: () => true,
+          requireEmailVerification: () => false,
+          isPasswordAndPasskeyEnabled: () => true,
+        } as never,
+      })
+      .withContext({
+        authProviderConfigs: {
+          enablePasskeys: true,
+          enablePasswords: true,
+          enableWalletCreation: false,
+          requireEmailVerification: false,
+        },
+      } as never) as never,
+  );
+  service.start();
+  return service;
+}
+
+const challenge = {
+  emailChallenge: {
+    sessionId: 'sess-1',
+    idToken: 'header.payload.signature',
+    providerName: 'microsoft',
+  },
+};
+
+describe('login.socialEmailCode (provider does not vouch for the address)', () => {
+  it('parks on the code step with the id_token kept for the second call', async () => {
+    const service = startChallengeMachine([challenge]);
+    service.send({ type: 'INITIALIZE' } as never);
+    service.send({
+      type: 'SOCIAL_LOGIN',
+      payload: { idToken: 'header.payload.signature', providerName: 'microsoft' },
+    } as never);
+    await settle();
+
+    expect(service.state.matches('active.login.socialEmailCode')).toBe(true);
+    expect(service.state.context.socialChallenge).toMatchObject({
+      sessionId: 'sess-1',
+      idToken: 'header.payload.signature',
+      providerName: 'microsoft',
+    });
+    service.stop();
+  });
+
+  it('the code completes the sign-in through the same state', async () => {
+    const service = startChallengeMachine([
+      challenge,
+      { sessionUser: { id: 'u1', email: 'someone@contoso.com' }, isNewUser: true },
+    ]);
+    service.send({ type: 'INITIALIZE' } as never);
+    service.send({
+      type: 'SOCIAL_LOGIN',
+      payload: { idToken: 'header.payload.signature', providerName: 'microsoft' },
+    } as never);
+    await settle();
+
+    service.send({
+      type: 'SOCIAL_LOGIN',
+      payload: {
+        idToken: 'header.payload.signature',
+        providerName: 'microsoft',
+        sessionId: 'sess-1',
+        emailCode: '123456',
+      },
+    } as never);
+    await settle();
+
+    expect(service.state.matches('active.register.userCreated')).toBe(true);
+    expect(service.state.context.sessionUser).toMatchObject({ id: 'u1' });
+    service.stop();
+  });
+
+  it('a wrong code stays on the code step instead of dropping to idle', async () => {
+    const service = startChallengeMachine([challenge, new Error('The given code is wrong')]);
+    service.send({ type: 'INITIALIZE' } as never);
+    service.send({
+      type: 'SOCIAL_LOGIN',
+      payload: { idToken: 'header.payload.signature', providerName: 'microsoft' },
+    } as never);
+    await settle();
+
+    service.send({
+      type: 'SOCIAL_LOGIN',
+      payload: {
+        idToken: 'header.payload.signature',
+        providerName: 'microsoft',
+        sessionId: 'sess-1',
+        emailCode: '000000',
+      },
+    } as never);
+    await settle();
+
+    expect(service.state.matches('active.login.socialEmailCode')).toBe(true);
+    expect(service.state.context.socialChallenge).toMatchObject({ sessionId: 'sess-1' });
+    service.stop();
+  });
+});

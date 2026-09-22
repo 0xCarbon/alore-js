@@ -17,6 +17,26 @@ import useAuthServiceInstance from '../hooks/useAuthServiceInstance';
 import { SessionUser } from '../machine/types';
 import { buttonTheme, checkboxTheme, textInputTheme } from '../styles/themes';
 
+/**
+ * Mounts MSAL only when the project actually configures Microsoft.
+ *
+ * With no instance there is nothing to initialize, and msal-react's default
+ * context already hands `useMsal` a stubbed application — which is never
+ * reached, because the Microsoft button only renders for a configured
+ * provider.
+ */
+const MaybeMsalProvider = ({
+  instance,
+  children,
+}: {
+  instance?: PublicClientApplication;
+  children: React.ReactNode;
+}) => {
+  if (!instance) return children as React.ReactElement;
+
+  return <MsalProvider instance={instance}>{children}</MsalProvider>;
+};
+
 export type AuthError = {
   code?: string;
   message?: string;
@@ -94,14 +114,33 @@ const Auth = ({
 
   const [isClient, setIsClient] = useState(false);
 
-  const msalConfig = {
-    auth: {
-      clientId: process.env.NEXT_PUBLIC_MICROSOFT_ID || '',
-      authority: 'https://login.microsoftonline.com/common',
-    },
-  };
+  // The client id comes from the project's own social_login_providers row,
+  // carried in on socialProviders — not from the consuming app's build-time
+  // env, which would make one deployment's MSAL config outrank per-project
+  // configuration. Built once per client id: a fresh PublicClientApplication
+  // on every render re-runs initialize() and drops MSAL's in-memory state.
+  const microsoftClientId = useMemo(
+    () =>
+      authProviderConfigs?.socialProviders?.find(
+        (provider) => provider.providerName === 'microsoft' && provider.enabled !== false,
+      )?.clientId,
+    [authProviderConfigs],
+  );
 
-  const msalInstance = new PublicClientApplication(msalConfig);
+  const msalInstance = useMemo(
+    () =>
+      microsoftClientId
+        ? new PublicClientApplication({
+            auth: {
+              clientId: microsoftClientId,
+              // /common, not a single tenant: work, school and personal
+              // Microsoft accounts all sign in here.
+              authority: 'https://login.microsoftonline.com/common',
+            },
+          })
+        : undefined,
+    [microsoftClientId],
+  );
 
   const primaryColor = styles?.primaryColor || '#090909';
   const primaryColorHover = darkenHexColor(primaryColor, 25);
@@ -281,7 +320,7 @@ const Auth = ({
       }
     >
       <GoogleOAuthProvider clientId={googleId || ''}>
-        <MsalProvider instance={msalInstance}>
+        <MaybeMsalProvider instance={msalInstance}>
           <ThemeProvider
             theme={customTheme}
             props={{
@@ -350,7 +389,7 @@ const Auth = ({
               )}
             </Suspense>
           </ThemeProvider>
-        </MsalProvider>
+        </MaybeMsalProvider>
       </GoogleOAuthProvider>
     </div>
   ) : null;
