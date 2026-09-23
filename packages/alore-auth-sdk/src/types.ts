@@ -37,6 +37,15 @@ export interface AuthProviderConfig {
   termsOfServiceUrl?: string;
   logoUrl?: string;
   socialProviders?: SocialProvider[];
+  /**
+   * Where Microsoft returns the popup. Must be a page that does NOT boot the
+   * consuming app: MSAL reads the token off this window's URL fragment, and an
+   * app that routes on load (locale redirects, auth guards) clears the fragment
+   * first, failing the sign-in with `hash_empty_error`. A blank static file is
+   * the documented choice. Defaults to the origin, which only works for apps
+   * that do not navigate on load.
+   */
+  microsoftRedirectUri?: string;
   enableWalletCreation?: boolean;
   firebaseCompatible?: boolean;
 }
