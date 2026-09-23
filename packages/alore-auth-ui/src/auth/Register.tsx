@@ -12,7 +12,7 @@ import { randomBytes } from 'crypto';
 import { Button, Card, Spinner } from 'flowbite-react';
 import { Locale } from 'get-dictionary';
 import jwt_decode from 'jwt-decode';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FieldValues, useForm, useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import * as yup from 'yup';
@@ -75,6 +75,15 @@ export interface RegisterProps {
   logoContainerClassName?: string;
 }
 
+// Mirrors the typography of Google's GSI-rendered button, which cannot be
+// restyled. Measured off the rendered button; see Login.tsx.
+const GOOGLE_BUTTON_TYPOGRAPHY = {
+  fontFamily: '"Google Sans", arial, sans-serif',
+  fontSize: '14px',
+  fontWeight: 400,
+  letterSpacing: '0.25px',
+} as const;
+
 const Register = ({
   locale = 'pt',
   authServiceInstance,
@@ -92,6 +101,32 @@ const Register = ({
   const { hashUserInfo, generateSecureHash } = cryptoUtils;
   const dictionary = useDictionary(locale);
   const msal = useMsal();
+  // GSI ignores a percentage width and only honours a pixel number, so the row
+  // is measured to keep both providers the same size. See Login.tsx.
+  const [socialButtonWidth, setSocialButtonWidth] = useState(0);
+  // Callback ref, not useEffect+useRef: the row is inside a memoized subtree
+  // that remounts (e.g. when an error block appears), and an effect keyed on
+  // anything else keeps observing the old, detached node — leaving GSI rendered
+  // at a stale width. A zero measurement is ignored rather than clamped up to
+  // the 200px floor, which is what produced a short Google button next to a
+  // full-width Microsoft one.
+  const socialRowObserver = useRef<ResizeObserver>();
+  const socialRowRef = useCallback((node: HTMLDivElement | null) => {
+    socialRowObserver.current?.disconnect();
+    if (!node) return;
+
+    const measure = () => {
+      const width = Math.round(node.clientWidth);
+      if (width > 0) setSocialButtonWidth(Math.max(200, Math.min(400, width)));
+    };
+
+    measure();
+    if (typeof ResizeObserver !== 'undefined') {
+      socialRowObserver.current = new ResizeObserver(measure);
+      socialRowObserver.current.observe(node);
+    }
+  }, []);
+
   const registerDictionary = dictionary?.auth.register;
 
   const [secureCode, setSecureCode] = useState('');
@@ -112,6 +147,34 @@ const Register = ({
 
   const displayError = errorObj?.message || '';
   const hasDisplayError = !!displayError;
+
+  // Two codes get their own copy because neither is a "try again" situation:
+  // the domain is refused by policy, and a provider that sent no address
+  // leaves nothing to verify.
+  const renderRegisterError = () => {
+    const titleClass = `font-poppins text-alr-red text-xl font-bold ${getTextAlignmentClass}`;
+    const bodyClass = `text-alr-grey font-medium ${getTextAlignmentClass}`;
+
+    if (displayError === 'EMAIL_NOT_ALLOWED') {
+      return <span className={titleClass}>{dictionary?.auth?.emailDomainNotAllowed}</span>;
+    }
+
+    if (displayError === 'SOCIAL_EMAIL_MISSING') {
+      return (
+        <>
+          <span className={titleClass}>{dictionary?.auth?.socialEmailMissing}</span>
+          <span className={bodyClass}>{dictionary?.auth?.socialEmailMissingDescription}</span>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <span className={titleClass}>{dictionary?.auth.login?.somethingWrong}</span>
+        <span className={bodyClass}>{dictionary?.auth.login?.defaultError}</span>
+      </>
+    );
+  };
 
   const {
     requireUsername,
@@ -145,6 +208,7 @@ const Register = ({
    * The backend answers 201 when it provisions the account, which is what makes
    * this a real sign-up rather than a sign-in that happens to work.
    */
+
   const handleGoogleCredential = (credentialResponse: { credential?: string }) => {
     if (!credentialResponse.credential) return;
 
@@ -167,7 +231,7 @@ const Register = ({
    */
   const handleMicrosoftSignUp = () => {
     msal.instance
-      .loginPopup({ scopes: ['user.read'] })
+      .loginPopup({ scopes: ['openid', 'profile', 'email'] })
       .then((response) => {
         resetUserInfo();
         sendAuth({
@@ -847,24 +911,7 @@ const Register = ({
               alt="alore logo"
               width={70}
             />
-            {displayError === 'EMAIL_NOT_ALLOWED' ? (
-              <span
-                className={`font-poppins text-alr-red text-xl font-bold ${getTextAlignmentClass}`}
-              >
-                {dictionary?.auth?.emailDomainNotAllowed}
-              </span>
-            ) : (
-              <>
-                <span
-                  className={`font-poppins text-alr-red text-xl font-bold ${getTextAlignmentClass}`}
-                >
-                  {dictionary?.auth.login?.somethingWrong}
-                </span>
-                <span className={`text-alr-grey font-medium ${getTextAlignmentClass}`}>
-                  {dictionary?.auth.login?.defaultError}
-                </span>
-              </>
-            )}
+            {renderRegisterError()}
             {errorObj?.code && (
               <span
                 className={`mt-1 text-xs text-gray-500 ${getTextAlignmentClass}`}
@@ -942,7 +989,10 @@ const Register = ({
           // flush against the submit button.
           <div className="mt-5 flex w-full flex-col gap-y-5">
             <div className="h-[0.5px] w-full bg-gray-300" />
-            <div className="flex w-full flex-row gap-4">
+            <div
+              ref={socialRowRef}
+              className="flex w-full flex-col gap-3"
+            >
               {socialProviders.map((provider: SocialProvider) =>
                 provider.providerName === 'google' ? (
                   <div
@@ -951,14 +1001,18 @@ const Register = ({
                     data-testid="register-social-google-button"
                   >
                     <GoogleLogin
+                      // GSI renders the button once and ignores a later width
+                      // change, so the measurement has to remount it — otherwise it
+                      // keeps its 209px default and sits narrower than Microsoft's.
+                      key={socialButtonWidth}
                       onSuccess={handleGoogleCredential}
                       onError={() => console.error('Google sign-up failed')}
                       shape="rectangular"
                       size="large"
-                      width="100%"
                       // Distinct from login's "continue_with": Google localises
                       // this to the sign-up wording in every supported locale.
                       text="signup_with"
+                      width={socialButtonWidth || undefined}
                       locale={locale}
                     />
                   </div>
@@ -968,22 +1022,23 @@ const Register = ({
                 (provider: SocialProvider) =>
                   provider.providerName === 'microsoft' && provider.enabled !== false,
               ) && (
-                <Button
-                  color="light"
+                <button
+                  type="button"
                   data-testid="register-social-microsoft-button"
-                  className="w-full"
                   onClick={handleMicrosoftSignUp}
-                  outline
+                  className="flex h-10 w-full items-center rounded border border-[#dadce0] bg-white px-3 text-sm font-normal text-[#3c4043] transition-colors hover:bg-[#f8f9fa] focus:outline-none focus-visible:ring-2 focus-visible:ring-[--primary-color]"
+                  style={GOOGLE_BUTTON_TYPOGRAPHY}
                 >
-                  <div className="flex flex-row items-center justify-center gap-2">
-                    <img
-                      src={microsoftLogo}
-                      alt="microsoft logo"
-                      width={16}
-                    />
-                    {dictionary?.auth.continueMicrosoft}
-                  </div>
-                </Button>
+                  <img
+                    src={microsoftLogo}
+                    alt=""
+                    width={18}
+                    height={18}
+                  />
+                  {/* Sign-up wording, matching what GSI renders for
+                      text="signup_with" on the button beside it. */}
+                  <span className="flex-1 text-center">{dictionary?.auth.signupMicrosoft}</span>
+                </button>
               )}
             </div>
             <div className="h-[0.5px] w-full bg-gray-300" />
@@ -1353,7 +1408,7 @@ const Register = ({
 
   return (
     <div
-      className={`flex size-full min-h-screen flex-col items-center justify-center ${titleSpacing}`}
+      className={`flex size-full min-h-full flex-col items-center justify-center ${titleSpacing}`}
       data-testid="register-page"
     >
       <TermsModal

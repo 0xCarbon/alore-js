@@ -136,6 +136,12 @@ const Auth = ({
               // /common, not a single tenant: work, school and personal
               // Microsoft accounts all sign in here.
               authority: 'https://login.microsoftonline.com/common',
+              // Pinned to the origin. MSAL otherwise sends the CURRENT PAGE as
+              // the redirect URI, so the value changes with the route
+              // (/pt/login, /en/register, …) and Entra rejects every one that
+              // is not registered — AADSTS50011. The app registration lists the
+              // origin alone, and this is what makes that enough.
+              redirectUri: typeof window === 'undefined' ? undefined : window.location.origin,
             },
           })
         : undefined,
@@ -331,7 +337,7 @@ const Auth = ({
           >
             <Suspense
               fallback={
-                <div className="flex size-full min-h-screen flex-col items-center justify-center">
+                <div className="flex size-full min-h-full flex-col items-center justify-center">
                   <Spinner className="m-auto !h-12 w-full !fill-gray-300" />
                 </div>
               }

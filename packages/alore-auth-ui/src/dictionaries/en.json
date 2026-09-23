@@ -22,10 +22,13 @@
     "continueWith": "Or continue with:",
     "selectAnOption": "Select an option",
     "continueGoogle": "Google",
-    "continueMicrosoft": "Microsoft",
+    "continueMicrosoft": "Continue with Microsoft",
+    "signupMicrosoft": "Sign up with Microsoft",
     "signWithPasskey": "Sign in with a passkey",
     "continueApple": "Continue with Apple",
     "emailDomainNotAllowed": "Email domain not allowed",
+    "socialEmailMissing": "This Microsoft account has no email address",
+    "socialEmailMissingDescription": "Microsoft did not provide an email address for this account, so we cannot send the confirmation code. Sign in with Google or with your email and password, or ask your administrator to set an email address on the account.",
     "togglePasswordVisibility": "Show or hide password",
     "layout": {
       "default": {

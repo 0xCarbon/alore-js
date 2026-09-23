@@ -10,7 +10,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { useActor } from '@xstate/react';
 import { Button, Card, Spinner } from 'flowbite-react';
 import { Locale } from 'get-dictionary';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FieldValues, useForm, useWatch } from 'react-hook-form';
 import { twMerge } from 'tailwind-merge';
 import * as yup from 'yup';
@@ -83,6 +83,17 @@ export interface LoginProps {
   logoContainerClassName?: string;
 }
 
+// Google's button is rendered by GSI and cannot be restyled, so the Microsoft
+// one copies its typography exactly — same stack, size, weight and tracking —
+// rather than inheriting the host app's font and reading as a different
+// control. Measured off the rendered GSI button.
+const GOOGLE_BUTTON_TYPOGRAPHY = {
+  fontFamily: '"Google Sans", arial, sans-serif',
+  fontSize: '14px',
+  fontWeight: 400,
+  letterSpacing: '0.25px',
+} as const;
+
 const Login = ({
   locale = 'pt',
   authServiceInstance,
@@ -109,6 +120,34 @@ const Login = ({
   const [secureCode2FA, setSecure2FACode] = useState('');
   const [secureCodeEmail, setSecureCodeEmail] = useState('');
   const [socialEmailCode, setSocialEmailCode] = useState('');
+  // Google's button is rendered by GSI, which ignores a percentage width — it
+  // only accepts a pixel number, and falls back to its own default otherwise
+  // (the "Provided button width is invalid: 100%" warning). Measuring the row
+  // is the only way the two providers can be the same width.
+  const [socialButtonWidth, setSocialButtonWidth] = useState(0);
+  // Callback ref, not useEffect+useRef: the row is inside a memoized subtree
+  // that remounts (e.g. when an error block appears), and an effect keyed on
+  // anything else keeps observing the old, detached node — leaving GSI rendered
+  // at a stale width. A zero measurement is ignored rather than clamped up to
+  // the 200px floor, which is what produced a short Google button next to a
+  // full-width Microsoft one.
+  const socialRowObserver = useRef<ResizeObserver>();
+  const socialRowRef = useCallback((node: HTMLDivElement | null) => {
+    socialRowObserver.current?.disconnect();
+    if (!node) return;
+
+    const measure = () => {
+      const width = Math.round(node.clientWidth);
+      if (width > 0) setSocialButtonWidth(Math.max(200, Math.min(400, width)));
+    };
+
+    measure();
+    if (typeof ResizeObserver !== 'undefined') {
+      socialRowObserver.current = new ResizeObserver(measure);
+      socialRowObserver.current.observe(node);
+    }
+  }, []);
+
   const [authState, sendAuth] = useActor(authServiceInstance);
   const {
     salt,
@@ -126,6 +165,8 @@ const Login = ({
   // Single UI-facing error message derived from the error object
   const displayError = errorObj?.message || '';
   const hasDisplayError = !!displayError;
+  // Failures whose copy already tells the user what happened and what to do.
+  const isExplainedError = ['SOCIAL_EMAIL_MISSING', 'EMAIL_NOT_ALLOWED'].includes(displayError);
 
   const {
     enablePasskeys,
@@ -155,8 +196,12 @@ const Login = ({
 
   const microsoftLogin = () => {
     instance
+      // The OIDC scopes, not Graph's user.read: `email` is what puts an email
+      // claim in the id_token, and the backend has nothing to send a code to
+      // without it. Nothing here calls Graph, so user.read only bought a
+      // consent prompt.
       .loginPopup({
-        scopes: ['user.read'],
+        scopes: ['openid', 'profile', 'email'],
       })
       .then((response) => {
         resetEmail();
@@ -815,6 +860,13 @@ const Login = ({
       authErrorTitle = dictionary?.auth?.emailDomainNotAllowed;
       return { authErrorTitle, authErrorDescription };
     }
+    // Nothing the user can do on this screen fixes it — the provider sent no
+    // address — so it gets its own copy instead of the generic failure.
+    if (displayError === 'SOCIAL_EMAIL_MISSING' || serverMessage === 'social_email_missing') {
+      authErrorTitle = dictionary?.auth?.socialEmailMissing;
+      authErrorDescription = dictionary?.auth?.socialEmailMissingDescription;
+      return { authErrorTitle, authErrorDescription };
+    }
     if (displayError === 'INVALID_CREDENTIALS' || serverMessage === 'INVALID_CREDENTIALS') {
       authErrorTitle = loginDictionary?.invalidEmailPassword;
       authErrorDescription = loginDictionary?.invalidEmailPasswordDescription;
@@ -864,25 +916,28 @@ const Login = ({
     return (
       <div data-testid="login-email-step">
         {hasDisplayError ? (
-          <div className="flex flex-col items-center justify-center gap-5">
+          // Compact on purpose: this block sits ABOVE the form it interrupts,
+          // so every pixel it takes pushes the sign-in controls further down —
+          // on a short window that is what drove the card past its container.
+          <div className="flex flex-col items-center justify-center gap-3 pb-7 pt-2">
             <img
               src={authErrorImage}
-              alt="alore logo"
-              width={70}
+              alt=""
+              width={48}
             />
             {displayError?.includes('beta') ? (
-              <span className="font-poppins text-alr-red text-center text-xl font-bold">
+              <span className="font-poppins text-alr-red text-center text-base font-bold">
                 {displayError}
               </span>
             ) : (
               <>
-                <span className="font-poppins text-alr-red text-center text-xl font-bold">
+                <span className="font-poppins text-alr-red text-center text-base font-bold">
                   {authErrorTitle}
                 </span>
-                <span className="text-alr-grey text-center font-medium">
+                <span className="text-alr-grey text-center text-sm font-medium leading-snug">
                   {authErrorDescription}
                 </span>
-                {errorObj?.code && (
+                {errorObj?.code && !isExplainedError && (
                   <span className="mt-1 text-center text-xs text-gray-500">{`${loginDictionary?.errorCode} ${errorObj.code}`}</span>
                 )}
               </>
@@ -949,7 +1004,10 @@ const Login = ({
           <div className="h-[0.5px] w-full bg-gray-300" />
           {socialProviders?.length && (
             <>
-              <div className="flex w-full flex-row gap-4">
+              <div
+                ref={socialRowRef}
+                className="flex w-full flex-col gap-3"
+              >
                 {socialProviders.map((provider: SocialProvider) => {
                   if (provider.providerName === 'google') {
                     return (
@@ -964,11 +1022,15 @@ const Login = ({
                         data-testid="login-social-google-button"
                       >
                         <GoogleLogin
+                          // GSI renders the button once and ignores a later width
+                          // change, so the measurement has to remount it — otherwise it
+                          // keeps its 209px default and sits narrower than Microsoft's.
+                          key={socialButtonWidth}
                           onSuccess={handleGoogleCredential}
                           onError={() => console.error('Google sign-in failed')}
                           shape="rectangular"
                           size="large"
-                          width="100%"
+                          width={socialButtonWidth || undefined}
                           text="continue_with"
                           locale={locale}
                         />
@@ -978,23 +1040,24 @@ const Login = ({
 
                   if (provider.providerName === 'microsoft') {
                     return (
-                      <Button
+                      <button
                         key={provider.id}
-                        color="light"
+                        type="button"
                         data-testid="login-social-microsoft-button"
-                        className="w-full"
                         onClick={handleMicrosoftLogin}
-                        outline
+                        className="flex h-10 w-full items-center rounded border border-[#dadce0] bg-white px-3 text-sm font-normal text-[#3c4043] transition-colors hover:bg-[#f8f9fa] focus:outline-none focus-visible:ring-2 focus-visible:ring-[--primary-color]"
+                        style={GOOGLE_BUTTON_TYPOGRAPHY}
                       >
-                        <div className="flex flex-row items-center justify-center gap-2">
-                          <img
-                            src={microsoftLogo}
-                            alt="microsoft logo"
-                            width={16}
-                          />
+                        <img
+                          src={microsoftLogo}
+                          alt=""
+                          width={18}
+                          height={18}
+                        />
+                        <span className="flex-1 text-center">
                           {dictionary?.auth.continueMicrosoft}
-                        </div>
-                      </Button>
+                        </span>
+                      </button>
                     );
                   }
 
@@ -1065,6 +1128,10 @@ const Login = ({
     isConditionalMediationAvailable,
     sendAuth,
     socialProviders,
+    // Without this the memo keeps the subtree from the first render, when the
+    // row had not been measured yet, and Google's button stays at its default
+    // width while Microsoft's fills the card.
+    socialButtonWidth,
     dictionary,
     handleSubmitEmail,
     onSubmitEmail,
@@ -1090,14 +1157,18 @@ const Login = ({
           {dictionary?.back}
         </BackButton>
         {hasDisplayError ? (
-          <div className={`my-4 flex flex-col gap-2 ${getAlignmentClasses}`}>
-            <span className={`font-poppins text-alr-red text-xl font-bold ${getTextAlignment}`}>
+          <div className={`my-3 flex flex-col gap-1.5 ${getAlignmentClasses}`}>
+            <span className={`font-poppins text-alr-red text-base font-bold ${getTextAlignment}`}>
               {authErrorTitle}
             </span>
-            <span className={`text-alr-grey font-medium ${getTextAlignment}`}>
+            <span className={`text-alr-grey text-sm font-medium leading-snug ${getTextAlignment}`}>
               {authErrorDescription}
             </span>
-            {errorObj?.code && (
+            {/* The raw code is only useful when the message above is the generic
+                one. For an explained failure it contradicts it — the transport
+                wrapper reports FAILED_TO_FETCH while the real reason is stated
+                in the sentence the user just read. */}
+            {errorObj?.code && !isExplainedError && (
               <span
                 className={`text-xs text-gray-500 ${getTextAlignment}`}
               >{`${loginDictionary?.errorCode} ${errorObj.code}`}</span>
@@ -1675,7 +1746,9 @@ const Login = ({
 
   return (
     <div
-      className={`flex size-full min-h-screen flex-col items-center justify-center ${titleSpacing}`}
+      // min-h-full, not min-h-screen: this renders inside the consuming app's
+      // own card, and a viewport-height floor stretches that card to the window.
+      className={`flex size-full min-h-full flex-col items-center justify-center ${titleSpacing}`}
       data-testid="login-page"
     >
       {forgeId ? (
