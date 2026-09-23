@@ -22,10 +22,13 @@
     "continueWith": "Ou continue com:",
     "selectAnOption": "Selecione uma das opções",
     "continueGoogle": "Google",
-    "continueMicrosoft": "Microsoft",
+    "continueMicrosoft": "Continuar com a Microsoft",
+    "signupMicrosoft": "Inscrever-se na Microsoft",
     "signWithPasskey": "Entrar com uma passkey",
     "continueApple": "Continuar com a Apple",
     "emailDomainNotAllowed": "Domínio de e-mail não permitido",
+    "socialEmailMissing": "Esta conta Microsoft não possui e-mail",
+    "socialEmailMissingDescription": "A Microsoft não informou um endereço de e-mail para esta conta, então não é possível enviar o código de confirmação. Entre com o Google ou com e-mail e senha, ou peça ao administrador para definir um e-mail na conta.",
     "togglePasswordVisibility": "Mostrar ou ocultar senha",
     "layout": {
       "default": {

@@ -9,6 +9,7 @@ const initialContext: AuthMachineContext = {
   error: undefined,
   active2fa: undefined,
   sessionId: undefined,
+  socialChallenge: undefined,
   registerUser: undefined,
   socialProviderRegisterUser: undefined,
   googleOtpCode: undefined,
@@ -729,6 +730,19 @@ export const authMachine = createMachine(
                   src: 'socialLogin',
                   onDone: [
                     {
+                      // The provider did not vouch for the address, so the
+                      // backend emailed a code to it. The token is kept so the
+                      // second call can present the same one alongside the
+                      // code — the session binds both, and a token for another
+                      // account would not satisfy it.
+                      target: 'socialEmailCode',
+                      actions: assign({
+                        socialChallenge: (_, event) => event.data.emailChallenge,
+                        sessionId: (_, event) => event.data.emailChallenge.sessionId,
+                      }),
+                      cond: 'isSocialEmailChallenge',
+                    },
+                    {
                       // 201: the backend created the account on this call, so
                       // the consuming app must see onRegister, not onLogin.
                       target: '#authMachine.active.register.userCreated',
@@ -740,18 +754,51 @@ export const authMachine = createMachine(
                       actions: 'setSocialSessionUser',
                     },
                   ],
-                  onError: {
+                  onError: [
+                    {
+                      // A wrong or expired code must land back on the code
+                      // screen with the challenge intact, not drop the user to
+                      // the start with no way to retype it.
+                      target: 'socialEmailCode',
+                      cond: 'hasSocialChallenge',
+                      actions: assign((ctx, event) => ({
+                        error: {
+                          code: event.data?.type,
+                          message: event.data?.message || event.data?.error || event.data,
+                          email: ctx.credentialEmail,
+                        },
+                      })),
+                    },
+                    {
+                      target: 'idle',
+                      actions: assign((ctx, event) => ({
+                        error: {
+                          code: event.data?.type,
+                          message:
+                            event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
+                              ? 'EMAIL_DOMAIN_NOT_ALLOWED'
+                              : event.data?.message || event.data?.error || event.data,
+                          email: ctx.credentialEmail,
+                        },
+                      })),
+                    },
+                  ],
+                },
+              },
+
+              // Waiting on the code emailed to the address the provider
+              // claimed. SOCIAL_LOGIN re-enters the same state above, this
+              // time carrying the session and the code.
+              socialEmailCode: {
+                on: {
+                  SOCIAL_LOGIN: 'socialLogin',
+                  BACK: {
                     target: 'idle',
-                    actions: assign((ctx, event) => ({
-                      error: {
-                        code: event.data?.type,
-                        message:
-                          event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
-                            ? 'EMAIL_DOMAIN_NOT_ALLOWED'
-                            : event.data?.message || event.data?.error || event.data,
-                        email: ctx.credentialEmail,
-                      },
-                    })),
+                    actions: assign({
+                      socialChallenge: () => undefined,
+                      sessionId: () => undefined,
+                      error: () => undefined,
+                    }),
                   },
                 },
               },
@@ -1596,6 +1643,8 @@ export const authMachine = createMachine(
     guards: {
       // @ts-ignore
       isNewUser: (_, event) => !!event.data.isNewUser,
+      isSocialEmailChallenge: (_, event) => !!event.data?.emailChallenge,
+      hasSocialChallenge: (context) => !!context.socialChallenge,
       forgeClaim: (_, event) => !!event.forgeId,
       hasSalt: (context) => !!context.salt,
       hasHardware2FA: (context, event) => {
@@ -1730,6 +1779,8 @@ export const authService = (services: {}, context: AuthMachineContext) => {
         guards: {
           // @ts-ignore
           isNewUser: (_, event) => !!event.data.isNewUser,
+          isSocialEmailChallenge: (_, event) => !!event.data?.emailChallenge,
+          hasSocialChallenge: (ctx) => !!ctx.socialChallenge,
           forgeClaim: (_, event) => !!event.forgeId,
           hasSalt: (ctx) => !!ctx.salt,
           hasHardware2FA: (ctx, event) => {

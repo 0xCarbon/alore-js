@@ -552,7 +552,9 @@ const ForgotPassword = ({
 
   return (
     <div
-      className={`flex size-full min-h-screen flex-col items-center justify-center ${titleSpacing}`}
+      // min-h-full, not min-h-screen: rendered inside the host app's card, where
+      // a viewport-height floor stretches that card to the window. See Login.tsx.
+      className={`flex size-full min-h-full flex-col items-center justify-center ${titleSpacing}`}
       data-testid="forgot-password-page"
     >
       {forgeId ? (

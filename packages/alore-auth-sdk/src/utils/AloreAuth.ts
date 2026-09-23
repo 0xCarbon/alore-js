@@ -786,15 +786,22 @@ export class AloreAuth {
           providerName: string;
           device?: string;
           nonce?: string;
+          sessionId?: string;
+          emailCode?: string;
         };
       },
     ) => {
-      const { idToken, providerName, device, nonce } = event.payload;
+      const { idToken, providerName, device, nonce, sessionId, emailCode } = event.payload;
       const { authProviderConfigs } = context;
-      const { firebaseCompatible } = authProviderConfigs || {};
+      const { firebaseCompatible, locale } = authProviderConfigs || {};
+
+      const query = new URLSearchParams();
+      if (firebaseCompatible) query.set('firebaseCompatibleToken', String(firebaseCompatible));
+      if (locale) query.set('locale', locale);
+      const queryString = query.toString();
 
       const response = await this.fetchWithProgressiveBackoff(
-        `/auth/v1/social-login${firebaseCompatible ? `?firebaseCompatibleToken=${firebaseCompatible}` : ''}`,
+        `/auth/v1/social-login${queryString ? `?${queryString}` : ''}`,
         {
           method: 'POST',
           headers: {
@@ -805,9 +812,35 @@ export class AloreAuth {
             provider: providerName,
             ...(device ? { device } : {}),
             ...(nonce ? { nonce } : {}),
+            ...(sessionId ? { sessionId } : {}),
+            ...(emailCode ? { emailCode } : {}),
           }),
         },
       );
+
+      // Not every 403 here is a refusal. Where the provider does not vouch for
+      // the address — Microsoft never does, since Entra carries no
+      // email_verified claim — the backend emails a code to the address the
+      // token claimed and hands back the session carrying it. The flow
+      // continues by calling this same endpoint again with that session and
+      // the code.
+      if (response.status === 403) {
+        const challenge = await response
+          .clone()
+          .json()
+          .catch(() => null);
+
+        if (challenge?.error === 'SOCIAL_EMAIL_VERIFICATION_REQUIRED' && challenge?.sessionId) {
+          return {
+            emailChallenge: {
+              sessionId: challenge.sessionId,
+              idToken,
+              providerName,
+              device,
+            },
+          };
+        }
+      }
 
       if (!response.ok) await this.throwParsedResponseError(response);
 

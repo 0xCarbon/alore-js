@@ -47,6 +47,15 @@ export interface AuthMachineContext {
   error?: string;
   active2fa?: TwoFactorAuth[];
   sessionId?: string;
+  // The pending emailed-code challenge from a social sign-in whose provider
+  // does not vouch for the address. Carries the id_token so the second call
+  // can present the same one the challenge was raised for.
+  socialChallenge?: {
+    sessionId: string;
+    idToken: string;
+    providerName: string;
+    device?: string;
+  };
   registerUser?: {
     email: string;
     nickname: string;
