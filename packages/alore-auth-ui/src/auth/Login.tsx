@@ -1045,7 +1045,7 @@ const Login = ({
                         type="button"
                         data-testid="login-social-microsoft-button"
                         onClick={handleMicrosoftLogin}
-                        className="flex h-10 w-full items-center rounded border border-[#dadce0] bg-white px-3 text-sm font-normal text-[#3c4043] transition-colors hover:bg-[#f8f9fa] focus:outline-none focus-visible:ring-2 focus-visible:ring-[--primary-color]"
+                        className="flex h-10 w-full items-center rounded border border-[#dadce0] bg-white px-3 text-sm font-normal text-[#3c4043] transition-colors hover:border-[#d2e3fc] hover:bg-[rgba(66,133,244,0.08)] focus:bg-[rgba(66,133,244,0.1)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[--primary-color] active:bg-[rgba(66,133,244,0.1)]"
                         style={GOOGLE_BUTTON_TYPOGRAPHY}
                       >
                         <img
