@@ -49,8 +49,6 @@ export interface AuthMachineContext {
     salt?: string;
   };
   forgeData?: any;
-  googleOtpCode?: string;
-  googleUser?: { email: string; nickname: string };
   socialProviderRegisterUser?: { email: string; nickname: string; salt?: string };
   sessionUser?: SessionUser;
   CCRPublicKey?: { publicKey: PublicKeyCredentialCreationOptions };
@@ -81,13 +79,6 @@ export type AuthMachineEvents =
   | { type: 'BACK_TO_IDLE' }
   | { type: 'SELECT_CONNECTOR' }
   | { type: 'SELECT_PASSWORD_METHOD'; payload: { email: string } }
-  | {
-      type: 'GOOGLE_LOGIN';
-      payload: {
-        accessToken: string;
-        providerName: string;
-      };
-    }
   | {
       type: 'SOCIAL_LOGIN';
       payload: {
@@ -175,10 +166,6 @@ export type AuthMachineEvents =
       payload: {
         email: string;
       };
-    }
-  | {
-      type: 'COMPLETE_GOOGLE_SIGN_IN';
-      payload: { email: string; passwordHash: string; otp: string };
     }
   | {
       type: 'VERIFY_LOGIN';
@@ -333,8 +320,6 @@ export type AuthMachineServices = {
   verifyLogin: AuthReturn;
   verifyEmail2fa: ValidSession;
   sendConfirmationEmail: AuthReturn;
-  googleLogin: { data: {} };
-  verifyGoogleLogin: ValidSession;
   fetchForgeData: { data: any };
   verifyEmailEligibility: AuthReturn;
   verifyClaimNftEmail2fa: {

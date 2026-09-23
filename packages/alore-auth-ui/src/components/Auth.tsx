@@ -103,13 +103,8 @@ const Auth = ({
 }: AuthProps) => {
   const authServiceInstance = useAuthServiceInstance();
   const [authState, sendAuth] = useActor(authServiceInstance);
-  const {
-    googleUser,
-    sessionUser,
-    authProviderConfigs,
-    socialProviderRegisterUser,
-    forgotPasswordSession,
-  } = authState.context;
+  const { sessionUser, authProviderConfigs, socialProviderRegisterUser, forgotPasswordSession } =
+    authState.context;
   const { locale } = authProviderConfigs || {};
 
   const [isClient, setIsClient] = useState(false);
@@ -193,11 +188,6 @@ const Auth = ({
         ]);
         return;
       }
-    }
-
-    if (googleUser) {
-      sendAuth([{ type: 'INITIALIZE', forgeId }, 'LOGIN', 'ADVANCE_TO_PASSWORD']);
-      return;
     }
 
     sendAuth(['CLEAR_ERROR', 'RESET', 'INITIALIZE']);

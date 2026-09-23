@@ -154,8 +154,6 @@ const Login = ({
     error: errorObj,
     active2fa,
     registerUser,
-    googleOtpCode,
-    googleUser,
     RCRPublicKey,
     authProviderConfigs,
     credentialEmail,
@@ -679,7 +677,7 @@ const Login = ({
   const onSubmitLogin = async (data: typeof passwordDefaultValues) => {
     setLoading(true);
     const { password } = data;
-    const email = getValuesEmail('email') || googleUser?.email || credentialEmail;
+    const email = getValuesEmail('email') || credentialEmail;
 
     if (salt && email) {
       derivePasswordAndGetKeyshares(password, email);
@@ -693,27 +691,16 @@ const Login = ({
         }
         setCurrentDevice(device);
 
-        if (googleOtpCode) {
-          sendAuth({
-            type: 'COMPLETE_GOOGLE_SIGN_IN',
-            payload: {
-              email,
-              passwordHash: secureHashArgon2d,
-              otp: googleOtpCode,
-            },
-          });
-        } else {
-          sendAuth({
-            type: 'VERIFY_LOGIN',
-            payload: {
-              email,
-              device,
-              passwordHash: secureHashArgon2d,
-              isForgeClaim: !!forgeId,
-              locale,
-            },
-          });
-        }
+        sendAuth({
+          type: 'VERIFY_LOGIN',
+          payload: {
+            email,
+            device,
+            passwordHash: secureHashArgon2d,
+            isForgeClaim: !!forgeId,
+            locale,
+          },
+        });
       }
     }
     setLoading(false);
@@ -1268,7 +1255,7 @@ const Login = ({
           className="mb-2.5"
           onClick={() => sendAuth('BACK')}
         >
-          {getValuesEmail('email') || googleUser?.email || credentialEmail}
+          {getValuesEmail('email') || credentialEmail}
         </BackButton>
 
         {hasDisplayError && (
@@ -1343,7 +1330,6 @@ const Login = ({
   }, [
     getValuesPassword,
     getValuesEmail,
-    googleUser?.email,
     credentialEmail,
     passwordErrors,
     passwordControl,

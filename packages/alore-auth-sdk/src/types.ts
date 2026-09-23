@@ -71,8 +71,6 @@ export interface AuthMachineContext {
     salt?: string;
   };
   forgeData?: ForgeData;
-  googleOtpCode?: string;
-  googleUser?: { email: string; nickname: string };
   sessionUser?: SessionUser;
   // eslint-disable-next-line no-undef
   CCRPublicKey?: { publicKey: PublicKeyCredentialCreationOptions };
