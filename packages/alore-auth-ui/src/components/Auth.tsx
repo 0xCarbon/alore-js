@@ -136,16 +136,23 @@ const Auth = ({
               // /common, not a single tenant: work, school and personal
               // Microsoft accounts all sign in here.
               authority: 'https://login.microsoftonline.com/common',
-              // Pinned to the origin. MSAL otherwise sends the CURRENT PAGE as
-              // the redirect URI, so the value changes with the route
-              // (/pt/login, /en/register, …) and Entra rejects every one that
-              // is not registered — AADSTS50011. The app registration lists the
-              // origin alone, and this is what makes that enough.
-              redirectUri: typeof window === 'undefined' ? undefined : window.location.origin,
+              // Never the current page: MSAL would send a redirect URI that
+              // changes with the route (/pt/login, /en/register, …) and Entra
+              // rejects every one that is not registered — AADSTS50011.
+              //
+              // The origin is only a safe default for an app that does not
+              // navigate on load. Anything with locale routing or an auth guard
+              // clears the URL fragment the token arrives in before MSAL can
+              // read it, and the sign-in dies with `hash_empty_error` having
+              // reached no backend at all. Such apps pass a blank page through
+              // `microsoftRedirectUri`.
+              redirectUri:
+                authProviderConfigs?.microsoftRedirectUri ??
+                (typeof window === 'undefined' ? undefined : window.location.origin),
             },
           })
         : undefined,
-    [microsoftClientId],
+    [microsoftClientId, authProviderConfigs?.microsoftRedirectUri],
   );
 
   const primaryColor = styles?.primaryColor || '#090909';
