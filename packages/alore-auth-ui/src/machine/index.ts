@@ -12,8 +12,6 @@ const initialContext: AuthMachineContext = {
   socialChallenge: undefined,
   registerUser: undefined,
   socialProviderRegisterUser: undefined,
-  googleOtpCode: undefined,
-  googleUser: undefined,
   sessionUser: undefined,
   forgeData: undefined,
   CCRPublicKey: undefined,
@@ -73,8 +71,6 @@ export const authMachine = createMachine(
                   error: () => undefined,
                 }),
                 entry: assign({
-                  googleOtpCode: () => undefined,
-                  googleUser: () => undefined,
                   registerUser: () => undefined,
                   socialProviderRegisterUser: () => undefined,
                   salt: () => undefined,
@@ -213,7 +209,6 @@ export const authMachine = createMachine(
 
                 on: {
                   LOGIN_WITH_WEB3CONNECTOR: '#authMachine.active.web3Connector',
-                  GOOGLE_LOGIN: 'googleLogin',
                   SOCIAL_LOGIN: 'socialLogin',
                   ADVANCE_TO_PASSWORD: 'inputPassword',
                   SIGN_IN_WITH_PASSKEY: '#authMachine.active.login.idle.signWithPasskey',
@@ -224,8 +219,6 @@ export const authMachine = createMachine(
 
                       actions: assign({
                         credentialEmail: (_, event) => event.payload?.email,
-                        googleOtpCode: () => undefined,
-                        googleUser: () => undefined,
                         registerUser: () => undefined,
                         socialProviderRegisterUser: () => undefined,
                         sessionId: () => undefined,
@@ -243,8 +236,6 @@ export const authMachine = createMachine(
                       target: 'retrievingSalt',
                       actions: assign({
                         credentialEmail: (_, event) => event.payload?.email,
-                        googleOtpCode: () => undefined,
-                        googleUser: () => undefined,
                         registerUser: () => undefined,
                         socialProviderRegisterUser: () => undefined,
                         sessionId: () => undefined,
@@ -275,7 +266,6 @@ export const authMachine = createMachine(
                   BACK: {
                     target: '#authMachine.active.login',
                     actions: assign({
-                      googleUser: () => undefined,
                       registerUser: () => undefined,
                       socialProviderRegisterUser: () => undefined,
                       error: () => undefined,
@@ -341,7 +331,6 @@ export const authMachine = createMachine(
                             email:
                               ctx.credentialEmail ||
                               ctx.registerUser?.email ||
-                              ctx.googleUser?.email ||
                               ctx.socialProviderRegisterUser?.email,
                             data: event.data,
                           },
@@ -373,7 +362,6 @@ export const authMachine = createMachine(
                             email:
                               ctx.credentialEmail ||
                               ctx.registerUser?.email ||
-                              ctx.googleUser?.email ||
                               ctx.socialProviderRegisterUser?.email,
                             data: event.data,
                           },
@@ -401,7 +389,6 @@ export const authMachine = createMachine(
                             email:
                               ctx.credentialEmail ||
                               ctx.registerUser?.email ||
-                              ctx.googleUser?.email ||
                               ctx.socialProviderRegisterUser?.email,
                             data: event.data,
                           },
@@ -435,7 +422,6 @@ export const authMachine = createMachine(
                       target: '#authMachine.active.login.loginMethodSelection',
 
                       actions: assign({
-                        googleUser: () => undefined,
                         registerUser: () => undefined,
                         socialProviderRegisterUser: () => undefined,
                         error: () => undefined,
@@ -445,8 +431,6 @@ export const authMachine = createMachine(
                     },
                     'idle',
                   ],
-
-                  COMPLETE_GOOGLE_SIGN_IN: 'verifyingGoogleLogin',
                 },
               },
 
@@ -494,7 +478,6 @@ export const authMachine = createMachine(
                               email:
                                 ctx.credentialEmail ||
                                 ctx.registerUser?.email ||
-                                ctx.googleUser?.email ||
                                 ctx.socialProviderRegisterUser?.email,
                               data: event.data,
                             },
@@ -510,7 +493,6 @@ export const authMachine = createMachine(
                 type: 'final',
 
                 entry: assign({
-                  googleUser: () => undefined,
                   registerUser: () => undefined,
                   socialProviderRegisterUser: () => undefined,
                 }),
@@ -640,7 +622,6 @@ export const authMachine = createMachine(
                               email:
                                 ctx.credentialEmail ||
                                 ctx.registerUser?.email ||
-                                ctx.googleUser?.email ||
                                 ctx.socialProviderRegisterUser?.email,
                               data: event.data,
                             },
@@ -705,24 +686,6 @@ export const authMachine = createMachine(
                   },
                   onError: 'idle',
                 },
-              },
-
-              verifyingGoogleLogin: {
-                invoke: [
-                  {
-                    src: 'verifyGoogleLogin',
-                    onDone: {
-                      target: 'successfulLogin',
-                      actions: 'setSessionUser',
-                    },
-                    onError: {
-                      target: 'inputPassword',
-                      actions: assign({
-                        error: (_context, event) => event.data?.error || event.data?.message,
-                      }),
-                    },
-                  },
-                ],
               },
 
               socialLogin: {
@@ -803,57 +766,6 @@ export const authMachine = createMachine(
                 },
               },
 
-              googleLogin: {
-                invoke: {
-                  src: 'googleLogin',
-                  onDone: [
-                    {
-                      target: 'idle',
-
-                      actions: assign({
-                        socialProviderRegisterUser: (_, event) =>
-                          event.data?.socialProviderRegisterUser,
-                      }),
-
-                      cond: 'isNewUser',
-                    },
-                    {
-                      target: 'inputPassword',
-                      actions: assign({
-                        googleOtpCode: (_, event) => event.data.googleOtpCode,
-                        salt: (_, event) => event.data.salt,
-                        googleUser: (_, event) => event.data.googleUser,
-                        sessionId: (_, event) => event.data.sessionId,
-                      }),
-                    },
-                  ],
-                  onError: {
-                    target: 'idle',
-                    actions: assign((ctx, event) => ({
-                      error: {
-                        code: event.data?.type,
-                        message:
-                          event.data?.type === 'EMAIL_DOMAIN_NOT_ALLOWED'
-                            ? 'EMAIL_DOMAIN_NOT_ALLOWED'
-                            : event.data?.message || event.data?.error || event.data,
-                        email:
-                          ctx.credentialEmail ||
-                          ctx.registerUser?.email ||
-                          ctx.googleUser?.email ||
-                          ctx.socialProviderRegisterUser?.email,
-                        data: event.data,
-                      },
-                    })),
-                  },
-                },
-
-                entry: assign({
-                  googleUser: () => undefined,
-                  registerUser: () => undefined,
-                  socialProviderRegisterUser: () => undefined,
-                }),
-              },
-
               retrievingCredentialRCR: {
                 entry: assign({
                   error: () => undefined,
@@ -877,7 +789,6 @@ export const authMachine = createMachine(
                         email:
                           ctx.registerUser?.email ||
                           ctx.credentialEmail ||
-                          ctx.googleUser?.email ||
                           ctx.socialProviderRegisterUser?.email,
                         data: event.data,
                       },
@@ -993,7 +904,6 @@ export const authMachine = createMachine(
                     actions: 'setupRegisterUser',
                   },
 
-                  GOOGLE_LOGIN: 'googleLogin',
                   // Signing up with Google enters the SAME state as login: the backend's
                   // 201-vs-200 answer decides whether this ends in register.userCreated
                   // or successfulLogin, so the entry point does not need its own branch.
@@ -1002,8 +912,6 @@ export const authMachine = createMachine(
                   SEND_REGISTRATION_EMAIL: {
                     target: 'sendingEmail',
                     actions: assign({
-                      googleOtpCode: () => undefined,
-                      googleUser: () => undefined,
                       registerUser: (_, event) => ({
                         email: event.payload?.email,
                         nickname: event.payload?.nickname,
@@ -1043,7 +951,6 @@ export const authMachine = createMachine(
                         email:
                           ctx.registerUser?.email ||
                           ctx.credentialEmail ||
-                          ctx.googleUser?.email ||
                           ctx.socialProviderRegisterUser?.email,
                         data: event.data,
                       },
@@ -1099,7 +1006,6 @@ export const authMachine = createMachine(
                               email:
                                 ctx.registerUser?.email ||
                                 ctx.credentialEmail ||
-                                ctx.googleUser?.email ||
                                 ctx.socialProviderRegisterUser?.email,
                               data: event.data,
                             },
@@ -1117,7 +1023,6 @@ export const authMachine = createMachine(
                   BACK_TO_IDLE: {
                     target: 'idle',
                     actions: assign({
-                      googleUser: () => undefined,
                       registerUser: () => undefined,
                       socialProviderRegisterUser: () => undefined,
                       error: () => undefined,
@@ -1152,7 +1057,6 @@ export const authMachine = createMachine(
                 type: 'final',
 
                 entry: assign({
-                  googleUser: () => undefined,
                   registerUser: () => undefined,
                   socialProviderRegisterUser: () => undefined,
                 }),
@@ -1175,45 +1079,6 @@ export const authMachine = createMachine(
                 },
                 entry: assign({
                   error: () => undefined,
-                }),
-              },
-
-              googleLogin: {
-                invoke: {
-                  src: 'googleLogin',
-                  onDone: [
-                    {
-                      target: 'createPassword',
-
-                      actions: assign({
-                        registerUser: (_, event) => event.data?.registerUser,
-                      }),
-
-                      cond: 'isNewUser',
-                    },
-                    {
-                      target: 'idle',
-                      actions: assign({
-                        googleOtpCode: (_, event) => event.data.googleOtpCode,
-                        salt: (_, event) => event.data.salt,
-                        googleUser: (_, event) => event.data.googleUser,
-                        sessionId: (_, event) => event.data.sessionId,
-                      }),
-                    },
-                  ],
-                  onError: {
-                    target: 'idle',
-                    actions: assign({
-                      error: (_context, event) =>
-                        event.data?.error || event.data?.message || event.data,
-                    }),
-                  },
-                },
-
-                entry: assign({
-                  googleUser: () => undefined,
-                  registerUser: () => undefined,
-                  socialProviderRegisterUser: () => undefined,
                 }),
               },
 
@@ -1245,7 +1110,6 @@ export const authMachine = createMachine(
                               email:
                                 ctx.registerUser?.email ||
                                 ctx.credentialEmail ||
-                                ctx.googleUser?.email ||
                                 ctx.socialProviderRegisterUser?.email,
                               data: event.data,
                             },
@@ -1327,7 +1191,6 @@ export const authMachine = createMachine(
                   BACK: {
                     target: 'idle',
                     actions: assign({
-                      googleUser: () => undefined,
                       registerUser: () => undefined,
                       socialProviderRegisterUser: () => undefined,
                       error: () => undefined,
@@ -1355,7 +1218,6 @@ export const authMachine = createMachine(
                         email:
                           ctx.registerUser?.email ||
                           ctx.credentialEmail ||
-                          ctx.googleUser?.email ||
                           ctx.socialProviderRegisterUser?.email,
                         data: event.data,
                       },
@@ -1382,7 +1244,6 @@ export const authMachine = createMachine(
                         email:
                           ctx.registerUser?.email ||
                           ctx.credentialEmail ||
-                          ctx.googleUser?.email ||
                           ctx.socialProviderRegisterUser?.email,
                         data: event.data,
                       },
@@ -1631,12 +1492,6 @@ export const authMachine = createMachine(
         throw new Error('Not implemented');
       },
       socialLogin: async (_, event) => {
-        throw new Error('Not implemented');
-      },
-      googleLogin: async (_, event) => {
-        throw new Error('Not implemented');
-      },
-      verifyGoogleLogin: async (_, event) => {
         throw new Error('Not implemented');
       },
     },

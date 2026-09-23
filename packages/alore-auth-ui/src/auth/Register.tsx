@@ -6,7 +6,7 @@ import { useMsal } from '@azure/msal-react';
 import { EnvelopeIcon, LockClosedIcon, UserCircleIcon } from '@heroicons/react/20/solid';
 import { KeyIcon, LockOpenIcon } from '@heroicons/react/24/outline';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { GoogleLogin, useGoogleLogin } from '@react-oauth/google';
+import { GoogleLogin } from '@react-oauth/google';
 import { useActor } from '@xstate/react';
 import { randomBytes } from 'crypto';
 import { Button, Card, Spinner } from 'flowbite-react';
@@ -24,7 +24,6 @@ import { AuthInstance } from '../machine/types';
 import {
   aloreLogoBlack,
   authErrorImage,
-  google,
   metamaskLogo,
   microsoftLogo,
   walletConnectLogo,
@@ -138,7 +137,6 @@ const Register = ({
     salt,
     error: errorObj,
     registerUser,
-    googleUser,
     CCRPublicKey,
     RCRPublicKey,
     authProviderConfigs,
@@ -202,8 +200,7 @@ const Register = ({
 
   /**
    * Sign up with Google. The credential Google hands back IS the id_token, which
-   * is what the backend can actually verify the audience of; `useGoogleLogin`
-   * below only yields an access_token and is kept for the legacy forge path.
+   * is what the backend can actually verify the audience of.
    *
    * The backend answers 201 when it provisions the account, which is what makes
    * this a real sign-up rather than a sign-in that happens to work.
@@ -246,19 +243,6 @@ const Register = ({
         console.error('Microsoft sign-up failed:', error);
       });
   };
-
-  const handleGoogleLogin = useGoogleLogin({
-    onSuccess: (tokenResponse) => {
-      resetUserInfo();
-      sendAuth({
-        type: 'GOOGLE_LOGIN',
-        payload: {
-          accessToken: tokenResponse.access_token,
-          providerName: 'google',
-        },
-      });
-    },
-  });
 
   const selectRegisterMethod = () => {
     if (registrationMethod === 'password') {
@@ -715,12 +699,6 @@ const Register = ({
   // }, [session]);
 
   useEffect(() => {
-    if (googleUser) {
-      sendAuth(['RESET', 'INITIALIZE']);
-    }
-  }, [googleUser]);
-
-  useEffect(() => {
     if (secureCode.length === 6) {
       onClickSecureCodeSubmit();
     }
@@ -1065,20 +1043,21 @@ const Register = ({
         {forgeId && !socialProviders?.length && (
           <>
             <div className="h-[0.5px] w-full bg-gray-300" />
-            <Button
-              color="light"
-              onClick={() => handleGoogleLogin()}
-              outline
+            <div
+              className="w-full"
+              data-testid="register-forge-google-button"
             >
-              <div className="flex flex-row items-center justify-center gap-2">
-                <img
-                  src={google}
-                  alt="google logo"
-                  width={16}
-                />
-                {dictionary?.auth.continueGoogle}
-              </div>
-            </Button>
+              <GoogleLogin
+                key={socialButtonWidth}
+                onSuccess={handleGoogleCredential}
+                onError={() => console.error('Google sign-up failed')}
+                shape="rectangular"
+                size="large"
+                text="signup_with"
+                width={socialButtonWidth || undefined}
+                locale={locale}
+              />
+            </div>
             <Button
               color="light"
               onClick={() => sendAuth('LOGIN_WITH_WEB3CONNECTOR')}
