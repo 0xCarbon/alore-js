@@ -96,6 +96,16 @@ const GOOGLE_BUTTON_TYPOGRAPHY = {
 
 const RESEND_UNAVAILABLE = 'RESEND_UNAVAILABLE';
 
+/**
+ * How long the resend button stays blocked.
+ *
+ * The emailed code is a 30-second TOTP, so a resend inside that window returns
+ * the SAME digits — the user pays a round trip and a second email for a code
+ * they already have. This is the shortest cooldown that can actually produce a
+ * different one. Repeat resends escalate by multiples of it.
+ */
+const RESEND_COOLDOWN_SECONDS = 30;
+
 const Login = ({
   locale = 'pt',
   authServiceInstance,
@@ -630,6 +640,25 @@ const Login = ({
     }
   }, [sendEmailCooldown]);
 
+  const startResendCooldown = useCallback((seconds: number) => {
+    clearInterval(intervalRef.current);
+    setSendEmailCooldown(seconds);
+    intervalRef.current = setInterval(() => setSendEmailCooldown((state) => state - 1), 1000);
+  }, []);
+
+  // A code has just been sent — the step cannot be reached otherwise — so the
+  // button starts blocked. Without this the cooldown only existed AFTER a
+  // resend, leaving the first click free to fetch the same TOTP digits the
+  // user was already emailed.
+  const isAwaitingEmailedCode =
+    authState.matches('active.login.email2fa') || authState.matches('active.login.newDevice');
+
+  useEffect(() => {
+    if (isAwaitingEmailedCode) {
+      startResendCooldown(RESEND_COOLDOWN_SECONDS);
+    }
+  }, [isAwaitingEmailedCode, startResendCooldown]);
+
   useEffect(() => {
     if (authState.matches('active.login.newDevice')) {
       // getNewDeviceInfo(); // TODO
@@ -818,9 +847,9 @@ const Login = ({
     setSecureCodeEmail('');
     setLoading(false);
 
-    // Only once a request has actually gone out.
-    setSendEmailCooldown(15 * cooldownMultiplier);
-    intervalRef.current = setInterval(() => setSendEmailCooldown((state) => state - 1), 1000);
+    // Only once a request has actually gone out. Each further resend waits
+    // longer than the last.
+    startResendCooldown(RESEND_COOLDOWN_SECONDS * cooldownMultiplier);
     setCooldownMultiplier((state) => state + 1);
   };
 
