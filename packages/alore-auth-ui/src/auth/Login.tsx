@@ -94,6 +94,18 @@ const GOOGLE_BUTTON_TYPOGRAPHY = {
   letterSpacing: '0.25px',
 } as const;
 
+const RESEND_UNAVAILABLE = 'RESEND_UNAVAILABLE';
+
+/**
+ * How long the resend button stays blocked.
+ *
+ * The emailed code is a 30-second TOTP, so a resend inside that window returns
+ * the SAME digits — the user pays a round trip and a second email for a code
+ * they already have. This is the shortest cooldown that can actually produce a
+ * different one. Repeat resends escalate by multiples of it.
+ */
+const RESEND_COOLDOWN_SECONDS = 30;
+
 const Login = ({
   locale = 'pt',
   authServiceInstance,
@@ -166,7 +178,11 @@ const Login = ({
   const displayError = errorObj?.message || '';
   const hasDisplayError = !!displayError;
   // Failures whose copy already tells the user what happened and what to do.
-  const isExplainedError = ['SOCIAL_EMAIL_MISSING', 'EMAIL_NOT_ALLOWED'].includes(displayError);
+  const isExplainedError = [
+    'SOCIAL_EMAIL_MISSING',
+    'EMAIL_NOT_ALLOWED',
+    RESEND_UNAVAILABLE,
+  ].includes(displayError);
 
   const {
     enablePasskeys,
@@ -624,6 +640,25 @@ const Login = ({
     }
   }, [sendEmailCooldown]);
 
+  const startResendCooldown = useCallback((seconds: number) => {
+    clearInterval(intervalRef.current);
+    setSendEmailCooldown(seconds);
+    intervalRef.current = setInterval(() => setSendEmailCooldown((state) => state - 1), 1000);
+  }, []);
+
+  // A code has just been sent — the step cannot be reached otherwise — so the
+  // button starts blocked. Without this the cooldown only existed AFTER a
+  // resend, leaving the first click free to fetch the same TOTP digits the
+  // user was already emailed.
+  const isAwaitingEmailedCode =
+    authState.matches('active.login.email2fa') || authState.matches('active.login.newDevice');
+
+  useEffect(() => {
+    if (isAwaitingEmailedCode) {
+      startResendCooldown(RESEND_COOLDOWN_SECONDS);
+    }
+  }, [isAwaitingEmailedCode, startResendCooldown]);
+
   useEffect(() => {
     if (authState.matches('active.login.newDevice')) {
       // getNewDeviceInfo(); // TODO
@@ -777,30 +812,44 @@ const Login = ({
   };
 
   const resendSecureCode = async () => {
-    setLoading(true);
     const { email } = getValuesEmail();
     const { password } = getValuesPassword();
-    if (salt) {
-      derivePasswordAndGetKeyshares(password, email);
-      const secureHashArgon2d = await generateSecureHash(password, salt, 'argon2d');
-      sendAuth({
-        type: 'RESEND_CODE',
-        payload: {
-          email,
-          passwordHash: secureHashArgon2d,
-          device: currentDevice,
-          nickname: email,
-          isForgeClaim: !!forgeId,
-          locale,
-        },
-      });
+    const resolvedEmail = email || credentialEmail;
 
-      setSecureCodeEmail('');
+    // Resending re-runs login verification, so it needs the salt and the
+    // password to rebuild the hash. When either is missing the request cannot
+    // be made — and this used to return silently while still arming the
+    // cooldown below, so the button looked like it had worked and no request
+    // was ever sent (ALO-393). Say so instead, and leave the button live.
+    if (!salt || !password || !resolvedEmail) {
+      sendAuth({
+        type: 'SET_ERROR',
+        info: { code: RESEND_UNAVAILABLE, message: RESEND_UNAVAILABLE },
+      });
+      return;
     }
+
+    setLoading(true);
+    derivePasswordAndGetKeyshares(password, resolvedEmail);
+    const secureHashArgon2d = await generateSecureHash(password, salt, 'argon2d');
+    sendAuth({
+      type: 'RESEND_CODE',
+      payload: {
+        email: resolvedEmail,
+        passwordHash: secureHashArgon2d,
+        device: currentDevice,
+        nickname: resolvedEmail,
+        isForgeClaim: !!forgeId,
+        locale,
+      },
+    });
+
+    setSecureCodeEmail('');
     setLoading(false);
 
-    setSendEmailCooldown(15 * cooldownMultiplier);
-    intervalRef.current = setInterval(() => setSendEmailCooldown((state) => state - 1), 1000);
+    // Only once a request has actually gone out. Each further resend waits
+    // longer than the last.
+    startResendCooldown(RESEND_COOLDOWN_SECONDS * cooldownMultiplier);
     setCooldownMultiplier((state) => state + 1);
   };
 
@@ -865,6 +914,25 @@ const Login = ({
     if (displayError === 'SOCIAL_EMAIL_MISSING' || serverMessage === 'social_email_missing') {
       authErrorTitle = dictionary?.auth?.socialEmailMissing;
       authErrorDescription = dictionary?.auth?.socialEmailMissingDescription;
+      return { authErrorTitle, authErrorDescription };
+    }
+    // The emailed-code failures are distinct outcomes with different remedies:
+    // an expired code wants the resend button, a wrong one wants a re-read. The
+    // header used to fall through to the generic failure for both, contradicting
+    // the specific message shown under the code field (ALO-393).
+    if (lower?.includes('expired')) {
+      authErrorTitle = loginDictionary?.codeExpired;
+      authErrorDescription = loginDictionary?.codeExpiredDescription;
+      return { authErrorTitle, authErrorDescription };
+    }
+    if (lower?.includes('wrong')) {
+      authErrorTitle = loginDictionary?.wrongCode;
+      authErrorDescription = loginDictionary?.wrongCodeDescription;
+      return { authErrorTitle, authErrorDescription };
+    }
+    if (displayError === RESEND_UNAVAILABLE) {
+      authErrorTitle = loginDictionary?.resendUnavailable;
+      authErrorDescription = loginDictionary?.resendUnavailableDescription;
       return { authErrorTitle, authErrorDescription };
     }
     if (displayError === 'INVALID_CREDENTIALS' || serverMessage === 'INVALID_CREDENTIALS') {
