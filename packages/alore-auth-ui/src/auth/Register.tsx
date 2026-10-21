@@ -29,6 +29,12 @@ import {
   walletConnectLogo,
 } from '../utils';
 import { buildWalletExtensions, resolveWalletSecret } from '../utils/passkeyExtensions';
+import {
+  DEFAULT_REGISTER_GOOGLE_BUTTON_TEXT,
+  GoogleButtonText,
+  microsoftButtonLabel,
+  registerEmailPlaceholder,
+} from '../utils/socialButtonText';
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -72,6 +78,11 @@ export interface RegisterProps {
     boxShadow?: string;
   };
   logoContainerClassName?: string;
+  // Placeholder override for the email field, as on Login. Invited users keep
+  // the invite hint, since their address is prefilled and locked.
+  emailInputLabel?: string;
+  // Wording of the Google (and matching Microsoft) button; GSI localises it.
+  googleButtonText?: GoogleButtonText;
 }
 
 // Mirrors the typography of Google's GSI-rendered button, which cannot be
@@ -96,6 +107,8 @@ const Register = ({
   customClassName,
   customStyles,
   logoContainerClassName,
+  emailInputLabel,
+  googleButtonText = DEFAULT_REGISTER_GOOGLE_BUTTON_TEXT,
 }: RegisterProps) => {
   const { hashUserInfo, generateSecureHash } = cryptoUtils;
   const dictionary = useDictionary(locale);
@@ -907,11 +920,12 @@ const Register = ({
             errors={userInfoErrors}
             name="email"
             type="email"
-            placeholder={
-              inviteToken
-                ? `${registerDictionary?.emailInvitePlaceholder}`
-                : `${registerDictionary?.emailLabel}`
-            }
+            placeholder={registerEmailPlaceholder({
+              inviteToken,
+              emailInputLabel,
+              emailLabel: registerDictionary?.emailLabel,
+              emailInvitePlaceholder: registerDictionary?.emailInvitePlaceholder,
+            })}
             data-testid="register-email-input"
             icon={envelopIcon}
             autoFocus
@@ -987,9 +1001,9 @@ const Register = ({
                       onError={() => console.error('Google sign-up failed')}
                       shape="rectangular"
                       size="large"
-                      // Distinct from login's "continue_with": Google localises
-                      // this to the sign-up wording in every supported locale.
-                      text="signup_with"
+                      // Defaults to "signup_with", distinct from login's
+                      // "continue_with"; GSI localises it in every locale.
+                      text={googleButtonText}
                       width={socialButtonWidth || undefined}
                       locale={locale}
                     />
@@ -1013,9 +1027,11 @@ const Register = ({
                     width={18}
                     height={18}
                   />
-                  {/* Sign-up wording, matching what GSI renders for
-                      text="signup_with" on the button beside it. */}
-                  <span className="flex-1 text-center">{dictionary?.auth.signupMicrosoft}</span>
+                  {/* Same wording as what GSI renders for `googleButtonText`
+                      on the button beside it. */}
+                  <span className="flex-1 text-center">
+                    {microsoftButtonLabel(googleButtonText, dictionary?.auth)}
+                  </span>
                 </button>
               )}
             </div>
@@ -1053,7 +1069,7 @@ const Register = ({
                 onError={() => console.error('Google sign-up failed')}
                 shape="rectangular"
                 size="large"
-                text="signup_with"
+                text={googleButtonText}
                 width={socialButtonWidth || undefined}
                 locale={locale}
               />

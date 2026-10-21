@@ -28,6 +28,11 @@ import {
   walletConnectLogo,
 } from '../utils';
 import { buildWalletExtensions, resolveWalletSecret } from '../utils/passkeyExtensions';
+import {
+  DEFAULT_LOGIN_GOOGLE_BUTTON_TEXT,
+  GoogleButtonText,
+  microsoftButtonLabel,
+} from '../utils/socialButtonText';
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -74,6 +79,8 @@ export interface LoginProps {
   loginTitleClassName?: string;
   emailInputLabel?: string;
   inputClassName?: string;
+  // Wording of the Google (and matching Microsoft) button; GSI localises it.
+  googleButtonText?: GoogleButtonText;
   contentAlignment?: 'left' | 'center' | 'right';
   // Custom CSS class name for the Card component
   customClassName?: string;
@@ -120,6 +127,7 @@ const Login = ({
   loginTitleClassName,
   emailInputLabel,
   inputClassName,
+  googleButtonText = DEFAULT_LOGIN_GOOGLE_BUTTON_TEXT,
   contentAlignment = 'center',
   customClassName,
   titleSpacing = 'gap-y-2 sm:gap-y-7',
@@ -1086,7 +1094,7 @@ const Login = ({
                           shape="rectangular"
                           size="large"
                           width={socialButtonWidth || undefined}
-                          text="continue_with"
+                          text={googleButtonText}
                           locale={locale}
                         />
                       </div>
@@ -1110,7 +1118,7 @@ const Login = ({
                           height={18}
                         />
                         <span className="flex-1 text-center">
-                          {dictionary?.auth.continueMicrosoft}
+                          {microsoftButtonLabel(googleButtonText, dictionary?.auth)}
                         </span>
                       </button>
                     );
