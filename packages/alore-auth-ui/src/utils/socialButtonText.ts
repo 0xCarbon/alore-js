@@ -15,12 +15,15 @@ type MicrosoftLabels = {
   continueMicrosoft?: string;
   signupMicrosoft?: string;
   signinMicrosoft?: string;
+  signin?: string;
 };
 
 /**
  * The Microsoft button is ours, not GSI's, and copies the Google button beside
  * it — so it follows the same wording choice rather than reading as a
  * different action ("Continue with Google" next to "Sign up with Microsoft").
+ * GSI's `signin` drops the provider name ("Sign in" / "Fazer login") and lets
+ * the logo identify it, so ours does too.
  */
 export const microsoftButtonLabel = (
   text: GoogleButtonText,
@@ -30,8 +33,9 @@ export const microsoftButtonLabel = (
     case 'signup_with':
       return labels?.signupMicrosoft;
     case 'signin_with':
-    case 'signin':
       return labels?.signinMicrosoft;
+    case 'signin':
+      return labels?.signin;
     case 'continue_with':
     default:
       return labels?.continueMicrosoft;
