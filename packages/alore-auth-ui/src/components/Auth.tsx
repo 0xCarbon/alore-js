@@ -16,6 +16,7 @@ import { darkenHexColor } from '../helpers';
 import useAuthServiceInstance from '../hooks/useAuthServiceInstance';
 import { SessionUser } from '../machine/types';
 import { buttonTheme, checkboxTheme, textInputTheme } from '../styles/themes';
+import { GoogleButtonText } from '../utils/socialButtonText';
 
 /**
  * Mounts MSAL only when the project actually configures Microsoft.
@@ -63,6 +64,13 @@ export interface AuthProps {
   title?: string;
   titleClassName?: string;
   emailInputLabel?: string;
+  // Register's email placeholder. Separate from `emailInputLabel` (Login's) so
+  // consumers that already set that one see no change on Register.
+  registerEmailInputLabel?: string;
+  // Google button wording per flow. Defaults: login 'continue_with',
+  // register 'signup_with'. The Microsoft button follows the same choice.
+  loginGoogleButtonText?: GoogleButtonText;
+  registerGoogleButtonText?: GoogleButtonText;
   inputClassName?: string;
   contentAlignment?: 'left' | 'center' | 'right';
   titleSpacing?: string;
@@ -94,6 +102,9 @@ const Auth = ({
   title,
   titleClassName,
   emailInputLabel,
+  registerEmailInputLabel,
+  loginGoogleButtonText,
+  registerGoogleButtonText,
   inputClassName,
   contentAlignment,
   titleSpacing,
@@ -352,6 +363,7 @@ const Auth = ({
                   title={title}
                   titleClassName={titleClassName}
                   emailInputLabel={emailInputLabel}
+                  googleButtonText={loginGoogleButtonText}
                   inputClassName={inputClassName}
                   contentAlignment={contentAlignment}
                   titleSpacing={titleSpacing}
@@ -366,6 +378,8 @@ const Auth = ({
                   authServiceInstance={authServiceInstance}
                   forgeId={forgeId}
                   inviteToken={inviteToken}
+                  emailInputLabel={registerEmailInputLabel}
+                  googleButtonText={registerGoogleButtonText}
                   cryptoUtils={cryptoUtils}
                   keyshareWorker={keyshareWorker}
                   logoImage={styles?.logoImage}

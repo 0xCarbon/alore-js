@@ -24,6 +24,8 @@
     "continueGoogle": "Google",
     "continueMicrosoft": "Continue with Microsoft",
     "signupMicrosoft": "Sign up with Microsoft",
+    "signinMicrosoft": "Sign in with Microsoft",
+    "signin": "Sign in",
     "signWithPasskey": "Sign in with a passkey",
     "continueApple": "Continue with Apple",
     "emailDomainNotAllowed": "Email domain not allowed",
