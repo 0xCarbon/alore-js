@@ -1468,14 +1468,14 @@ const Login = ({
               type="checkbox"
               checked={trustDevice}
               onChange={(e) => setTrustDevice(e.target.checked)}
-              className="size-4 rounded border-gray-300 text-[--primary-color] focus:ring-[--primary-color]"
+              className="size-4 rounded border-gray-300 text-[--primary-color] focus:ring-0 focus-visible:ring-2 focus-visible:ring-[--primary-color] focus-visible:ring-offset-2"
             />
             {loginDictionary?.trustThisDevice}
           </label>
           <Button
             data-testid="secure-code-submit"
             onClick={() => onClickSecureCodeSubmit()}
-            className="group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent bg-[--primary-color] p-0.5 text-center font-medium text-white duration-300 hover:bg-[--primary-hover] focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
+            className="group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent bg-[--primary-color] p-0.5 text-center font-medium text-white duration-300 hover:bg-[--primary-hover] focus:z-10 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[--primary-color] focus-visible:ring-offset-2"
             disabled={secureCode2FA.length !== 6 || isLoading}
           >
             {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
@@ -1548,7 +1548,7 @@ const Login = ({
           <Button
             data-testid="social-email-code-submit"
             onClick={() => onSubmitSocialEmailCode()}
-            className="group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent bg-[--primary-color] p-0.5 text-center font-medium text-white duration-300 hover:bg-[--primary-hover] focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
+            className="group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent bg-[--primary-color] p-0.5 text-center font-medium text-white duration-300 hover:bg-[--primary-hover] focus:z-10 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[--primary-color] focus-visible:ring-offset-2"
             disabled={socialEmailCode.length !== 6 || isLoading}
           >
             {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
@@ -1587,7 +1587,7 @@ const Login = ({
               {loginDictionary?.cantVerify2fa}
             </span>
             <Button
-              className="bg-alr-red hover:bg-alr-dark-red group relative flex w-full items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
+              className="bg-alr-red hover:bg-alr-dark-red group relative flex w-full items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[--primary-color] focus-visible:ring-offset-2 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
               onClick={() => startHwAuth(0)}
             >
               {loginDictionary?.tryAgain}
@@ -1685,7 +1685,7 @@ const Login = ({
           <Button
             data-testid="secure-code-2FA-submit"
             onClick={() => onSubmitSecureCode2FA()}
-            className="bg-alr-red hover:bg-alr-dark-red group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
+            className="bg-alr-red hover:bg-alr-dark-red group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[--primary-color] focus-visible:ring-offset-2 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
             disabled={secureCode2FA.length !== 6}
           >
             {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}
@@ -1755,7 +1755,7 @@ const Login = ({
           <Button
             data-testid="secure-code-email-submit"
             onClick={() => onSubmitSecureCodeEmail()}
-            className="bg-alr-red hover:bg-alr-dark-red group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-2 focus:ring-red-300 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
+            className="bg-alr-red hover:bg-alr-dark-red group relative mb-6 flex w-full items-center justify-center rounded-lg border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[--primary-color] focus-visible:ring-offset-2 enabled:hover:bg-red-700 disabled:hover:bg-red-900 dark:bg-red-600 dark:hover:bg-red-700 dark:enabled:hover:bg-red-700 dark:disabled:hover:bg-red-600"
             disabled={secureCodeEmail.length !== 6}
           >
             {isLoading && <Spinner className="mr-3 !h-5 w-full !fill-gray-300" />}

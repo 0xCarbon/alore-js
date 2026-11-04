@@ -6,12 +6,20 @@ import {
   TextInputTheme,
 } from 'flowbite-react';
 
+/**
+ * Keyboard-only focus indicator for buttons and checkboxes: a 2px primary ring on
+ * `:focus-visible`, so a mouse click no longer flashes flowbite's `focus:ring-*`
+ * (`focus:ring-0` cancels the `focus:ring-4` in flowbite's button base). Text fields keep
+ * their ring on `:focus` — browsers match `:focus-visible` on a clicked field anyway.
+ */
+export const FOCUS_RING =
+  'focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[var(--primary-color)] focus-visible:ring-offset-2';
+
 export const checkboxTheme: CheckboxTheme = {
   ...flowbiteCheckboxTheme,
   color: {
     ...flowbiteCheckboxTheme?.color,
-    default:
-      'size-4 rounded border border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:ring-offset-cyan-600 dark:focus:ring-cyan-600 text-[var(--primary-color)] hover:text-[var(--primary-hover)] focus:ring-2 focus:ring-[var(--primary-color)]',
+    default: `size-4 rounded border border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-700 text-[var(--primary-color)] hover:text-[var(--primary-hover)] ${FOCUS_RING}`,
   },
 };
 
@@ -19,10 +27,8 @@ export const buttonTheme: ButtonTheme = {
   ...flowbiteButtonTheme,
   color: {
     ...flowbiteButtonTheme?.color,
-    default:
-      'bg-[var(--primary-color)] hover:bg-[var(--primary-hover)] group relative flex items-center justify-center border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[var(--primary-color)] focus-visible:ring-offset-2',
-    light:
-      'border border-gray-300 bg-white text-gray-900 hover:bg-gray-100 focus:z-10 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[var(--primary-color)] focus-visible:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700',
+    default: `bg-[var(--primary-color)] hover:bg-[var(--primary-hover)] group relative flex items-center justify-center border border-transparent p-0.5 text-center font-medium text-white duration-300 focus:z-10 ${FOCUS_RING}`,
+    light: `border border-gray-300 bg-white text-gray-900 hover:bg-gray-100 focus:z-10 ${FOCUS_RING} dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:border-gray-600 dark:hover:bg-gray-700`,
   },
 };
 
@@ -44,7 +50,7 @@ export const textInputTheme: TextInputTheme = {
       base: 'block w-full bg-gray-100 !pl-11 !pr-4 !rounded-full border-0 disabled:cursor-not-allowed disabled:opacity-50',
       sizes: {
         sm: 'p-2 sm:text-xs',
-        md: 'p-2.5 text-sm',
+        md: 'h-10 p-2.5 text-sm',
         lg: 'sm:text-md p-4',
       },
       colors: {
