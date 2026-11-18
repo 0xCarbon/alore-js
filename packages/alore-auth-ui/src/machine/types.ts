@@ -48,7 +48,6 @@ export interface AuthMachineContext {
     nickname: string;
     salt?: string;
   };
-  forgeData?: any;
   socialProviderRegisterUser?: { email: string; nickname: string; salt?: string };
   sessionUser?: SessionUser;
   CCRPublicKey?: { publicKey: PublicKeyCredentialCreationOptions };
@@ -64,7 +63,7 @@ export interface AuthMachineContext {
 }
 
 export type AuthMachineEvents =
-  | { type: 'INITIALIZE'; forgeId?: null | string }
+  | { type: 'INITIALIZE' }
   | { type: 'RESET' }
   | { type: 'RESET_CONTEXT' }
   | {
@@ -77,7 +76,6 @@ export type AuthMachineEvents =
   | { type: 'ADVANCE_TO_PASSWORD' }
   | { type: 'BACK' }
   | { type: 'BACK_TO_IDLE' }
-  | { type: 'SELECT_CONNECTOR' }
   | { type: 'SELECT_PASSWORD_METHOD'; payload: { email: string } }
   | {
       type: 'SOCIAL_LOGIN';
@@ -173,7 +171,6 @@ export type AuthMachineEvents =
         email: string;
         device: string;
         passwordHash: string;
-        isForgeClaim?: boolean;
         locale?: string;
       };
     }
@@ -194,7 +191,6 @@ export type AuthMachineEvents =
         nickname?: string;
         device?: string;
         passwordHash?: string;
-        isForgeClaim?: boolean;
         locale?: string;
       };
     }
@@ -233,7 +229,6 @@ export type AuthMachineEvents =
       payload: {
         email: string;
         nickname?: string;
-        isForgeClaim?: boolean;
         locale?: string;
       };
     }
@@ -263,18 +258,6 @@ export type AuthMachineEvents =
   | { type: 'LOGIN' }
   | { type: 'FORGOT_PASSWORD' }
   | { type: 'SIGN_UP' }
-  | { type: 'LOGIN_WITH_WEB3CONNECTOR' }
-  | { type: 'CONFIRM_WEB3_LOGIN' }
-  | {
-      type: 'VERIFY_EMAIL_ELIGIBILITY';
-      email: string;
-      isForgeClaim?: boolean;
-      locale?: string;
-    }
-  | {
-      type: 'VERIFY_CLAIM_NFT_EMAIL_2FA';
-      payload: { email: string; emailCode: string };
-    }
   | { type: 'BACK_TO_LOGIN' }
   | {
       type: 'SETUP_REGISTER_USER';
@@ -320,11 +303,6 @@ export type AuthMachineServices = {
   verifyLogin: AuthReturn;
   verifyEmail2fa: ValidSession;
   sendConfirmationEmail: AuthReturn;
-  fetchForgeData: { data: any };
-  verifyEmailEligibility: AuthReturn;
-  verifyClaimNftEmail2fa: {
-    data: {};
-  };
   startRegisterPasskey: {
     data: {};
   };

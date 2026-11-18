@@ -310,3 +310,36 @@ describe('login.socialEmailCode (provider does not vouch for the address)', () =
     service.stop();
   });
 });
+
+/**
+ * The NFT forge-claim flow called Alore routes that no longer exist
+ * (`/forges/{id}`, `/auth/v1/email-eligibility-verification`,
+ * `/auth/v1/eligible-email-code-verification`): the web3 module was removed
+ * from Alore (owner decision 2026-11-18). Nothing in the machine may reach them.
+ */
+describe('the forge-claim flow is gone', () => {
+  const stateIds = (node: { id: string; states?: Record<string, unknown> }): string[] => [
+    node.id,
+    ...Object.values(node.states ?? {}).flatMap((child) => stateIds(child as never)),
+  ];
+
+  it('has no web3Connector or fetchingForgeData state', () => {
+    const ids = stateIds(authMachine as never);
+    expect(ids.filter((id) => /web3Connector|ForgeData/.test(id))).toEqual([]);
+  });
+
+  it('invokes none of the removed services', () => {
+    const invoked = JSON.stringify(authMachine.definition);
+    ['fetchForgeData', 'verifyEmailEligibility', 'verifyClaimNftEmail2fa'].forEach((src) => {
+      expect(invoked).not.toContain(`"${src}"`);
+    });
+  });
+
+  it('INITIALIZE with a forgeId still lands on the login screen', () => {
+    const service = startMachine();
+    service.send({ type: 'INITIALIZE', forgeId: 'f1' } as never);
+    expect(service.state.matches('active.login')).toBe(true);
+    expect(service.state.matches('active.login.fetchingForgeData')).toBe(false);
+    service.stop();
+  });
+});

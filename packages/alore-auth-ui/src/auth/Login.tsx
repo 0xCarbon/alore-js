@@ -23,9 +23,7 @@ import {
   authErrorImage,
   fingerprint,
   fingerprintError,
-  metamaskLogo,
   microsoftLogo,
-  walletConnectLogo,
 } from '../utils';
 import { buildWalletExtensions, resolveWalletSecret } from '../utils/passkeyExtensions';
 import {
@@ -52,7 +50,6 @@ const ABORT_CONDITIONAL_UI = 'abort-conditional-ui';
 export interface LoginProps {
   locale?: Locale;
   authServiceInstance: AuthInstance;
-  forgeId?: string;
   logoImage?: React.ReactNode;
   keyshareWorker?: Worker | null;
   cryptoUtils: {
@@ -116,7 +113,6 @@ const RESEND_COOLDOWN_SECONDS = 30;
 const Login = ({
   locale = 'pt',
   authServiceInstance,
-  forgeId,
   logoImage,
   keyshareWorker,
   cryptoUtils,
@@ -484,9 +480,7 @@ const Login = ({
       authState.matches('active.login.verifyingRegisterPublicKeyCredential') ||
       authState.matches('active.login.retrievingCredentialRCR') ||
       authState.matches('active.login.signingCredentialRCR') ||
-      authState.matches('active.login.resendingConfirmationEmail') ||
-      authState.matches('active.web3Connector.verifyingClaimNftEmail2fa') ||
-      authState.matches('active.web3Connector.verifyingEmailEligibility'),
+      authState.matches('active.login.resendingConfirmationEmail'),
     [authState.value],
   );
 
@@ -610,11 +604,7 @@ const Login = ({
 
   useEffect(() => {
     if (registerUser) {
-      if (forgeId) {
-        sendAuth(['RESET', { type: 'INITIALIZE', forgeId }]);
-      } else {
-        sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'LOGIN']);
-      }
+      sendAuth(['RESET', 'INITIALIZE', 'LOGIN']);
     }
   }, [registerUser]);
 
@@ -740,7 +730,6 @@ const Login = ({
             email,
             device,
             passwordHash: secureHashArgon2d,
-            isForgeClaim: !!forgeId,
             locale,
           },
         });
@@ -834,7 +823,6 @@ const Login = ({
         passwordHash: secureHashArgon2d,
         device: currentDevice,
         nickname: resolvedEmail,
-        isForgeClaim: !!forgeId,
         locale,
       },
     });
@@ -1013,7 +1001,7 @@ const Login = ({
               `font-inter text-xl font-bold text-gray-700 ${getTextAlignment}`
             }
           >
-            {loginTitle || (forgeId ? loginDictionary?.forgeLogin : loginDictionary?.loginAccount)}
+            {loginTitle || loginDictionary?.loginAccount}
           </h1>
         )}
         <div className="mt-4 flex flex-col gap-y-5">
@@ -1133,30 +1121,6 @@ const Login = ({
               <div className="h-[0.5px] w-full bg-gray-300" />
             </>
           )}
-          {forgeId && (
-            <Button
-              color="light"
-              onClick={() => sendAuth('LOGIN_WITH_WEB3CONNECTOR')}
-              outline
-            >
-              <div className="flex flex-row items-center justify-center gap-2">
-                <div className="relative flex flex-row">
-                  <img
-                    src={metamaskLogo}
-                    alt="metamask logo"
-                    width={20}
-                    className="absolute right-3"
-                  />
-                  <img
-                    src={walletConnectLogo}
-                    alt="walletconnect logo"
-                    width={20}
-                  />
-                </div>
-                {loginDictionary?.metamaskWalletConnect}
-              </div>
-            </Button>
-          )}
           {/* Deliberately centred and stacked, independent of `contentAlignment`:
               the sign-up prompt is the one element the design centres under the
               card regardless of how the rest of the form is aligned. */}
@@ -1166,7 +1130,7 @@ const Login = ({
               data-testid="sign-up-button"
               className="text-sm"
               onClick={() => {
-                sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
+                sendAuth(['RESET', 'INITIALIZE', 'SIGN_UP']);
               }}
             >
               {loginDictionary?.signUp}
@@ -1185,7 +1149,6 @@ const Login = ({
     loginTitle,
     inputClassName,
     emailInputLabel,
-    forgeId,
     loginDictionary,
     authAbortController,
     isConditionalMediationAvailable,
@@ -1394,7 +1357,7 @@ const Login = ({
               data-testid="sign-up-button"
               className="text-sm"
               onClick={() => {
-                sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
+                sendAuth(['RESET', 'INITIALIZE', 'SIGN_UP']);
               }}
             >
               {loginDictionary?.signUp}
@@ -1419,7 +1382,6 @@ const Login = ({
     sendAuth,
     handleSubmitPassword,
     onSubmitLogin,
-    forgeId,
     isLoginSubmitDisabled,
     getTextAlignment,
   ]);
@@ -1813,42 +1775,24 @@ const Login = ({
       className={`flex size-full min-h-full flex-col items-center justify-center ${titleSpacing}`}
       data-testid="login-page"
     >
-      {forgeId ? (
-        <div className="flex flex-col">
-          <span className="font-poppins text-alr-grey text-center text-2xl font-black">
-            Tardezinha com Thiaguinho
-          </span>
-          <div className="flex w-full flex-row items-center justify-center gap-2">
-            <span className="font-inter text-sm font-medium text-gray-900">
-              {dictionary?.auth.poweredBy}
-            </span>
-            <img
-              src={aloreLogoBlack}
-              alt="alore logo"
-              width="60"
-            />
-          </div>
-        </div>
-      ) : (
-        <div
-          className={`mx-5 flex min-w-80 flex-col gap-3 px-6 md:mx-7 md:w-96 ${getAlignmentClasses} ${logoContainerClassName || ''}`}
-        >
-          {logoImage || (
-            <img
-              src={aloreLogoBlack}
-              alt="alore logo"
-              width={authState.matches('active.login.newDevice') ? 153 : 201}
-            />
+      <div
+        className={`mx-5 flex min-w-80 flex-col gap-3 px-6 md:mx-7 md:w-96 ${getAlignmentClasses} ${logoContainerClassName || ''}`}
+      >
+        {logoImage || (
+          <img
+            src={aloreLogoBlack}
+            alt="alore logo"
+            width={authState.matches('active.login.newDevice') ? 153 : 201}
+          />
+        )}
+        {title &&
+          (authState.matches('active.login.idle') ||
+            authState.matches('active.login.googleLogin') ||
+            authState.matches('active.login.retrievingSalt') ||
+            authState.matches('active.login.verifyingRegisterPublicKeyCredential')) && (
+            <h2 className={titleClassName}>{title}</h2>
           )}
-          {title &&
-            (authState.matches('active.login.idle') ||
-              authState.matches('active.login.googleLogin') ||
-              authState.matches('active.login.retrievingSalt') ||
-              authState.matches('active.login.verifyingRegisterPublicKeyCredential')) && (
-              <h2 className={titleClassName}>{title}</h2>
-            )}
-        </div>
-      )}
+      </div>
       <Card
         className={twMerge(
           `md:child:!px-9 mx-5 flex min-w-[20rem] !rounded-2xl border-gray-200 px-2 py-4 md:mx-7 md:w-96`,
@@ -1861,7 +1805,6 @@ const Login = ({
           <Spinner className="my-20 !h-14 w-full !fill-[var(--primary-color)]" />
         ) : (
           <>
-            {forgeId && authState.matches('active.web3Connector') && 'TODO'}
             {(authState.matches('active.login.idle') ||
               authState.matches('active.login.googleLogin') ||
               authState.matches('active.login.retrievingSalt') ||

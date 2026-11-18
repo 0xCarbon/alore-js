@@ -18,7 +18,6 @@
     "dontUseYourNameOrEmail": "Não use seu nome ou e-mail"
   },
   "auth": {
-    "poweredBy": "Distribuído por",
     "continueWith": "Ou continue com:",
     "selectAnOption": "Selecione uma das opções",
     "continueGoogle": "Google",
@@ -42,18 +41,12 @@
         "subtitle": "Para isso, utilize sua account em nosso serviço de carteiras digitais. Ele irá manter seu colecionável seguro."
       }
     },
-    "web3Connector": {
-      "acceptConnection": "Aceite o pedido de conexão",
-      "connectionPending": "Não está vendo o pedido de conexão da sua carteira? Verifique as outras janelas do seu navegador.",
-      "typeEmail": "Digite o e-mail que você forneceu para o"
-    },
     "login": {
       "login": "Entrar",
       "passkeyLogin": "Entrar com passkey",
       "password": "Senha",
       "continue": "Continuar",
       "passkey": "Passkey",
-      "forgeLogin": "Conecte-se para resgatar sua NFT",
       "invalidEmailPassword": "E-mail ou senha inválida",
       "somethingWrong": "Algo deu errado",
       "invalidEmailPasswordDescription": "A combinação de e-mail e senha que você digitou está incorreta ou inválida.",
@@ -94,8 +87,7 @@
       "noPasskey": "Nenhuma passkey encontrada",
       "noPasskeyDescription": "Nenhuma passkey encontrada para sua conta.",
       "forgotPassword": "Esqueceu sua senha? Clique aqui",
-      "errorCode": "Código de erro:",
-      "metamaskWalletConnect": "Metamask/WalletConnect"
+      "errorCode": "Código de erro:"
     },
     "register": {
       "password": "Senha",
@@ -106,7 +98,6 @@
       "passkeyCreatedButNotAuthenticated": "Passkey criada!",
       "passkeyCreatedButNotAuthenticatedDescription": "Sua passkey foi criada, mas você precisa autenticar para completar o processo de autenticação.",
       "backToLogin": "Voltar para login",
-      "forgeTitle": "Crie uma conta e resgate sua NFT",
       "emailLabel": "Insira seu e-mail",
       "emailPlaceholder": "seuemail@email.com",
       "emailInvitePlaceholder": "Este e-mail será seu login",

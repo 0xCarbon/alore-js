@@ -13,7 +13,6 @@ const initialContext: AuthMachineContext = {
   registerUser: undefined,
   socialProviderRegisterUser: undefined,
   sessionUser: undefined,
-  forgeData: undefined,
   CCRPublicKey: undefined,
   RCRPublicKey: undefined,
   // authProviderConfigs: undefined,
@@ -38,13 +37,7 @@ export const authMachine = createMachine(
     states: {
       inactive: {
         on: {
-          INITIALIZE: [
-            {
-              target: 'active.login.fetchingForgeData',
-              cond: 'forgeClaim',
-            },
-            'active',
-          ],
+          INITIALIZE: 'active',
         },
         exit: assign({
           error: () => undefined,
@@ -55,84 +48,6 @@ export const authMachine = createMachine(
 
       active: {
         states: {
-          web3Connector: {
-            states: {
-              connecting: {
-                on: {
-                  CONFIRM_WEB3_LOGIN: 'emailInput',
-                },
-              },
-
-              emailInput: {
-                on: {
-                  VERIFY_EMAIL_ELIGIBILITY: 'verifyingEmailEligibility',
-                },
-                exit: assign({
-                  error: () => undefined,
-                }),
-                entry: assign({
-                  registerUser: () => undefined,
-                  socialProviderRegisterUser: () => undefined,
-                  salt: () => undefined,
-                  sessionId: () => undefined,
-                }),
-              },
-
-              verifyingEmailEligibility: {
-                invoke: {
-                  src: 'verifyEmailEligibility',
-                  onDone: {
-                    target: 'email2faCode',
-                    actions: 'setSessionId',
-                  },
-                  onError: {
-                    target: 'emailInput',
-                    actions: assign({
-                      error: (_, event) => event.data?.message,
-                    }),
-                  },
-                },
-                entry: assign({
-                  error: () => undefined,
-                }),
-              },
-
-              email2faCode: {
-                on: {
-                  VERIFY_CLAIM_NFT_EMAIL_2FA: 'verifyingClaimNftEmail2fa',
-                },
-              },
-
-              verifyingClaimNftEmail2fa: {
-                invoke: {
-                  src: 'verifyClaimNftEmail2fa',
-                  onDone: 'emailConfirmed',
-                  onError: {
-                    target: 'email2faCode',
-                    actions: assign({
-                      error: (_, event) => event.data?.error || event.data?.message,
-                    }),
-                  },
-                },
-                entry: assign({
-                  error: () => undefined,
-                }),
-              },
-
-              emailConfirmed: {
-                type: 'final',
-              },
-
-              idle: {
-                on: {
-                  SELECT_CONNECTOR: 'connecting',
-                },
-              },
-            },
-
-            initial: 'idle',
-          },
-
           login: {
             states: {
               idle: {
@@ -208,7 +123,6 @@ export const authMachine = createMachine(
                 initial: 'authScreen',
 
                 on: {
-                  LOGIN_WITH_WEB3CONNECTOR: '#authMachine.active.web3Connector',
                   SOCIAL_LOGIN: 'socialLogin',
                   ADVANCE_TO_PASSWORD: 'inputPassword',
                   SIGN_IN_WITH_PASSKEY: '#authMachine.active.login.idle.signWithPasskey',
@@ -675,19 +589,6 @@ export const authMachine = createMachine(
                 }),
               },
 
-              fetchingForgeData: {
-                invoke: {
-                  src: 'fetchForgeData',
-                  onDone: {
-                    target: 'idle',
-                    actions: assign({
-                      forgeData: (_, event) => event.data,
-                    }),
-                  },
-                  onError: 'idle',
-                },
-              },
-
               socialLogin: {
                 invoke: {
                   src: 'socialLogin',
@@ -896,7 +797,6 @@ export const authMachine = createMachine(
                 on: {
                   SHOW_TERMS_MODAL: 'termsModal',
                   ADVANCE_TO_PASSWORD: 'createPassword',
-                  LOGIN_WITH_WEB3CONNECTOR: '#authMachine.active.web3Connector',
 
                   SETUP_REGISTER_USER: {
                     target: 'idle',
@@ -1482,15 +1382,6 @@ export const authMachine = createMachine(
       verifyEmail2fa: async (context, event) => {
         throw new Error('Not implemented');
       },
-      verifyEmailEligibility: async (_, event) => {
-        throw new Error('Not implemented');
-      },
-      verifyClaimNftEmail2fa: async (context, event) => {
-        throw new Error('Not implemented');
-      },
-      fetchForgeData: async (_, event) => {
-        throw new Error('Not implemented');
-      },
       socialLogin: async (_, event) => {
         throw new Error('Not implemented');
       },
@@ -1500,7 +1391,6 @@ export const authMachine = createMachine(
       isNewUser: (_, event) => !!event.data.isNewUser,
       isSocialEmailChallenge: (_, event) => !!event.data?.emailChallenge,
       hasSocialChallenge: (context) => !!context.socialChallenge,
-      forgeClaim: (_, event) => !!event.forgeId,
       hasSalt: (context) => !!context.salt,
       hasHardware2FA: (context, event) => {
         const { data } = event;
@@ -1636,7 +1526,6 @@ export const authService = (services: {}, context: AuthMachineContext) => {
           isNewUser: (_, event) => !!event.data.isNewUser,
           isSocialEmailChallenge: (_, event) => !!event.data?.emailChallenge,
           hasSocialChallenge: (ctx) => !!ctx.socialChallenge,
-          forgeClaim: (_, event) => !!event.forgeId,
           hasSalt: (ctx) => !!ctx.salt,
           hasHardware2FA: (ctx, event) => {
             const { data } = event;
@@ -1714,7 +1603,6 @@ export const authService = (services: {}, context: AuthMachineContext) => {
           state.matches('active.login.idle') ||
           state.matches('active.register.userCreated') ||
           state.matches('active.login.successfulLogin') ||
-          state.matches('active.web3Connector.emailConfirmed') ||
           state.matches('active.forgotPassword.passwordSaved'));
 
       if (shouldUpdate && typeof window !== 'undefined') {
