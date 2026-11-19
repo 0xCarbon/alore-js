@@ -1449,7 +1449,7 @@ export const authMachine = createMachine(
 
 /**
  * Resolves the snapshot persisted under localStorage 'authState'. A snapshot
- * this version cannot resolve (unparsable JSON, or a state an older version
+ * this version cannot resolve (malformed JSON, or a state an older version
  * persisted and this one removed, such as `active.web3Connector`) is dropped
  * and the machine starts fresh: importing the package must never throw.
  */

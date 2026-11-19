@@ -375,7 +375,7 @@ describe('persisted authState hydration', () => {
     expect(storage.store.has('authState')).toBe(false);
   });
 
-  it('drops unparsable JSON', () => {
+  it('drops malformed JSON', () => {
     const storage = memoryStorage('{not json');
     expect(hydratePersistedAuthState(storage)).toBeUndefined();
     expect(storage.store.has('authState')).toBe(false);
