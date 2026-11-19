@@ -15,3 +15,7 @@ The flow called Alore routes that no longer exist: `/forges/{id}`, `/auth/v1/ema
   - the dictionary keys `web3Connector`, `poweredBy`, `login.forgeLogin`, `login.metamaskWalletConnect` and `register.forgeTitle`.
 
 `INITIALIZE` now always enters the login screen. Apps that never passed `forgeId` (Joori) see no change.
+
+A browser that persisted the removed `web3Connector` state (or unparsable JSON) under localStorage `authState` no longer makes the package throw at import: `hydratePersistedAuthState` drops that snapshot and the machine starts fresh.
+
+The `@alore/crypto-sdk` package and the example app's keyshare worker are removed from this repo: every call they made (`/dkls23/keygen/*`, `/dkls23/sign/*`, `/keyshares`, `/import-account-server-keyshare`) went with Alore's web3 module.

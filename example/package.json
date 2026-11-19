@@ -10,8 +10,6 @@
   },
   "devDependencies": {
     "@alore/auth-react-ui": "workspace:*",
-    "@alore/crypto-sdk": "workspace:*",
-    "@0xcarbon/dkls23-wasm": "1.0.2",
     "@heroicons/react": "2.0.16",
     "@hookform/resolvers": "3.1.0",
     "@react-oauth/google": "0.12.1",
@@ -21,8 +19,6 @@
     "argon2-browser": "1.18.0",
     "autoprefixer": "10.4.19",
     "base64-loader": "1.0.0",
-    "ethers": "6.7.1",
-    "hpke-js": "1.2.7",
     "flowbite": "2.3.0",
     "flowbite-react": "0.12.5",
     "js-cookie": "3.0.5",

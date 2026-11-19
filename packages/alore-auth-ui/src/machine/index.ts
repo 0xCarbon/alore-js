@@ -1447,27 +1447,42 @@ export const authMachine = createMachine(
   },
 );
 
-let stateDefinition;
-
-// @ts-ignore
-if (typeof window !== 'undefined') {
-  const authState = localStorage.getItem('authState');
-  if (authState) {
+/**
+ * Resolves the snapshot persisted under localStorage 'authState'. A snapshot
+ * this version cannot resolve (unparsable JSON, or a state an older version
+ * persisted and this one removed, such as `active.web3Connector`) is dropped
+ * and the machine starts fresh: importing the package must never throw.
+ */
+export function hydratePersistedAuthState(storage: Pick<Storage, 'getItem' | 'removeItem'>): any {
+  const authState = storage.getItem('authState');
+  if (!authState) return undefined;
+  try {
     const parsed = JSON.parse(authState);
     // Drop persisted error on hydration
     if (parsed?.context) {
       parsed.context.error = undefined;
     }
-    stateDefinition = parsed;
+    // @ts-ignore
+    return authMachine.resolveState(State.create(parsed));
+  } catch {
+    try {
+      storage.removeItem('authState');
+    } catch {
+      // storage unavailable: nothing to clean up
+    }
+    return undefined;
   }
 }
 
 let resolvedState: any;
-if (stateDefinition) {
-  const previousState = State.create(stateDefinition);
-
-  // @ts-ignore
-  resolvedState = authMachine.resolveState(previousState);
+// @ts-ignore
+if (typeof window !== 'undefined') {
+  try {
+    resolvedState = hydratePersistedAuthState(localStorage);
+  } catch {
+    // localStorage itself can throw (blocked site data): start fresh
+    resolvedState = undefined;
+  }
 }
 
 export const authService = (services: {}, context: AuthMachineContext) => {
