@@ -4,7 +4,6 @@ import type {
   AuthMachineContext,
   AuthProviderConfig,
   FetchWithProgressiveBackoffConfig,
-  ForgeData,
 } from '../types';
 import { AloreAuthError, ErrorTypes } from './AuthError';
 
@@ -170,7 +169,6 @@ export class AloreAuth {
               nickname?: string | undefined;
               device?: string | undefined;
               passwordHash?: string | undefined;
-              isForgeClaim?: boolean | undefined;
               locale?: string | undefined;
             };
           }
@@ -179,7 +177,6 @@ export class AloreAuth {
             payload: {
               email: string;
               nickname?: string;
-              isForgeClaim?: boolean;
               locale?: string;
             };
           },
@@ -263,7 +260,6 @@ export class AloreAuth {
               email: string;
               device: string;
               passwordHash: string;
-              isForgeClaim?: boolean | undefined;
               locale?: string | undefined;
             };
           }
@@ -274,7 +270,6 @@ export class AloreAuth {
               nickname?: string | undefined;
               device?: string | undefined;
               passwordHash?: string | undefined;
-              isForgeClaim?: boolean | undefined;
               locale?: string | undefined;
             };
           },
@@ -689,84 +684,6 @@ export class AloreAuth {
       }
 
       throw new Error(data.message || data.error || 'Authentication failed');
-    },
-    verifyEmailEligibility: async (
-      _: AuthMachineContext,
-      event: {
-        type: 'VERIFY_EMAIL_ELIGIBILITY';
-        email: string;
-        isForgeClaim?: boolean | undefined;
-        locale?: string | undefined;
-      },
-    ) => {
-      const { email } = event;
-
-      const response = await this.fetchWithProgressiveBackoff(
-        '/auth/v1/email-eligibility-verification',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            email,
-          }),
-        },
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) await this.throwParsedResponseError(response);
-
-      return data;
-    },
-    verifyClaimNftEmail2fa: async (
-      context: AuthMachineContext,
-      event: {
-        type: 'VERIFY_CLAIM_NFT_EMAIL_2FA';
-        payload: {
-          email: string;
-          emailCode: string;
-        };
-      },
-    ) => {
-      const { email, emailCode } = event.payload;
-
-      const response = await this.fetchWithProgressiveBackoff(
-        '/auth/v1/eligible-email-code-verification',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            email,
-            emailCode,
-            sessionId: context.sessionId,
-          }),
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-
-      const data = await response.json();
-
-      if (response.ok) return data;
-
-      await this.throwParsedResponseError(response);
-    },
-    fetchForgeData: async (
-      _: AuthMachineContext,
-      event: {
-        type: 'INITIALIZE';
-        forgeId?: string | null | undefined;
-      },
-    ) => {
-      const response = await this.fetchWithProgressiveBackoff(`/forges/${event.forgeId}`);
-
-      const data = (await response.json()) as ForgeData;
-
-      if (!response.ok) await this.throwParsedResponseError(response);
-
-      return data;
     },
     /**
      * Passwordless social sign-in.

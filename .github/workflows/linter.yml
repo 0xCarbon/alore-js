@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package: [alore-auth-ui, alore-crypto-sdk, alore-auth-sdk]
+        package: [alore-auth-ui, alore-auth-sdk]
     defaults:
       run:
         working-directory: packages/${{ matrix.package }}

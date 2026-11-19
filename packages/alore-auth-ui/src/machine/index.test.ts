@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { interpret, Interpreter } from 'xstate';
 
-import { authMachine } from './index';
+import { authMachine, hydratePersistedAuthState } from './index';
 
 /**
  * JOO-1792 / joori#2670 regression suite.
@@ -308,5 +308,83 @@ describe('login.socialEmailCode (provider does not vouch for the address)', () =
     expect(service.state.matches('active.login.socialEmailCode')).toBe(true);
     expect(service.state.context.socialChallenge).toMatchObject({ sessionId: 'sess-1' });
     service.stop();
+  });
+});
+
+/**
+ * The NFT forge-claim flow called Alore routes that no longer exist
+ * (`/forges/{id}`, `/auth/v1/email-eligibility-verification`,
+ * `/auth/v1/eligible-email-code-verification`): the web3 module was removed
+ * from Alore (owner decision 2026-11-18). Nothing in the machine may reach them.
+ */
+describe('the forge-claim flow is gone', () => {
+  const stateIds = (node: { id: string; states?: Record<string, unknown> }): string[] => [
+    node.id,
+    ...Object.values(node.states ?? {}).flatMap((child) => stateIds(child as never)),
+  ];
+
+  it('has no web3Connector or fetchingForgeData state', () => {
+    const ids = stateIds(authMachine as never);
+    expect(ids.filter((id) => /web3Connector|ForgeData/.test(id))).toEqual([]);
+  });
+
+  it('invokes none of the removed services', () => {
+    const invoked = JSON.stringify(authMachine.definition);
+    ['fetchForgeData', 'verifyEmailEligibility', 'verifyClaimNftEmail2fa'].forEach((src) => {
+      expect(invoked).not.toContain(`"${src}"`);
+    });
+  });
+
+  it('INITIALIZE with a forgeId still lands on the login screen', () => {
+    const service = startMachine();
+    service.send({ type: 'INITIALIZE', forgeId: 'f1' } as never);
+    expect(service.state.matches('active.login')).toBe(true);
+    expect(service.state.matches('active.login.fetchingForgeData')).toBe(false);
+    service.stop();
+  });
+});
+
+describe('persisted authState hydration', () => {
+  // What onTransition persists: the JSON of a real state (here active.login.idle).
+  function persistedSnapshot() {
+    const state = authMachine.transition(authMachine.initialState, { type: 'INITIALIZE' } as never);
+    return JSON.parse(JSON.stringify(state));
+  }
+
+  function memoryStorage(value: string | null) {
+    const store = new Map<string, string>();
+    if (value !== null) store.set('authState', value);
+    return {
+      store,
+      getItem: (k: string) => store.get(k) ?? null,
+      removeItem: (k: string) => {
+        store.delete(k);
+      },
+    };
+  }
+
+  it('drops a snapshot of the removed web3Connector state instead of throwing', () => {
+    // What alore-js <= 1.2.0-alpha.28 persisted after the forge e-mail claim.
+    const storage = memoryStorage(
+      JSON.stringify({
+        ...persistedSnapshot(),
+        value: { active: { web3Connector: 'emailConfirmed' } },
+      }),
+    );
+    expect(hydratePersistedAuthState(storage)).toBeUndefined();
+    expect(storage.store.has('authState')).toBe(false);
+  });
+
+  it('drops malformed JSON', () => {
+    const storage = memoryStorage('{not json');
+    expect(hydratePersistedAuthState(storage)).toBeUndefined();
+    expect(storage.store.has('authState')).toBe(false);
+  });
+
+  it('keeps a snapshot of a state that still exists', () => {
+    const storage = memoryStorage(JSON.stringify(persistedSnapshot()));
+    const resolved = hydratePersistedAuthState(storage);
+    expect(resolved?.matches('active.login.idle')).toBe(true);
+    expect(storage.store.has('authState')).toBe(true);
   });
 });

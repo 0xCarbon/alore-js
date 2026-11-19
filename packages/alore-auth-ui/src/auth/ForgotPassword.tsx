@@ -28,7 +28,6 @@ const lockClosedIcon = () => <LockClosedIcon className="size-4 text-gray-500" />
 export interface ForgotPasswordProps {
   locale?: Locale;
   authServiceInstance: AuthInstance;
-  forgeId?: string;
   logoImage?: React.ReactNode;
   cryptoUtils: {
     hashUserInfo: (_userInfo: string) => string;
@@ -56,7 +55,6 @@ export interface ForgotPasswordProps {
 const ForgotPassword = ({
   locale = 'pt',
   authServiceInstance,
-  forgeId,
   logoImage,
   cryptoUtils,
   contentAlignment = 'center',
@@ -360,7 +358,7 @@ const ForgotPassword = ({
               data-testid="sign-up-button"
               className="text-sm"
               onClick={() => {
-                sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP']);
+                sendAuth(['RESET', 'INITIALIZE', 'SIGN_UP']);
               }}
             >
               {dictionary?.auth.login?.signUp}
@@ -557,35 +555,17 @@ const ForgotPassword = ({
       className={`flex size-full min-h-full flex-col items-center justify-center ${titleSpacing}`}
       data-testid="forgot-password-page"
     >
-      {forgeId ? (
-        <div className="flex flex-col">
-          <span className="font-poppins text-alr-grey text-center text-2xl font-black">
-            Tardezinha com Thiaguinho
-          </span>
-          <div className="flex w-full flex-row items-center justify-center gap-2">
-            <span className="font-inter text-sm font-medium text-gray-900">
-              {dictionary?.auth.poweredBy}
-            </span>
-            <img
-              src={aloreLogoBlack}
-              alt="alore logo"
-              width="60"
-            />
-          </div>
-        </div>
-      ) : (
-        <div
-          className={`mx-5 flex min-w-80 flex-col gap-3 px-6 md:mx-7 md:w-96 ${getAlignmentClasses} ${logoContainerClassName || ''}`}
-        >
-          {logoImage || (
-            <img
-              src={aloreLogoBlack}
-              alt="alore logo"
-              width={201}
-            />
-          )}
-        </div>
-      )}
+      <div
+        className={`mx-5 flex min-w-80 flex-col gap-3 px-6 md:mx-7 md:w-96 ${getAlignmentClasses} ${logoContainerClassName || ''}`}
+      >
+        {logoImage || (
+          <img
+            src={aloreLogoBlack}
+            alt="alore logo"
+            width={201}
+          />
+        )}
+      </div>
       <Card
         className={twMerge(
           `md:child:!px-9 mx-5 flex min-w-[20rem] !rounded-2xl border-gray-200 px-2 py-4 md:mx-7 md:w-96`,

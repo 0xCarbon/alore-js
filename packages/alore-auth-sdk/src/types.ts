@@ -70,7 +70,6 @@ export interface AuthMachineContext {
     nickname: string;
     salt?: string;
   };
-  forgeData?: ForgeData;
   sessionUser?: SessionUser;
   // eslint-disable-next-line no-undef
   CCRPublicKey?: { publicKey: PublicKeyCredentialCreationOptions };
@@ -101,19 +100,6 @@ export type TwoFactorAuth = {
   name: string | null;
   twoFaTypeId: number;
 };
-
-export interface ForgeData {
-  tokenAddress: string;
-  name: string;
-  symbol: string;
-  contractType: string;
-  id: string;
-  mintMethod: string;
-  maxSupply: number;
-  endTime: string;
-  contractAddress: string;
-  chainId: number;
-}
 
 export interface SocialProvider {
   id: string;

@@ -47,7 +47,6 @@ export type AuthError = {
 
 export interface AuthProps {
   googleId?: string;
-  forgeId?: string;
   styles?: {
     primaryColor: string;
     logoImage?: React.ReactNode;
@@ -88,7 +87,6 @@ export interface AuthProps {
 
 const Auth = ({
   googleId,
-  forgeId,
   styles,
   inviteToken,
   keyshareWorker,
@@ -190,7 +188,7 @@ const Auth = ({
 
       if (salt && token) {
         sendAuth([
-          { type: 'INITIALIZE', forgeId },
+          'INITIALIZE',
           'FORGOT_PASSWORD',
           {
             type: 'RESET_PASSWORD',
@@ -224,7 +222,7 @@ const Auth = ({
 
   useEffect(() => {
     if (socialProviderRegisterUser) {
-      sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'SIGN_UP', 'ADVANCE_TO_PASSWORD']);
+      sendAuth(['RESET', 'INITIALIZE', 'SIGN_UP', 'ADVANCE_TO_PASSWORD']);
     }
   }, [socialProviderRegisterUser]);
 
@@ -354,7 +352,6 @@ const Auth = ({
                 <Login
                   locale={locale}
                   authServiceInstance={authServiceInstance}
-                  forgeId={forgeId}
                   cryptoUtils={cryptoUtils}
                   keyshareWorker={keyshareWorker}
                   logoImage={styles?.logoImage}
@@ -376,7 +373,6 @@ const Auth = ({
                 <Register
                   locale={locale}
                   authServiceInstance={authServiceInstance}
-                  forgeId={forgeId}
                   inviteToken={inviteToken}
                   emailInputLabel={registerEmailInputLabel}
                   googleButtonText={registerGoogleButtonText}
@@ -394,7 +390,6 @@ const Auth = ({
                 <ForgotPassword
                   locale={locale}
                   authServiceInstance={authServiceInstance}
-                  forgeId={forgeId}
                   cryptoUtils={cryptoUtils}
                   logoImage={styles?.logoImage}
                   contentAlignment={contentAlignment}

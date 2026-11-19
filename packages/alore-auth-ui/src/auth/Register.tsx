@@ -21,13 +21,7 @@ import { passwordRules, ruleValidation } from '../components/FormRules/helpers';
 import { base64UrlToArrayBuffer, verifyEmptyValues } from '../helpers';
 import useDictionary from '../hooks/useDictionary';
 import { AuthInstance } from '../machine/types';
-import {
-  aloreLogoBlack,
-  authErrorImage,
-  metamaskLogo,
-  microsoftLogo,
-  walletConnectLogo,
-} from '../utils';
+import { aloreLogoBlack, authErrorImage, microsoftLogo } from '../utils';
 import { buildWalletExtensions, resolveWalletSecret } from '../utils/passkeyExtensions';
 import {
   DEFAULT_REGISTER_GOOGLE_BUTTON_TEXT,
@@ -53,7 +47,6 @@ const lockClosedIcon = () => <LockClosedIcon className="size-4 text-gray-500" />
 export interface RegisterProps {
   locale?: Locale;
   authServiceInstance: AuthInstance;
-  forgeId?: string;
   logoImage?: React.ReactNode;
   inviteToken?: string;
   keyshareWorker?: Worker | null;
@@ -97,7 +90,6 @@ const GOOGLE_BUTTON_TYPOGRAPHY = {
 const Register = ({
   locale = 'pt',
   authServiceInstance,
-  forgeId,
   logoImage,
   inviteToken,
   keyshareWorker,
@@ -611,9 +603,7 @@ const Register = ({
       authState.matches('active.register.localRCRSign') ||
       authState.matches('active.register.waitingForRCR') ||
       authState.matches('active.register.sendingPublicCredential') ||
-      authState.matches('active.register.sendingAuthPublicCredential') ||
-      authState.matches('active.web3Connector.verifyingClaimNftEmail2fa') ||
-      authState.matches('active.web3Connector.verifyingEmailEligibility'),
+      authState.matches('active.register.sendingAuthPublicCredential'),
     [authState.value],
   );
 
@@ -739,7 +729,7 @@ const Register = ({
     const { email, nickname } = userInfoGetValues();
     sendAuth({
       type: 'RESEND_CODE',
-      payload: { email, nickname, isForgeClaim: !!forgeId, locale },
+      payload: { email, nickname, locale },
     });
 
     setSendEmailCooldown(15 * cooldownMultiplier);
@@ -758,7 +748,6 @@ const Register = ({
         payload: {
           email,
           nickname: nickname || null,
-          isForgeClaim: !!forgeId,
           locale,
         },
       });
@@ -887,7 +876,7 @@ const Register = ({
           </div>
         ) : (
           <h1 className={`font-inter text-xl font-bold text-gray-700 ${getTextAlignmentClass}`}>
-            {forgeId ? registerDictionary?.forgeTitle : registerDictionary?.title}
+            {registerDictionary?.title}
           </h1>
         )}
         {displayError?.includes('beta') && (
@@ -1050,54 +1039,12 @@ const Register = ({
             data-testid="sign-in-button"
             className="text-sm"
             onClick={() => {
-              sendAuth(['RESET', { type: 'INITIALIZE', forgeId }, 'LOGIN']);
+              sendAuth(['RESET', 'INITIALIZE', 'LOGIN']);
             }}
           >
             {registerDictionary?.loginHere}
           </LinkButton>
         </div>
-        {forgeId && !socialProviders?.length && (
-          <>
-            <div className="h-[0.5px] w-full bg-gray-300" />
-            <div
-              className="w-full"
-              data-testid="register-forge-google-button"
-            >
-              <GoogleLogin
-                key={socialButtonWidth}
-                onSuccess={handleGoogleCredential}
-                onError={() => console.error('Google sign-up failed')}
-                shape="rectangular"
-                size="large"
-                text={googleButtonText}
-                width={socialButtonWidth || undefined}
-                locale={locale}
-              />
-            </div>
-            <Button
-              color="light"
-              onClick={() => sendAuth('LOGIN_WITH_WEB3CONNECTOR')}
-              outline
-            >
-              <div className="flex flex-row items-center justify-center gap-2">
-                <div className="relative flex flex-row">
-                  <img
-                    src={metamaskLogo}
-                    alt="metamask logo"
-                    width={20}
-                    className="absolute right-3"
-                  />
-                  <img
-                    src={walletConnectLogo}
-                    alt="walletconnect logo"
-                    width={20}
-                  />
-                </div>
-                Metamask/WalletConnect
-              </div>
-            </Button>
-          </>
-        )}
       </div>
     ),
     [
@@ -1416,35 +1363,17 @@ const Register = ({
         }}
       />
 
-      {forgeId ? (
-        <div className="flex flex-col">
-          <span className="font-poppins text-alr-grey text-center text-2xl font-black">
-            Tardezinha com Thiaguinho
-          </span>
-          <div className="flex w-full flex-row items-center justify-center gap-2">
-            <span className="font-inter text-sm font-medium text-gray-900">
-              {dictionary?.auth.poweredBy}
-            </span>
-            <img
-              src={aloreLogoBlack}
-              alt="alore logo"
-              width="60"
-            />
-          </div>
-        </div>
-      ) : (
-        <div
-          className={`mx-5 flex min-w-80 flex-col gap-3 px-6 md:mx-7 md:w-96 ${getAlignmentClasses} ${logoContainerClassName || ''}`}
-        >
-          {logoImage || (
-            <img
-              src={aloreLogoBlack}
-              alt="alore logo"
-              width={authState.matches('active.login.newDevice') ? 153 : 201}
-            />
-          )}
-        </div>
-      )}
+      <div
+        className={`mx-5 flex min-w-80 flex-col gap-3 px-6 md:mx-7 md:w-96 ${getAlignmentClasses} ${logoContainerClassName || ''}`}
+      >
+        {logoImage || (
+          <img
+            src={aloreLogoBlack}
+            alt="alore logo"
+            width={authState.matches('active.login.newDevice') ? 153 : 201}
+          />
+        )}
+      </div>
       <Card
         className={twMerge(
           `md:child:!px-9 mx-5 flex min-w-[20rem] !rounded-2xl border-gray-200 px-2 py-4 md:mx-7 md:w-96`,
@@ -1458,7 +1387,6 @@ const Register = ({
           <Spinner className="my-20 !h-14 w-full !fill-[var(--primary-color)]" />
         ) : (
           <>
-            {forgeId && authState.matches('active.web3Connector') && 'TODO'}
             {(authState.matches('active.register.idle') ||
               authState.matches('active.register.termsModal') ||
               authState.matches('active.register.googleLogin') ||

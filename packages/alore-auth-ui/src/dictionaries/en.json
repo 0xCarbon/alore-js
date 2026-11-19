@@ -18,7 +18,6 @@
     "dontUseYourNameOrEmail": "Don’t use your name or e-mail"
   },
   "auth": {
-    "poweredBy": "Powered by",
     "continueWith": "Or continue with:",
     "selectAnOption": "Select an option",
     "continueGoogle": "Google",
@@ -42,18 +41,12 @@
         "subtitle": "To do this, use your account on our digital account service. It will keep your digital collectible safe."
       }
     },
-    "web3Connector": {
-      "acceptConnection": "Accept the connection request",
-      "connectionPending": "Not seeing the pending connection? Verify your other browsers windows",
-      "typeEmail": "Type the email you provided to"
-    },
     "login": {
       "login": "Login",
       "passkeyLogin": "Login with passkey",
       "password": "Password",
       "continue": "Continue",
       "passkey": "Passkey",
-      "forgeLogin": "Login to claim your NFT",
       "invalidEmailPassword": "Invalid e-mail or password",
       "somethingWrong": "Something went wrong",
       "invalidEmailPasswordDescription": "The combination of e-mail and password you wrote is incorrect or not valid.",
@@ -94,8 +87,7 @@
       "noPasskey": "No passkey found",
       "noPasskeyDescription": "No passkey found for your account.",
       "forgotPassword": "Forgot your password?",
-      "errorCode": "Error code:",
-      "metamaskWalletConnect": "Metamask/WalletConnect"
+      "errorCode": "Error code:"
     },
     "register": {
       "password": "Password",
@@ -106,7 +98,6 @@
       "passkeyCreatedButNotAuthenticated": "Passkey created!",
       "passkeyCreatedButNotAuthenticatedDescription": "Your passkey has been created, but you need to authenticate it to complete the registration process.",
       "backToLogin": "Back to login",
-      "forgeTitle": "Create an account and claim your NFT",
       "emailLabel": "Your e-mail",
       "emailPlaceholder": "youremail@email.com",
       "emailInvitePlaceholder": "This e-mail is going to be your log-in",
