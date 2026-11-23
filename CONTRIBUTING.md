@@ -40,7 +40,7 @@ When you contribute code that you believe should trigger a new version of a pack
 
     - The tool will ask you to select which packages need a version bump. Use the arrow keys and spacebar to select all affected packages.
     - For each package, you'll choose whether the change is a `major`, `minor`, or `patch` release.
-    - You will be asked for a summary. Since our changelogs are generated from commit messages, you only need to enter a minimal summary (e.g., a single dot `.`) and hit enter.
+    - You will be asked for a summary. Since our changelogs are generated from commit messages, you only need to enter a minimal summary (e.g., a single dot `.`) and hit enter. The exception is `@alore/platform-contract`: its summary must start with `additive:`, `deprecating:` or `breaking:` (see the package README).
 
 4.  **Commit the Changeset File**: A new markdown file will be generated in the `.changeset` directory. Add this file to your commit.
 
