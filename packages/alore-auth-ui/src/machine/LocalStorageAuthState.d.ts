@@ -68,6 +68,11 @@ interface XEvent {
   origin: string;
 }
 
+/**
+ * @deprecated The shape of the serialized XState snapshot that older versions kept in
+ * localStorage `authState`. It is no longer written, and any stored copy is migrated
+ * on load. Use `PersistedAuthSession`.
+ */
 export interface LocalStorageAuthState {
   actions: Action[];
   activities: Record<string, boolean>;
