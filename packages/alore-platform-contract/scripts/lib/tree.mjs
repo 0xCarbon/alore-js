@@ -1,15 +1,27 @@
 import { execFileSync } from 'node:child_process';
-import { readdirSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 
 import { readText } from './io.mjs';
 import { FILES, PKG_ROOT } from './paths.mjs';
 
 const REL = 'packages/alore-platform-contract';
+const CHANGESETS = '.changeset';
+const isChangeset = (name) => name.endsWith('.md') && name !== 'README.md';
 
 export const git = (...args) =>
   execFileSync('git', args, { cwd: PKG_ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
 
-/** The contract surface and CHANGELOG of the working tree, as text. */
+function readChangesets() {
+  if (!existsSync(FILES.changesetDir)) return {};
+  return Object.fromEntries(
+    readdirSync(FILES.changesetDir)
+      .filter(isChangeset)
+      .sort()
+      .map((name) => [name, readText(`${FILES.changesetDir}/${name}`)]),
+  );
+}
+
+/** The contract surface, CHANGELOG and pending changesets of the working tree, as text. */
 export function readTree() {
   const schemas = {};
   for (const name of readdirSync(FILES.schemasDir).sort()) {
@@ -23,29 +35,50 @@ export function readTree() {
     planned: readText(FILES.planned),
     pin: readText(FILES.pin),
     changelog: readText(FILES.changelog),
+    changesets: readChangesets(),
   };
 }
 
-/** The same surface at a git ref, or null when the package does not exist there yet. */
-export function treeFromGit(ref) {
-  const show = (path) => git('show', `${ref}:${REL}/${path}`);
-  let changelog;
+/** Fail on a ref git does not know: an unknown base must never read as "no package at base". */
+export function verifyRef(ref) {
   try {
-    changelog = show('CHANGELOG.md');
+    git('rev-parse', '--verify', '--quiet', `${ref}^{tree}`);
   } catch {
-    return null;
+    throw new Error(
+      `base ref "${ref}" is not a git object in this checkout (fetch it, or fix the ref)`,
+    );
   }
+}
+
+/**
+ * The same surface at a git ref, or null when the package does not exist there yet (the first
+ * release). An unknown ref throws; only a missing package path means "first release".
+ */
+export function treeFromGit(ref) {
+  verifyRef(ref);
+  const listed = git('ls-tree', '--full-tree', '--name-only', ref, `${REL}/package.json`).trim();
+  if (!listed) return null;
+  const show = (path) => git('show', `${ref}:${path}`);
+  const pkg = (path) => show(`${REL}/${path}`);
+  const changelog = pkg('CHANGELOG.md');
   const names = git('ls-tree', '--full-tree', '--name-only', ref, `${REL}/schemas/`)
     .split('\n')
     .filter((n) => n.endsWith('.schema.json'))
     .map((n) => n.split('/').pop());
   return {
-    schemas: Object.fromEntries(names.map((n) => [n, show(`schemas/${n}`)])),
-    overlay: show('openapi/x-alore.overlay.yaml'),
-    asyncapi: show('asyncapi/asyncapi.yaml'),
-    served: show('routes/served.yaml'),
-    planned: show('routes/planned.yaml'),
-    pin: show('openapi/upstream/PIN.json'),
+    schemas: Object.fromEntries(names.map((n) => [n, pkg(`schemas/${n}`)])),
+    overlay: pkg('openapi/x-alore.overlay.yaml'),
+    asyncapi: pkg('asyncapi/asyncapi.yaml'),
+    served: pkg('routes/served.yaml'),
+    planned: pkg('routes/planned.yaml'),
+    pin: pkg('openapi/upstream/PIN.json'),
     changelog,
+    changesets: Object.fromEntries(
+      git('ls-tree', '--full-tree', '--name-only', ref, `${CHANGESETS}/`)
+        .split('\n')
+        .map((n) => n.split('/').pop())
+        .filter((n) => n && isChangeset(n))
+        .map((n) => [n, show(`${CHANGESETS}/${n}`)]),
+    ),
   };
 }

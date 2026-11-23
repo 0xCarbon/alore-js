@@ -5,13 +5,10 @@ info:
   title: Alore AI API
   description: "The OpenAI-compatible Alore AI API under /ai/v1: the pinned upstream OpenAI spec cut to the routes Alore serves, plus x-alore extensions. Every operation carries x-status."
   version: 0.1.0-alpha.0
-  termsOfService: https://openai.com/policies/terms-of-use
   contact:
-    name: OpenAI Support
-    url: https://help.openai.com/
-  license:
-    name: MIT
-    identifier: MIT
+    name: Alore Support
+    email: support@bealore.com
+    url: https://bealore.com
 servers:
   - url: /ai/v1
     description: Alore AI API. Paths in this document are relative to this base.
@@ -220,6 +217,7 @@ paths:
         "503":
           $ref: "#/components/responses/InferenceServiceUnavailable"
       x-status: stub
+      x-stub-response: 501
   /audio/translations:
     post:
       operationId: createTranslation
@@ -299,6 +297,7 @@ paths:
         "503":
           $ref: "#/components/responses/InferenceServiceUnavailable"
       x-status: stub
+      x-stub-response: 501
   /chat/completions:
     post:
       operationId: createChatCompletion
@@ -459,6 +458,7 @@ paths:
         "503":
           $ref: "#/components/responses/InferenceServiceUnavailable"
       x-status: stub
+      x-stub-response: 501
   /files:
     post:
       operationId: createFile
@@ -992,6 +992,7 @@ paths:
         "503":
           $ref: "#/components/responses/InferenceServiceUnavailable"
       x-status: stub
+      x-stub-response: 501
   /images/edits:
     post:
       operationId: createImageEdit
@@ -1073,6 +1074,7 @@ paths:
         "503":
           $ref: "#/components/responses/InferenceServiceUnavailable"
       x-status: stub
+      x-stub-response: 501
   /images/variations:
     post:
       operationId: createImageVariation
@@ -1139,6 +1141,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
       x-status: stub
+      x-stub-response: 501
   /models:
     get:
       operationId: listModels
@@ -1229,6 +1232,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
       x-status: stub
+      x-stub-response: 501
   /responses:
     post:
       operationId: createResponse
@@ -1496,6 +1500,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: stub
+      x-stub-response: 501
   /responses/{response_id}/input_items:
     get:
       operationId: listInputItems
@@ -1971,6 +1976,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
+      x-deprecated-since: 0.1.0-alpha.1
     get:
       operationId: listAssistants
       tags:
@@ -2019,6 +2025,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
+      x-deprecated-since: 0.1.0-alpha.1
   /assistants/{assistant_id}:
     get:
       operationId: getAssistant
@@ -2044,6 +2051,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
+      x-deprecated-since: 0.1.0-alpha.1
     post:
       operationId: modifyAssistant
       tags:
@@ -2074,6 +2082,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
+      x-deprecated-since: 0.1.0-alpha.1
     delete:
       operationId: deleteAssistant
       tags:
@@ -2098,6 +2107,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
+      x-deprecated-since: 0.1.0-alpha.1
   /threads:
     post:
       operationId: createThread
@@ -2120,7 +2130,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   /threads/runs:
     post:
       operationId: createThreadAndRun
@@ -2147,7 +2157,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   /threads/{thread_id}:
     get:
       operationId: getThread
@@ -2172,7 +2182,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
     post:
       operationId: modifyThread
       tags:
@@ -2202,7 +2212,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
     delete:
       operationId: deleteThread
       tags:
@@ -2226,7 +2236,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   /threads/{thread_id}/messages:
     post:
       operationId: createMessage
@@ -2257,7 +2267,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
     get:
       operationId: listMessages
       tags:
@@ -2317,7 +2327,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   /threads/{thread_id}/messages/{message_id}:
     post:
       operationId: modifyMessage
@@ -2354,7 +2364,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
     delete:
       operationId: deleteMessage
       tags:
@@ -2384,7 +2394,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
     get:
       operationId: getMessage
       tags:
@@ -2414,7 +2424,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   /threads/{thread_id}/runs:
     post:
       operationId: createRun
@@ -2460,7 +2470,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
     get:
       operationId: listRuns
       tags:
@@ -2514,7 +2524,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   /threads/{thread_id}/runs/{run_id}:
     get:
       operationId: getRun
@@ -2545,7 +2555,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
     post:
       operationId: modifyRun
       tags:
@@ -2581,7 +2591,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   /threads/{thread_id}/runs/{run_id}/submit_tool_outputs:
     post:
       operationId: submitToolOuputsToRun
@@ -2622,7 +2632,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   /threads/{thread_id}/runs/{run_id}/cancel:
     post:
       operationId: cancelRun
@@ -2653,7 +2663,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   /threads/{thread_id}/runs/{run_id}/steps:
     get:
       operationId: listRunSteps
@@ -2726,7 +2736,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   /threads/{thread_id}/runs/{run_id}/steps/{step_id}:
     get:
       operationId: getRunStep
@@ -2775,7 +2785,7 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   /vector_stores:
     post:
       operationId: createVectorStore
@@ -3487,72 +3497,72 @@ paths:
   /fine-tuning/jobs:
     post:
       operationId: alore_post_fine_tuning_jobs
-      summary: Unimplemented fine-tuning route
-      tags:
-        - x-alore
+      summary: Unimplemented fine-tuning route (router spelling)
+      x-upstream-equivalent: /fine_tuning/jobs
       x-status: stub
-      description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+      x-stub-response: 501
+      description: Not implemented. The upstream operation is /fine_tuning/jobs; the router serves it as /fine-tuning/jobs, a router bug (INC-202). A stub answers 501 not_implemented as problem+json.
       responses:
         "501":
           $ref: "#/components/responses/AloreProblem"
     get:
       operationId: alore_get_fine_tuning_jobs
-      summary: Unimplemented fine-tuning route
-      tags:
-        - x-alore
+      summary: Unimplemented fine-tuning route (router spelling)
+      x-upstream-equivalent: /fine_tuning/jobs
       x-status: stub
-      description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+      x-stub-response: 501
+      description: Not implemented. The upstream operation is /fine_tuning/jobs; the router serves it as /fine-tuning/jobs, a router bug (INC-202). A stub answers 501 not_implemented as problem+json.
       responses:
         "501":
           $ref: "#/components/responses/AloreProblem"
   /fine-tuning/jobs/{fine_tuning_job_id}:
     get:
       operationId: alore_get_fine_tuning_jobs_fine_tuning_job_id
-      summary: Unimplemented fine-tuning route
-      tags:
-        - x-alore
+      summary: Unimplemented fine-tuning route (router spelling)
+      x-upstream-equivalent: /fine_tuning/jobs/{fine_tuning_job_id}
       x-status: stub
+      x-stub-response: 501
       parameters:
         - name: fine_tuning_job_id
           in: path
           required: true
           schema:
             type: string
-      description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+      description: Not implemented. The upstream operation is /fine_tuning/jobs/{fine_tuning_job_id}; the router serves it as /fine-tuning/jobs/{fine_tuning_job_id}, a router bug (INC-202). A stub answers 501 not_implemented as problem+json.
       responses:
         "501":
           $ref: "#/components/responses/AloreProblem"
   /fine-tuning/jobs/{fine_tuning_job_id}/cancel:
     post:
       operationId: alore_post_fine_tuning_jobs_fine_tuning_job_id_cancel
-      summary: Unimplemented fine-tuning route
-      tags:
-        - x-alore
+      summary: Unimplemented fine-tuning route (router spelling)
+      x-upstream-equivalent: /fine_tuning/jobs/{fine_tuning_job_id}/cancel
       x-status: stub
+      x-stub-response: 501
       parameters:
         - name: fine_tuning_job_id
           in: path
           required: true
           schema:
             type: string
-      description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+      description: Not implemented. The upstream operation is /fine_tuning/jobs/{fine_tuning_job_id}/cancel; the router serves it as /fine-tuning/jobs/{fine_tuning_job_id}/cancel, a router bug (INC-202). A stub answers 501 not_implemented as problem+json.
       responses:
         "501":
           $ref: "#/components/responses/AloreProblem"
   /fine-tuning/jobs/{fine_tuning_job_id}/events:
     get:
       operationId: alore_get_fine_tuning_jobs_fine_tuning_job_id_events
-      summary: Unimplemented fine-tuning route
-      tags:
-        - x-alore
+      summary: Unimplemented fine-tuning route (router spelling)
+      x-upstream-equivalent: /fine_tuning/jobs/{fine_tuning_job_id}/events
       x-status: stub
+      x-stub-response: 501
       parameters:
         - name: fine_tuning_job_id
           in: path
           required: true
           schema:
             type: string
-      description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+      description: Not implemented. The upstream operation is /fine_tuning/jobs/{fine_tuning_job_id}/events; the router serves it as /fine-tuning/jobs/{fine_tuning_job_id}/events, a router bug (INC-202). A stub answers 501 not_implemented as problem+json.
       responses:
         "501":
           $ref: "#/components/responses/AloreProblem"
@@ -3653,13 +3663,14 @@ paths:
       tags:
         - x-alore
       x-status: stub
+      x-stub-response: 501
       parameters:
         - name: assistant_id
           in: path
           required: true
           schema:
             type: string
-      description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+      description: Not implemented. A stub answers 501 not_implemented as problem+json.
       responses:
         "501":
           $ref: "#/components/responses/AloreProblem"
@@ -3669,13 +3680,14 @@ paths:
       tags:
         - x-alore
       x-status: stub
+      x-stub-response: 501
       parameters:
         - name: assistant_id
           in: path
           required: true
           schema:
             type: string
-      description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+      description: Not implemented. A stub answers 501 not_implemented as problem+json.
       responses:
         "501":
           $ref: "#/components/responses/AloreProblem"
@@ -3686,6 +3698,7 @@ paths:
       tags:
         - x-alore
       x-status: stub
+      x-stub-response: 501
       parameters:
         - name: assistant_id
           in: path
@@ -3697,7 +3710,7 @@ paths:
           required: true
           schema:
             type: string
-      description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+      description: Not implemented. A stub answers 501 not_implemented as problem+json.
       responses:
         "501":
           $ref: "#/components/responses/AloreProblem"
@@ -3707,6 +3720,7 @@ paths:
       tags:
         - x-alore
       x-status: stub
+      x-stub-response: 501
       parameters:
         - name: assistant_id
           in: path
@@ -3718,7 +3732,7 @@ paths:
           required: true
           schema:
             type: string
-      description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+      description: Not implemented. A stub answers 501 not_implemented as problem+json.
       responses:
         "501":
           $ref: "#/components/responses/AloreProblem"
@@ -3729,7 +3743,7 @@ paths:
       tags:
         - x-alore
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
       parameters:
         - name: thread_id
           in: path
@@ -3753,7 +3767,7 @@ paths:
       tags:
         - x-alore
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
       parameters:
         - name: thread_id
           in: path
@@ -3777,7 +3791,7 @@ paths:
       tags:
         - x-alore
       x-status: legacy-replaced
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
       parameters:
         - name: vector_store_id
           in: path
@@ -3796,7 +3810,7 @@ paths:
       tags:
         - x-alore
       x-status: legacy-replaced
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
       parameters:
         - name: vector_store_id
           in: path
@@ -3843,7 +3857,7 @@ paths:
       tags:
         - x-alore
       x-status: legacy-replaced
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
       parameters:
         - name: vector_store_id
           in: path
@@ -23272,6 +23286,7 @@ x-upstream:
   repository: https://github.com/openai/openai-openapi
   commit: 2a24deae6f89f84d0e88ce3c9d96c00304dca0b8
   spec_version: 2.3.0
+  license: MIT
   sha256: fb196a60eef4125b6e4c6874488eed9022a6be8014aff5e874f74930daf5b559
 x-alore-contract:
   version: 0.1.0-alpha.0

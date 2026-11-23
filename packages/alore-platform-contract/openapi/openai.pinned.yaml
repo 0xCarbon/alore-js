@@ -5,13 +5,6 @@ info:
   title: OpenAI API
   description: The OpenAI REST API. Please see https://platform.openai.com/docs/api-reference for more details.
   version: 2.3.0
-  termsOfService: https://openai.com/policies/terms-of-use
-  contact:
-    name: OpenAI Support
-    url: https://help.openai.com/
-  license:
-    name: MIT
-    identifier: MIT
 servers:
   - url: /ai/v1
     description: Alore AI API. Paths in this document are relative to this base.
@@ -22497,4 +22490,5 @@ x-upstream:
   repository: https://github.com/openai/openai-openapi
   commit: 2a24deae6f89f84d0e88ce3c9d96c00304dca0b8
   spec_version: 2.3.0
+  license: MIT
   sha256: fb196a60eef4125b6e4c6874488eed9022a6be8014aff5e874f74930daf5b559

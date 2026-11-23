@@ -96,8 +96,11 @@ export function lint(args = {}) {
   }
   const base = args.base ?? process.env.CONTRACT_BASE_REF;
   if (base && !/^0+$/.test(base)) {
-    const prev = treeFromGit(base);
-    out.push(...checkChangelog(prev, readTree()));
+    try {
+      out.push(...checkChangelog(treeFromGit(base), readTree()));
+    } catch (error) {
+      out.push({ rule: 'changelog', where: `base ${base}`, message: error.message });
+    }
   }
   return out;
 }

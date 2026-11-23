@@ -6,7 +6,7 @@ routes Alore serves, plus an `x-alore` overlay, JSON Schemas, fixtures and the w
 This repository is public. Keep the package to the contract: no handler paths, internal hostnames,
 customer data, credentials or call-site details.
 
-Status: `0.1.0-alpha.0`. Nothing consumes the package yet. The conformance runner, SDK layer and fake
+Status: alpha prerelease (changesets pre mode, tag `alpha`). Nothing consumes the package yet. The conformance runner, SDK layer and fake
 server are separate packages or later releases.
 
 ## Layout
@@ -48,40 +48,70 @@ CI does this on every pull request.
 
 1. `scripts/cut.mjs` keeps, from the pinned upstream spec, every operation of `routes/served.yaml` and of
    `routes/planned.yaml` that upstream defines, plus the components they reach. It sets `servers` to the
-   `/ai/v1` base, drops `x-oaiMeta` documentation metadata, and changes nothing else. The cut is built from the
+   `/ai/v1` base, drops `x-oaiMeta` documentation metadata, drops OpenAI's own `info.termsOfService`,
+   `info.contact` and `info.license`, and changes nothing else. The cut is built from the
    route tables, never from a generated server spec, because a generated spec can omit routes the router serves.
 2. The overlay is applied with a small Overlay 1.0 engine (`scripts/lib/overlay.mjs`). Targets use a JSONPath
    subset; `remove` actions are rejected.
-3. `info.version` is set to the package version.
+3. `info.version` and `x-alore-contract.version` are set to the package version. `changeset version` bumps the
+   package, so the release workflow runs `pnpm run version-packages` (`changeset version`, then `generate`);
+   running only `changeset version` leaves a stale stamp that lint and the tests reject.
+
+The overlay sets Alore's `info.contact`. The document has no `termsOfService`. The MIT attribution of the
+upstream spec stays in `openapi/upstream/LICENSE` and the `x-upstream` block.
 
 Paths in the document are relative to the `/ai/v1` server, as in upstream. Matching a served route to an
 upstream operation ignores path-parameter names (`/responses/{id}` is `/responses/{response_id}`).
 
 ## Rules, enforced by `pnpm run lint`
 
-- The overlay only adds. It may add optional fields, enum values on Alore-owned enums (an extended enum carries
-  `x-alore-enum-extension: true`), `x-` marks and new `/ai/v1` paths tagged `x-alore`. It never changes the type,
-  requiredness or meaning of a field OpenAI defines, and it never adds a value to an OpenAI-defined enum.
+- The overlay only adds, and what it may add to a node the pinned spec defines is an allowlist: `description`,
+  `title`, `example`/`examples`, `x-` marks and new entries under `properties`, plus whole new paths,
+  operations and components. Any other key on an upstream node (`enum`, `minProperties`, `propertyNames`,
+  `multipleOf`, `discriminator`, `requestBody`, a `type`, ...) fails, as does a changed or removed value, a
+  required field that was optional, a required parameter, or a value added to an OpenAI-defined enum. Alore-owned
+  enums live in `schemas/`, not in the overlay.
+- A property the overlay adds to an upstream schema carries `x-alore-feature` (rule `feature-gate`): a client that
+  did not negotiate the feature never sees it.
 - Upstream first. A path, operation or schema name is defined by the overlay only where the pinned spec has no
-  equivalent. Where upstream has one, the overlay marks its status and Alore implements the upstream shape. The
-  check runs against the whole upstream document, not only the cut.
+  equivalent, comparing paths with parameter names erased and `-` read as `_`. Where upstream has one, the overlay
+  marks its status and Alore implements the upstream shape. The check runs against the whole upstream document,
+  not only the cut. The five `/fine-tuning/jobs*` stubs are the one closed exception (see Known gaps): they carry
+  `x-upstream-equivalent`, not the `x-alore` tag, and a new near-duplicate path fails.
 - Every operation has `x-status`: `live`, `stub`, `planned` or `legacy-replaced`. A deprecation adds
-  `x-deprecated-since`. A stub answers 501 `not_implemented` and never 200.
+  `x-deprecated-since`; the Assistants and Threads emulation carries it on every route. Every stub carries
+  `x-stub-response: 501`: the contract answer of a stub is 501 `not_implemented`. Stubs backed by an upstream
+  operation keep upstream's `200` response in the document as the OpenAI shape only. `routes/served.yaml`
+  (`stub_returns`) records what the router answers today, a constant `200` for most stubs, until INC-202 turns them
+  into 501. A conformance run expects 501 and lists the stubs that still answer 200 as expected failures.
 - Alore-owned outputs are closed. Inputs ignore unknown fields, except a field that narrows a grant, a search
-  or a scope: that one is strict or feature-negotiated.
-- A new optional field on a closed output is gated by `x-alore-feature`, and the change is additive only with the gate.
+  or a scope: that one is strict or feature-negotiated. Reviewer-only: no check tells an input from an output.
 - No model, worker or vendor name appears in a schema, the overlay or the event spec, except `model` enums that
   list aliases (`anga-1-mirim`, `anga-1-saci`). The deny list is `rules/vendor-names.json`.
 - Errors are `application/problem+json` with a `type` from the closed list (`not_found`, `invalid_request`,
   `rate_limited`, `unavailable`, `conflict`, `payload_too_large`, `unsupported_media_type`, `contract_version`,
   `not_implemented`) and the OpenAI-style `error{type, message, code}` object.
 - Ids are plain strings: no `uuid` format, no pattern.
-- Every change to a schema, the overlay, the event spec, the route tables or the pin needs a classified entry in
-  `CHANGELOG.md` (`additive`, `deprecating` or `breaking`).
+- Every change to a schema, the overlay, the event spec, the route tables or the pin needs a new classified
+  changeset (next section). `lint` compares with `CONTRACT_BASE_REF` and fails on a ref git does not know.
 
 Reviewer checklist for a contract change: is there an upstream equivalent at the pin; does the change keep a
-standard OpenAI client working with every extension ignored; is a new optional field on a closed output gated;
-does the CHANGELOG entry say which class it is.
+standard OpenAI client working with every extension ignored; is a new optional field on a closed output gated by
+a negotiated feature or the contract version; does the changeset say which class it is.
+
+## Changing the contract
+
+Add a changeset for `@alore/platform-contract` (`pnpm changeset`). `changeset version` writes it into
+`CHANGELOG.md`, which changesets own. Its summary starts with the class:
+
+- `additive:` a new optional field, a new enum value on an Alore-owned enum, a new path or a new status mark.
+  A new optional field on a closed output is additive only when it is gated by the contract version or a
+  negotiated feature; without the gate it is breaking.
+- `deprecating:` adds `x-deprecated-since`. The route or field keeps working for at least one minor version.
+- `breaking:` anything else. It needs a new major version.
+
+`pnpm run lint` fails when the contract surface differs from the base and the pull request adds no changeset
+for this package starting with one of those words.
 
 ## Bumping the upstream pin
 
@@ -94,7 +124,16 @@ action that no longer applies and every extension the new spec now covers.
 
 - Live extension routes are seeded with their status only. Their request and response bodies are typed by later
   releases.
-- The router serves the fine-tuning stubs under `/fine-tuning/jobs`; upstream defines `/fine_tuning/jobs`. The
-  overlay records the served path.
+- The router serves the fine-tuning stubs under `/fine-tuning/jobs`; upstream defines `/fine_tuning/jobs`. That
+  is an Alore router bug (INC-202). The overlay records the five served paths with `x-upstream-equivalent` and
+  `x-status: stub`; they are not Alore extensions. Once the router is fixed, the overlay paths and the lint
+  allowlist (`ROUTER_SPELLINGS` in `scripts/lib/checks.mjs`) go away.
+- `GET /realtime` is not in the document: the planned list has 25 routes, not 26. INC-703 pins the Realtime
+  revision first.
+- The document declares `ApiKeyAuth` (bearer). Alore still requires `X-API-KEY` until INC-120, so a conformance
+  run against the real service fails authentication until then.
+- `POST /decisions` is planned as the upstream operation at the pin (`createDecision`). A decisions helper waits
+  for that shape to be confirmed.
 - A second drift check, between the server's generated spec and pinned plus overlay, runs in the server
-  repository and is not part of this package.
+  repository (INC-102) and is not part of this package. The pinned and overlay files and the route tables are
+  exported for it.

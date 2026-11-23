@@ -1,14 +1,18 @@
-# OpenAPI Overlay 1.0. The overlay only adds: optional fields, enum values on Alore-owned enums,
-# x-status marks and new /ai/v1 paths tagged x-alore. See README.md for the rules.
+# OpenAPI Overlay 1.0. The overlay only adds: descriptions, x- marks, optional properties gated by
+# x-alore-feature and new /ai/v1 paths tagged x-alore. See README.md for the rules.
 overlay: 1.0.0
 info:
   title: x-alore overlay
   version: '1'
 actions:
   - target: $.info
-    description: Name the document after the API it describes. Document metadata is not an OpenAI-defined field.
+    description: Name the document after the API it describes. Document metadata is not an OpenAI-defined field. The cut drops OpenAI's own terms and contact, so the document names Alore only.
     update:
       title: Alore AI API
+      contact:
+        name: Alore Support
+        email: support@bealore.com
+        url: https://bealore.com
       description: >-
         The OpenAI-compatible Alore AI API under /ai/v1: the pinned upstream OpenAI spec cut to the routes Alore
         serves, plus x-alore extensions. Every operation carries x-status.
@@ -47,72 +51,72 @@ actions:
       /fine-tuning/jobs:
         post:
           operationId: alore_post_fine_tuning_jobs
-          summary: Unimplemented fine-tuning route
-          tags:
-            - x-alore
+          summary: Unimplemented fine-tuning route (router spelling)
+          x-upstream-equivalent: /fine_tuning/jobs
           x-status: stub
-          description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+          x-stub-response: 501
+          description: Not implemented. The upstream operation is /fine_tuning/jobs; the router serves it as /fine-tuning/jobs, a router bug (INC-202). A stub answers 501 not_implemented as problem+json.
           responses:
             '501':
               $ref: '#/components/responses/AloreProblem'
         get:
           operationId: alore_get_fine_tuning_jobs
-          summary: Unimplemented fine-tuning route
-          tags:
-            - x-alore
+          summary: Unimplemented fine-tuning route (router spelling)
+          x-upstream-equivalent: /fine_tuning/jobs
           x-status: stub
-          description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+          x-stub-response: 501
+          description: Not implemented. The upstream operation is /fine_tuning/jobs; the router serves it as /fine-tuning/jobs, a router bug (INC-202). A stub answers 501 not_implemented as problem+json.
           responses:
             '501':
               $ref: '#/components/responses/AloreProblem'
       /fine-tuning/jobs/{fine_tuning_job_id}:
         get:
           operationId: alore_get_fine_tuning_jobs_fine_tuning_job_id
-          summary: Unimplemented fine-tuning route
-          tags:
-            - x-alore
+          summary: Unimplemented fine-tuning route (router spelling)
+          x-upstream-equivalent: /fine_tuning/jobs/{fine_tuning_job_id}
           x-status: stub
+          x-stub-response: 501
           parameters:
             - name: fine_tuning_job_id
               in: path
               required: true
               schema:
                 type: string
-          description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+          description: Not implemented. The upstream operation is /fine_tuning/jobs/{fine_tuning_job_id}; the router serves it as /fine-tuning/jobs/{fine_tuning_job_id}, a router bug (INC-202). A stub answers 501 not_implemented as problem+json.
           responses:
             '501':
               $ref: '#/components/responses/AloreProblem'
       /fine-tuning/jobs/{fine_tuning_job_id}/cancel:
         post:
           operationId: alore_post_fine_tuning_jobs_fine_tuning_job_id_cancel
-          summary: Unimplemented fine-tuning route
-          tags:
-            - x-alore
+          summary: Unimplemented fine-tuning route (router spelling)
+          x-upstream-equivalent: /fine_tuning/jobs/{fine_tuning_job_id}/cancel
           x-status: stub
+          x-stub-response: 501
           parameters:
             - name: fine_tuning_job_id
               in: path
               required: true
               schema:
                 type: string
-          description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+          description: Not implemented. The upstream operation is /fine_tuning/jobs/{fine_tuning_job_id}/cancel; the router serves it as /fine-tuning/jobs/{fine_tuning_job_id}/cancel, a router bug (INC-202). A stub answers 501 not_implemented as problem+json.
           responses:
             '501':
               $ref: '#/components/responses/AloreProblem'
       /fine-tuning/jobs/{fine_tuning_job_id}/events:
         get:
           operationId: alore_get_fine_tuning_jobs_fine_tuning_job_id_events
-          summary: Unimplemented fine-tuning route
-          tags:
-            - x-alore
+          summary: Unimplemented fine-tuning route (router spelling)
+          x-upstream-equivalent: /fine_tuning/jobs/{fine_tuning_job_id}/events
           x-status: stub
+          x-stub-response: 501
           parameters:
             - name: fine_tuning_job_id
               in: path
               required: true
               schema:
                 type: string
-          description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+          description: Not implemented. The upstream operation is /fine_tuning/jobs/{fine_tuning_job_id}/events; the router serves it as /fine-tuning/jobs/{fine_tuning_job_id}/events, a router bug (INC-202). A stub answers 501 not_implemented as problem+json.
           responses:
             '501':
               $ref: '#/components/responses/AloreProblem'
@@ -213,13 +217,14 @@ actions:
           tags:
             - x-alore
           x-status: stub
+          x-stub-response: 501
           parameters:
             - name: assistant_id
               in: path
               required: true
               schema:
                 type: string
-          description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+          description: Not implemented. A stub answers 501 not_implemented as problem+json.
           responses:
             '501':
               $ref: '#/components/responses/AloreProblem'
@@ -229,13 +234,14 @@ actions:
           tags:
             - x-alore
           x-status: stub
+          x-stub-response: 501
           parameters:
             - name: assistant_id
               in: path
               required: true
               schema:
                 type: string
-          description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+          description: Not implemented. A stub answers 501 not_implemented as problem+json.
           responses:
             '501':
               $ref: '#/components/responses/AloreProblem'
@@ -246,6 +252,7 @@ actions:
           tags:
             - x-alore
           x-status: stub
+          x-stub-response: 501
           parameters:
             - name: assistant_id
               in: path
@@ -257,7 +264,7 @@ actions:
               required: true
               schema:
                 type: string
-          description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+          description: Not implemented. A stub answers 501 not_implemented as problem+json.
           responses:
             '501':
               $ref: '#/components/responses/AloreProblem'
@@ -267,6 +274,7 @@ actions:
           tags:
             - x-alore
           x-status: stub
+          x-stub-response: 501
           parameters:
             - name: assistant_id
               in: path
@@ -278,7 +286,7 @@ actions:
               required: true
               schema:
                 type: string
-          description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+          description: Not implemented. A stub answers 501 not_implemented as problem+json.
           responses:
             '501':
               $ref: '#/components/responses/AloreProblem'
@@ -289,7 +297,7 @@ actions:
           tags:
             - x-alore
           x-status: live
-          x-deprecated-since: 0.1.0-alpha.0
+          x-deprecated-since: 0.1.0-alpha.1
           parameters:
             - name: thread_id
               in: path
@@ -313,7 +321,7 @@ actions:
           tags:
             - x-alore
           x-status: live
-          x-deprecated-since: 0.1.0-alpha.0
+          x-deprecated-since: 0.1.0-alpha.1
           parameters:
             - name: thread_id
               in: path
@@ -337,7 +345,7 @@ actions:
           tags:
             - x-alore
           x-status: legacy-replaced
-          x-deprecated-since: 0.1.0-alpha.0
+          x-deprecated-since: 0.1.0-alpha.1
           parameters:
             - name: vector_store_id
               in: path
@@ -356,7 +364,7 @@ actions:
           tags:
             - x-alore
           x-status: legacy-replaced
-          x-deprecated-since: 0.1.0-alpha.0
+          x-deprecated-since: 0.1.0-alpha.1
           parameters:
             - name: vector_store_id
               in: path
@@ -403,7 +411,7 @@ actions:
           tags:
             - x-alore
           x-status: legacy-replaced
-          x-deprecated-since: 0.1.0-alpha.0
+          x-deprecated-since: 0.1.0-alpha.1
           parameters:
             - name: vector_store_id
               in: path
@@ -716,15 +724,18 @@ actions:
   - target: $.paths['/audio/transcriptions'].post
     update:
       x-status: stub
+      x-stub-response: 501
   - target: $.paths['/audio/translations'].post
     update:
       x-status: stub
+      x-stub-response: 501
   - target: $.paths['/chat/completions'].post
     update:
       x-status: live
   - target: $.paths['/embeddings'].post
     update:
       x-status: stub
+      x-stub-response: 501
   - target: $.paths['/files'].post
     update:
       x-status: live
@@ -755,12 +766,15 @@ actions:
   - target: $.paths['/images/generations'].post
     update:
       x-status: stub
+      x-stub-response: 501
   - target: $.paths['/images/edits'].post
     update:
       x-status: stub
+      x-stub-response: 501
   - target: $.paths['/images/variations'].post
     update:
       x-status: stub
+      x-stub-response: 501
   - target: $.paths['/models'].get
     update:
       x-status: live
@@ -770,6 +784,7 @@ actions:
   - target: $.paths['/models/{model}'].delete
     update:
       x-status: stub
+      x-stub-response: 501
   - target: $.paths['/responses'].post
     update:
       x-status: live
@@ -785,6 +800,7 @@ actions:
   - target: $.paths['/responses/{response_id}/cancel'].post
     update:
       x-status: stub
+      x-stub-response: 501
   - target: $.paths['/responses/{response_id}/input_items'].get
     update:
       x-status: live
@@ -815,90 +831,95 @@ actions:
   - target: $.paths['/assistants'].post
     update:
       x-status: live
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/assistants'].get
     update:
       x-status: live
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/assistants/{assistant_id}'].get
     update:
       x-status: live
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/assistants/{assistant_id}'].post
     update:
       x-status: live
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/assistants/{assistant_id}'].delete
     update:
       x-status: live
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/threads'].post
     update:
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/threads/runs'].post
     update:
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/threads/{thread_id}'].get
     update:
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/threads/{thread_id}'].post
     update:
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/threads/{thread_id}'].delete
     update:
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/threads/{thread_id}/messages'].post
     update:
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/threads/{thread_id}/messages'].get
     update:
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/threads/{thread_id}/messages/{message_id}'].post
     update:
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/threads/{thread_id}/messages/{message_id}'].delete
     update:
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/threads/{thread_id}/messages/{message_id}'].get
     update:
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/threads/{thread_id}/runs'].post
     update:
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/threads/{thread_id}/runs'].get
     update:
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/threads/{thread_id}/runs/{run_id}'].get
     update:
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/threads/{thread_id}/runs/{run_id}'].post
     update:
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/threads/{thread_id}/runs/{run_id}/submit_tool_outputs'].post
     update:
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/threads/{thread_id}/runs/{run_id}/cancel'].post
     update:
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/threads/{thread_id}/runs/{run_id}/steps'].get
     update:
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/threads/{thread_id}/runs/{run_id}/steps/{step_id}'].get
     update:
       x-status: live
-      x-deprecated-since: 0.1.0-alpha.0
+      x-deprecated-since: 0.1.0-alpha.1
   - target: $.paths['/vector_stores'].post
     update:
       x-status: live

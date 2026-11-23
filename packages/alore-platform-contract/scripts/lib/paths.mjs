@@ -2,6 +2,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const PKG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
+export const REPO_ROOT = resolve(PKG_ROOT, '..', '..');
 export const p = (...parts) => resolve(PKG_ROOT, ...parts);
 
 export const FILES = {
@@ -14,6 +15,7 @@ export const FILES = {
   served: p('routes/served.yaml'),
   planned: p('routes/planned.yaml'),
   changelog: p('CHANGELOG.md'),
+  changesetDir: resolve(REPO_ROOT, '.changeset'),
   pkg: p('package.json'),
   schemasDir: p('schemas'),
   fixturesDir: p('fixtures'),

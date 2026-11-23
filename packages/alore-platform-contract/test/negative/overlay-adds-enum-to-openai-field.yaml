@@ -1,0 +1,11 @@
+# Negative control: the overlay adds an enum to an OpenAI-defined string field. It narrows what
+# a standard OpenAI client may send or receive, so lint must reject it.
+overlay: 1.0.0
+info:
+  title: negative control
+  version: '1'
+actions:
+  - target: $.components.schemas.OpenAIFile.properties.filename
+    update:
+      enum:
+        - report.pdf

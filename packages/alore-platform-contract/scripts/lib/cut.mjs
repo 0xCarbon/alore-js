@@ -12,6 +12,10 @@ export const relativePath = (path) => {
   return path.slice(BASE.length);
 };
 
+const INFO_OWNER_KEYS = ['termsOfService', 'contact', 'license'];
+const omit = (obj, keys) =>
+  Object.fromEntries(Object.entries(clone(obj)).filter(([k]) => !keys.includes(k)));
+
 function stripKey(node, key) {
   if (Array.isArray(node)) {
     node.forEach((item) => stripKey(item, key));
@@ -48,6 +52,8 @@ export function indexUpstream(upstream) {
  * Differences from upstream, all documented in the README:
  *  - `servers` is the Alore base path;
  *  - `x-oaiMeta` documentation metadata is dropped;
+ *  - OpenAI's own `info.termsOfService`, `info.contact` and `info.license` are dropped: they describe
+ *    OpenAI's service, not Alore's. The MIT attribution stays in `x-upstream` and `upstream/LICENSE`;
  *  - only reachable components, used tags and the listed operations remain.
  */
 export function cutUpstream(upstream, routes, pin) {
@@ -113,7 +119,7 @@ export function cutUpstream(upstream, routes, pin) {
 
   const doc = {
     openapi: upstream.openapi,
-    info: clone(upstream.info),
+    info: omit(upstream.info, INFO_OWNER_KEYS),
     servers: [{ url: BASE, description: SERVER_DESCRIPTION }],
     security: clone(upstream.security),
     tags: (upstream.tags ?? []).filter((t) => usedTags.has(t.name)).map(clone),
@@ -125,6 +131,7 @@ export function cutUpstream(upstream, routes, pin) {
       repository: pin.repository,
       commit: pin.commit,
       spec_version: pin.spec_version,
+      license: pin.license,
       sha256: pin.sha256,
     };
   }

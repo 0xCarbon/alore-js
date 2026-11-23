@@ -1,18 +1,23 @@
 // 5. Negative controls: each one must turn lint red.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { test } from 'node:test';
 
 import {
   checkChangelog,
   checkClosedOutputs,
   checkIds,
+  checkOnlyAdds,
   checkProblemSchema,
+  checkStatuses,
   checkVendorNames,
+  classifiedChangeset,
 } from '../scripts/lib/checks.mjs';
 import { readJson } from '../scripts/lib/io.mjs';
+import { readTree, treeFromGit } from '../scripts/lib/tree.mjs';
 import { lint } from '../scripts/lint.mjs';
-import { FILES, loadSchemas, negative, PKG_ROOT } from './helpers.mjs';
+import { contract, FILES, loadSchemas, negative, PKG_ROOT } from './helpers.mjs';
 
 const rules = (violations) => new Set(violations.map((x) => x.rule));
 const names = readJson(`${PKG_ROOT}/rules/vendor-names.json`);
@@ -41,6 +46,34 @@ test('an overlay that adds a value to an OpenAI enum turns lint red', () => {
   const found = lint({ overlay: negative('overlay-adds-openai-enum-value.yaml') });
   assert.ok(
     found.some((x) => x.rule === 'overlay-only-adds' && /enum/.test(x.message)),
+    JSON.stringify(found.slice(0, 3)),
+  );
+});
+
+test('an overlay that adds an enum to an OpenAI string field turns lint red', () => {
+  const found = lint({ overlay: negative('overlay-adds-enum-to-openai-field.yaml') });
+  assert.ok(
+    found.some((x) => x.rule === 'overlay-only-adds' && /filename\/enum/.test(x.where)),
+    JSON.stringify(found.slice(0, 3)),
+  );
+});
+
+test('an overlay that adds a property without x-alore-feature turns lint red', () => {
+  const found = lint({ overlay: negative('overlay-ungated-property.yaml') });
+  assert.ok(
+    found.some((x) => x.rule === 'feature-gate' && /x_extra/.test(x.where)),
+    JSON.stringify(found.slice(0, 3)),
+  );
+});
+
+test('an x-alore near-duplicate of an upstream path (hyphen for underscore) turns lint red', () => {
+  const found = lint({ overlay: negative('overlay-near-duplicate-path.yaml') });
+  assert.ok(
+    found.some(
+      (x) =>
+        x.rule === 'upstream-first' &&
+        /fine_tuning\/jobs\/\{fine_tuning_job_id\}\/pause/.test(x.message),
+    ),
     JSON.stringify(found.slice(0, 3)),
   );
 });
@@ -131,9 +164,158 @@ test('no surface change needs no entry, and the first release needs one', () => 
   assert.deepEqual(checkChangelog(null, surface()), []);
 });
 
-test('the committed CHANGELOG carries a classified entry for the initial contract', () => {
-  const tree = surface({ changelog: '' });
-  assert.equal(checkChangelog(null, tree).length, 1);
+test('the committed tree carries a classified entry for the initial contract', () => {
+  assert.deepEqual(checkChangelog(null, readTree()), []);
+  assert.equal(checkChangelog(null, { ...readTree(), changelog: '', changesets: {} }).length, 1);
+});
+
+const changeset = (body, pkg = '@alore/platform-contract') =>
+  `---\n'${pkg}': minor\n---\n\n${body}\n`;
+
+test('a new changeset for the package, classified, satisfies the checker', () => {
+  const prev = surface({ changesets: {} });
+  const next = (body, name = 'x.md', pkg) =>
+    surface({
+      overlay: 'overlay: 1.0.0\nactions: []\n',
+      changesets: { [name]: changeset(body, pkg) },
+    });
+  for (const kind of ['additive', 'deprecating', 'breaking']) {
+    assert.deepEqual(checkChangelog(prev, next(`${kind}: changed the overlay`)), [], kind);
+  }
+  assert.equal(checkChangelog(prev, next('tweaked the overlay')).length, 1, 'not classified');
+  assert.equal(
+    checkChangelog(prev, next('additive: x', 'x.md', '@alore/auth-react-ui')).length,
+    1,
+    'a changeset for another package does not count',
+  );
+  const known = surface({ changesets: { 'x.md': changeset('additive: old') } });
+  assert.equal(
+    checkChangelog(known, { ...next('additive: old'), changesets: known.changesets }).length,
+    1,
+    'a changeset already at the base is not new',
+  );
+});
+
+test('classifiedChangeset reads the frontmatter and the first words of the body', () => {
+  assert.ok(classifiedChangeset(changeset('additive: a')));
+  assert.ok(classifiedChangeset(changeset('Breaking: a')));
+  assert.ok(!classifiedChangeset(changeset('additive a')));
+  assert.ok(!classifiedChangeset('additive: a'));
+});
+
+test('an unknown base ref fails lint instead of passing as a first release', () => {
+  const found = lint({ base: 'nonexistent-ref-xyz' });
+  assert.ok(
+    found.some((x) => x.rule === 'changelog' && /nonexistent-ref-xyz/.test(x.message)),
+    JSON.stringify(found),
+  );
+  assert.throws(() => treeFromGit('nonexistent-ref-xyz'), /not a git object/);
+  const run = spawnSync(
+    process.execPath,
+    ['scripts/lint.mjs', '--skip-spectral', '--base', 'nonexistent-ref-xyz'],
+    { cwd: PKG_ROOT, encoding: 'utf8' },
+  );
+  assert.equal(run.status, 1);
+});
+
+test('only a missing package path at a known base is a first release', (t) => {
+  const root = spawnSync('git', ['rev-list', '--max-parents=0', 'HEAD'], {
+    cwd: PKG_ROOT,
+    encoding: 'utf8',
+  })
+    .stdout.trim()
+    .split('\n')[0];
+  if (!root || treeFromGit(root) !== null)
+    return t.skip('no base without the package in this clone');
+  assert.deepEqual(lint({ base: root }), []);
+  assert.ok(treeFromGit('HEAD'), 'the package exists at HEAD');
+  return undefined;
+});
+
+const upstreamDoc = () => ({
+  paths: {
+    '/things': {
+      get: { operationId: 'listThings', responses: { 200: { description: 'ok' } } },
+    },
+  },
+  components: {
+    schemas: {
+      Thing: {
+        type: 'object',
+        properties: { model: { type: 'string' }, size: { type: 'integer' } },
+      },
+    },
+  },
+});
+
+test('the overlay may add only descriptions, titles, examples, x- marks and new properties', () => {
+  const adds = (edit) => {
+    const merged = upstreamDoc();
+    edit(merged);
+    return checkOnlyAdds(upstreamDoc(), merged);
+  };
+  const narrowing = {
+    enum: (d) => (d.components.schemas.Thing.properties.model.enum = ['a']),
+    minProperties: (d) => (d.components.schemas.Thing.minProperties = 1),
+    maxProperties: (d) => (d.components.schemas.Thing.maxProperties = 1),
+    propertyNames: (d) => (d.components.schemas.Thing.propertyNames = { pattern: '^a' }),
+    multipleOf: (d) => (d.components.schemas.Thing.properties.size.multipleOf = 5),
+    discriminator: (d) => (d.components.schemas.Thing.discriminator = { propertyName: 'model' }),
+    dependentRequired: (d) => (d.components.schemas.Thing.dependentRequired = { a: ['b'] }),
+    if: (d) => (d.components.schemas.Thing.if = { type: 'object' }),
+    prefixItems: (d) => (d.components.schemas.Thing.prefixItems = []),
+    contains: (d) => (d.components.schemas.Thing.contains = {}),
+    contentMediaType: (d) => (d.components.schemas.Thing.contentMediaType = 'x/y'),
+    requestBody: (d) => (d.paths['/things'].get.requestBody = { required: true }),
+    pattern: (d) => (d.components.schemas.Thing.properties.model.pattern = '^a'),
+  };
+  for (const [name, edit] of Object.entries(narrowing)) {
+    assert.ok(
+      adds(edit).some((x) => x.rule === 'overlay-only-adds'),
+      `${name} must fail`,
+    );
+  }
+  const allowed = {
+    description: (d) => (d.components.schemas.Thing.description = 'x'),
+    title: (d) => (d.components.schemas.Thing.title = 'x'),
+    example: (d) => (d.components.schemas.Thing.example = {}),
+    examples: (d) => (d.components.schemas.Thing.examples = []),
+    'x- mark': (d) => (d.paths['/things'].get['x-status'] = 'live'),
+    'new gated property': (d) =>
+      (d.components.schemas.Thing.properties.extra = { type: 'string', 'x-alore-feature': 'f' }),
+    'new path': (d) => (d.paths['/other'] = { get: {} }),
+    'new operation': (d) => (d.paths['/things'].post = {}),
+    'new component': (d) => (d.components.schemas.Other = { type: 'object' }),
+  };
+  for (const [name, edit] of Object.entries(allowed)) {
+    assert.deepEqual(adds(edit), [], `${name} must pass`);
+  }
+  const ungated = adds((d) => (d.components.schemas.Thing.properties.extra = { type: 'string' }));
+  assert.deepEqual(
+    ungated.map((x) => x.rule),
+    ['feature-gate'],
+  );
+});
+
+test('a property literally named properties is not a property map', () => {
+  const base = () => ({
+    components: { schemas: { T: { properties: { properties: { type: 'object' } } } } },
+  });
+  const merged = base();
+  merged.components.schemas.T.properties.properties.enum = ['a'];
+  assert.ok(checkOnlyAdds(base(), merged).some((x) => x.rule === 'overlay-only-adds'));
+});
+
+test('every stub carries x-stub-response 501, and only stubs do', () => {
+  const { merged } = contract();
+  assert.deepEqual(checkStatuses(merged), []);
+  const bad = structuredClone(merged);
+  bad.paths['/models/{model}'].delete['x-stub-response'] = 200;
+  bad.paths['/models/{model}'].get['x-stub-response'] = 501;
+  assert.equal(checkStatuses(bad).length, 2);
+  const unknown = structuredClone(merged);
+  unknown.paths['/models/{model}'].get['x-status'] = 'unknown';
+  assert.equal(checkStatuses(unknown).length, 1);
 });
 
 test('ids must be plain strings', () => {
@@ -183,27 +365,42 @@ test('the lint command exits non-zero for a negative control and zero for the re
   assert.equal(run('--schemas-dir', negative('vendor-schemas')).status, 1);
 });
 
-test('the Spectral rules reject an operation without x-status', () => {
-  const copy = FILES.openapi.replace('openapi.yaml', '.negative-no-status.yaml');
-  const run = spawnSync(
-    process.execPath,
-    [
-      '-e',
-      `const fs=require('fs');const t=fs.readFileSync(${JSON.stringify(FILES.openapi)},'utf8');` +
-        `fs.writeFileSync(${JSON.stringify(copy)},t.replace('x-status: live','x-status: unknown'));`,
-    ],
-    { encoding: 'utf8' },
-  );
-  assert.equal(run.status, 0, run.stderr);
+/** Run Spectral over a copy of openapi.yaml changed by `edit` (a text transform). */
+function spectralOnEdited(edit) {
+  const copy = FILES.openapi.replace('openapi.yaml', '.negative-spectral.yaml');
+  writeFileSync(copy, edit(readFileSync(FILES.openapi, 'utf8')));
   try {
-    const spectral = spawnSync(
+    return spawnSync(
       `${PKG_ROOT}/node_modules/.bin/spectral`,
       ['lint', copy, '--ruleset', `${PKG_ROOT}/rules/.spectral.yaml`, '--fail-severity', 'warn'],
       { cwd: PKG_ROOT, encoding: 'utf8' },
     );
-    assert.notEqual(spectral.status, 0);
-    assert.match(spectral.stdout, /alore-operation-x-status/);
   } finally {
-    spawnSync('rm', ['-f', copy]);
+    rmSync(copy, { force: true });
   }
+}
+
+test('the Spectral rules reject an x-alore operation without operationId', () => {
+  const run = spectralOnEdited((text) => {
+    const edited = text.replace('      operationId: alore_post_files_presign\n', '');
+    assert.notEqual(edited, text);
+    return edited;
+  });
+  assert.notEqual(run.status, 0);
+  assert.match(run.stdout, /alore-operation-id/);
+});
+
+test('the Spectral rules reject a non-problem error on an x-alore operation', () => {
+  const run = spectralOnEdited((text) => {
+    const marker = 'operationId: alore_post_files_presign';
+    const at = text.indexOf(marker);
+    const from = text.indexOf('        default:\n', at);
+    const edited = `${text.slice(0, from)}        "400":\n          description: plain\n${text.slice(
+      text.indexOf('\n', text.indexOf('$ref', from)) + 1,
+    )}`;
+    assert.notEqual(edited, text);
+    return edited;
+  });
+  assert.notEqual(run.status, 0);
+  assert.match(run.stdout, /alore-problem-json/);
 });

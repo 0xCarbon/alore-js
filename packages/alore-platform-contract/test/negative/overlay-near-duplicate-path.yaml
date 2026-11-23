@@ -1,0 +1,20 @@
+# Negative control: the overlay adds an x-alore path that differs from an upstream path only by
+# hyphen versus underscore (upstream defines /fine_tuning/jobs/{fine_tuning_job_id}/pause). Lint
+# must reject it: only the five known router spellings may sit beside an upstream path.
+overlay: 1.0.0
+info:
+  title: negative control
+  version: '1'
+actions:
+  - target: $.paths
+    update:
+      /fine-tuning/jobs/{fine_tuning_job_id}/pause:
+        post:
+          operationId: alore_post_fine_tuning_jobs_pause
+          tags:
+            - x-alore
+          x-status: stub
+          x-stub-response: 501
+          responses:
+            '501':
+              $ref: '#/components/responses/AloreProblem'

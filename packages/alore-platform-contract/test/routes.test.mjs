@@ -6,7 +6,7 @@ import { CLASS_STATUS } from '../scripts/lib/checks.mjs';
 import { canonPath } from '../scripts/lib/cut.mjs';
 import { contract, operations } from './helpers.mjs';
 
-const { routes, merged, pinned, overlay } = contract();
+const { routes, merged, pinned, overlay, upstream } = contract();
 const byKey = new Map();
 for (const { path, method, op } of operations(merged))
   byKey.set(`${method.toUpperCase()} ${canonPath(path)}`, op);
@@ -70,6 +70,28 @@ test('every operation in openapi.yaml has an x-status', () => {
   }
 });
 
+test('every stub answers 501 in the contract, whatever upstream says', () => {
+  for (const r of routes.served.filter((x) => x.class === 'stub')) {
+    assert.equal(find(r)['x-stub-response'], 501, `${r.method} ${r.path}`);
+  }
+});
+
+test('the fine-tuning stubs are the upstream operations under a router spelling', () => {
+  const spelled = routes.served.filter((r) => /\/fine-tuning\/jobs/.test(r.path));
+  assert.equal(spelled.length, 5);
+  for (const r of spelled) {
+    const op = find(r);
+    assert.match(op['x-upstream-equivalent'], /^\/fine_tuning\/jobs/, `${r.method} ${r.path}`);
+    assert.ok(!(op.tags ?? []).includes('x-alore'), 'not an Alore extension');
+    assert.ok(upstream.paths[op['x-upstream-equivalent']][r.method.toLowerCase()]);
+  }
+});
+
+test('the planned list has 25 routes: GET /realtime is deliberately absent', () => {
+  assert.equal(routes.planned.length, 25);
+  assert.ok(!routes.planned.some((r) => /realtime/.test(r.path)));
+});
+
 test('the 17 stubs include the routes named in the plan', () => {
   const stubs = routes.served.filter((r) => r.class === 'stub').map((r) => `${r.method} ${r.path}`);
   for (const want of [
@@ -98,10 +120,7 @@ test('the Assistants and Threads emulation is live and marked deprecated', () =>
   for (const r of emulation) {
     const op = find(r);
     assert.equal(op['x-status'], 'live', `${r.method} ${r.path}`);
-    assert.ok(
-      op.deprecated === true || op['x-deprecated-since'],
-      `${r.method} ${r.path} has no deprecation mark`,
-    );
+    assert.ok(op['x-deprecated-since'], `${r.method} ${r.path} has no x-deprecated-since`);
   }
 });
 

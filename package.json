@@ -9,7 +9,8 @@
     "format": "prettier --write .",
     "format-check": "prettier --check .",
     "prepare": "husky",
-    "changeset": "changeset"
+    "changeset": "changeset",
+    "version-packages": "changeset version && pnpm -F @alore/platform-contract run generate"
   },
   "keywords": [],
   "lint-staged": {

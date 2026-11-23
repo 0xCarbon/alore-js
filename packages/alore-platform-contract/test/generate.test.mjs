@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
+import { parse } from 'yaml';
 
 import { buildContract, render, upstreamRoutes } from '../scripts/lib/contract.mjs';
 import { cutUpstream } from '../scripts/lib/cut.mjs';
-import { contract, FILES } from './helpers.mjs';
+import { contract, FILES, operations } from './helpers.mjs';
 
 const text = (file) => readFileSync(file, 'utf8');
 
@@ -53,8 +54,31 @@ test('the committed openai.pinned.yaml and openapi.yaml equal the generated ones
   );
 });
 
-test('the contract version is the package version', () => {
+test('the contract version is the package version, in both places it is stamped', () => {
   const c = contract();
+  const published = parse(text(FILES.openapi));
   assert.equal(c.merged.info.version, c.version);
-  assert.equal(c.version, '0.1.0-alpha.0');
+  assert.equal(published.info.version, c.version);
+  assert.equal(published['x-alore-contract'].version, c.version);
+  assert.match(c.version, /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/);
+});
+
+test('the document names Alore, not OpenAI, as its owner', () => {
+  const { info } = parse(text(FILES.openapi));
+  assert.equal(info.title, 'Alore AI API');
+  assert.equal(info.termsOfService, undefined);
+  assert.equal(info.license, undefined);
+  assert.ok(!/openai/i.test(JSON.stringify(info.contact)), JSON.stringify(info.contact));
+  assert.ok(info.contact.email);
+  const published = parse(text(FILES.openapi));
+  assert.equal(published['x-upstream'].license, 'MIT', 'the MIT attribution stays in x-upstream');
+  assert.ok(text(FILES.upstream.replace('openapi.yaml', 'LICENSE')).includes('MIT License'));
+});
+
+test('x-deprecated-since never names a version the package has not reached or published', () => {
+  const c = contract();
+  const marks = new Set(
+    [...operations(c.merged)].map(({ op }) => op['x-deprecated-since']).filter(Boolean),
+  );
+  assert.deepEqual([...marks], ['0.1.0-alpha.1'], 'one published alpha, used consistently');
 });

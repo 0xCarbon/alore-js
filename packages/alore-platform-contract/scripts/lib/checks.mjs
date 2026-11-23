@@ -28,42 +28,40 @@ const v = (rule, where, message) => ({ rule, where, message });
 const isObject = (x) => x !== null && typeof x === 'object' && !Array.isArray(x);
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
-/** Keys that, when added to a node the pinned spec already defines, change its meaning. */
-const SEMANTIC_KEYS = new Set([
-  '$ref',
-  'type',
-  'format',
-  'pattern',
-  'minimum',
-  'maximum',
-  'exclusiveMinimum',
-  'exclusiveMaximum',
-  'minLength',
-  'maxLength',
-  'minItems',
-  'maxItems',
-  'uniqueItems',
-  'additionalProperties',
-  'const',
-  'default',
-  'items',
-  'allOf',
-  'oneOf',
-  'anyOf',
-  'not',
-  'nullable',
-  'readOnly',
-  'writeOnly',
-  'deprecated',
-]);
+/**
+ * What the overlay may add to a node the pinned spec already defines. Anything else is
+ * a change to what OpenAI defines (an `enum`, `minProperties`, `requestBody`, a
+ * `discriminator`, ...), so this is an allowlist, never a denylist of known keywords.
+ */
+const ANNOTATIONS = new Set(['description', 'title', 'example', 'examples']);
+export const FEATURE_GATE = 'x-alore-feature';
+
+/** Where the overlay is adding: a node, the property map of a schema, `paths`, and so on. */
+const childKind = (kind, key) => {
+  if (kind === 'root') return { paths: 'paths', components: 'components' }[key] ?? 'node';
+  if (kind === 'paths') return 'pathItem';
+  if (kind === 'components') return 'componentMap';
+  if (kind === 'props' || kind === 'componentMap') return 'node';
+  return key === 'properties' ? 'props' : 'node';
+};
+
+/** A key present in the merged node and missing from the pinned one. */
+function addedKeyAllowed(kind, key) {
+  if (ANNOTATIONS.has(key) || key.startsWith('x-')) return true;
+  if (kind === 'props' || kind === 'paths' || kind === 'components' || kind === 'componentMap') {
+    return true; // a new optional property, path or component
+  }
+  return kind === 'pathItem' && METHODS.includes(key); // a new operation on an existing path
+}
 
 /**
  * The overlay only adds. Compare the pinned document with pinned plus overlay and
- * report any change to what the pinned spec defines.
+ * report any change to what the pinned spec defines. A property the overlay adds to an
+ * upstream schema must also carry `x-alore-feature` (rule `feature-gate`).
  */
 export function checkOnlyAdds(pinned, merged) {
   const out = [];
-  const walk = (p, m, ptr) => {
+  const walk = (p, m, ptr, kind) => {
     if (Array.isArray(p) !== Array.isArray(m) || isObject(p) !== isObject(m)) {
       out.push(v('overlay-only-adds', ptr, 'changes the type of an upstream-defined value'));
       return;
@@ -108,7 +106,7 @@ export function checkOnlyAdds(pinned, merged) {
           out.push(v('overlay-only-adds', `${ptr}/${key}`, 'removes an upstream-defined key'));
           continue;
         }
-        walk(p[key], m[key], `${ptr}/${key}`);
+        walk(p[key], m[key], `${ptr}/${key}`, childKind(kind, key));
       }
       for (const key of Object.keys(m)) {
         if (key in p) continue;
@@ -123,9 +121,21 @@ export function checkOnlyAdds(pinned, merged) {
                 'makes an optional upstream field required',
               ),
             );
-        } else if (SEMANTIC_KEYS.has(key) && !ptr.endsWith('/properties')) {
+        } else if (!addedKeyAllowed(kind, key)) {
           out.push(
-            v('overlay-only-adds', `${ptr}/${key}`, `adds ${key} to an upstream-defined node`),
+            v(
+              'overlay-only-adds',
+              `${ptr}/${key}`,
+              `adds ${key} to an upstream-defined node; the overlay may add only descriptions, titles, examples, x- marks and new properties`,
+            ),
+          );
+        } else if (kind === 'props' && !(isObject(m[key]) && FEATURE_GATE in m[key])) {
+          out.push(
+            v(
+              'feature-gate',
+              `${ptr}/${key}`,
+              `a property added to an upstream schema must carry ${FEATURE_GATE}`,
+            ),
           );
         }
       }
@@ -133,7 +143,7 @@ export function checkOnlyAdds(pinned, merged) {
     }
     if (p !== m) out.push(v('overlay-only-adds', ptr, 'changes an upstream-defined value'));
   };
-  walk(pinned, merged, '#');
+  walk(pinned, merged, '#', 'root');
   return out;
 }
 
@@ -146,32 +156,79 @@ export function* operations(doc) {
 }
 
 /**
+ * The router spells five fine-tuning paths with a hyphen where upstream uses an underscore
+ * (`/fine-tuning/jobs`, upstream `/fine_tuning/jobs`). That is an Alore router bug, tracked as
+ * INC-202. The contract records the served spelling as the upstream operation under another
+ * name (`x-upstream-equivalent`), not as an Alore extension. The list is closed: any other
+ * overlay path that matches an upstream one once `-` and `_` are ignored fails upstream-first.
+ */
+export const ROUTER_SPELLINGS = new Map([
+  ['post /fine-tuning/jobs', '/fine_tuning/jobs'],
+  ['get /fine-tuning/jobs', '/fine_tuning/jobs'],
+  ['get /fine-tuning/jobs/{fine_tuning_job_id}', '/fine_tuning/jobs/{fine_tuning_job_id}'],
+  [
+    'post /fine-tuning/jobs/{fine_tuning_job_id}/cancel',
+    '/fine_tuning/jobs/{fine_tuning_job_id}/cancel',
+  ],
+  [
+    'get /fine-tuning/jobs/{fine_tuning_job_id}/events',
+    '/fine_tuning/jobs/{fine_tuning_job_id}/events',
+  ],
+]);
+
+/** Path with parameter names erased and `-` read as `_`: spelling variants compare equal. */
+const looseCanon = (path) => canonPath(path).replace(/-/g, '_');
+
+/**
  * Upstream first: a path or schema is Alore-defined only where the pinned spec
  * (the whole upstream document, not only the cut) has no equivalent.
  */
 export function checkUpstreamFirst(pinned, merged, upstream) {
   const out = [];
-  const upstreamIndex = new Map(Object.keys(upstream.paths).map((k) => [canonPath(k), k]));
+  const upstreamIndex = new Map(Object.keys(upstream.paths).map((k) => [looseCanon(k), k]));
   for (const { path, method, op } of operations(merged)) {
     if (pinned.paths[path]?.[method]) continue;
-    const key = upstreamIndex.get(canonPath(path));
+    const where = `${method.toUpperCase()} ${path}`;
+    const equivalent = op['x-upstream-equivalent'];
+    const known = ROUTER_SPELLINGS.get(`${method} ${path}`);
+    if (known) {
+      if (equivalent !== known || !upstream.paths[known]?.[method]) {
+        out.push(
+          v(
+            'upstream-first',
+            where,
+            `must carry x-upstream-equivalent: ${known}, an upstream path`,
+          ),
+        );
+      }
+      if ((op.tags ?? []).includes('x-alore')) {
+        out.push(
+          v(
+            'xalore-tag',
+            where,
+            'a router spelling of an upstream route is not an Alore extension',
+          ),
+        );
+      }
+      continue;
+    }
+    if (equivalent !== undefined) {
+      out.push(
+        v('upstream-first', where, 'x-upstream-equivalent is only for the known router spellings'),
+      );
+    }
+    const key = upstreamIndex.get(looseCanon(path));
     if (key && upstream.paths[key][method]) {
       out.push(
         v(
           'upstream-first',
-          `${method.toUpperCase()} ${path}`,
+          where,
           `the pinned upstream spec already defines this operation at ${key}`,
         ),
       );
     }
     if (!(op.tags ?? []).includes('x-alore')) {
-      out.push(
-        v(
-          'xalore-tag',
-          `${method.toUpperCase()} ${path}`,
-          'a path added by the overlay must carry the x-alore tag',
-        ),
-      );
+      out.push(v('xalore-tag', where, 'a path added by the overlay must carry the x-alore tag'));
     }
   }
   for (const name of Object.keys(merged.components?.schemas ?? {})) {
@@ -195,6 +252,11 @@ export function checkStatuses(merged) {
     const where = `${method.toUpperCase()} ${path}`;
     if (!X_STATUSES.includes(op['x-status'])) {
       out.push(v('x-status', where, `x-status must be one of ${X_STATUSES.join(', ')}`));
+    }
+    if (op['x-status'] === 'stub' && op['x-stub-response'] !== 501) {
+      out.push(v('x-status', where, 'a stub must carry x-stub-response: 501'));
+    } else if (op['x-status'] !== 'stub' && op['x-stub-response'] !== undefined) {
+      out.push(v('x-status', where, 'x-stub-response belongs to stubs only'));
     }
     const since = op['x-deprecated-since'];
     if (since !== undefined && !/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(since)) {
@@ -385,6 +447,22 @@ export function checkServedRoutes(merged, served, planned) {
 }
 
 const ENTRY = /^\s*[-*]\s+(?:[0-9a-f]{7,40}:\s+)?(additive|deprecating|breaking)\b/i;
+const CHANGESET_ENTRY = /^(additive|deprecating|breaking):/i;
+export const PACKAGE_NAME = '@alore/platform-contract';
+
+/** A changeset for this package whose summary starts with `additive:`, `deprecating:` or `breaking:`. */
+export function classifiedChangeset(text) {
+  const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/.exec(text);
+  if (!match) return false;
+  const names = match[1].split('\n').map((line) =>
+    line
+      .split(':')[0]
+      .trim()
+      .replace(/^['"]|['"]$/g, ''),
+  );
+  return names.includes(PACKAGE_NAME) && CHANGESET_ENTRY.test(match[2].trim());
+}
+
 const SURFACE = (tree) => ({
   ...Object.fromEntries(
     Object.entries(tree.schemas ?? {}).map(([k, val]) => [`schemas/${k}`, val]),
@@ -397,8 +475,10 @@ const SURFACE = (tree) => ({
 });
 
 /**
- * A change to the contract surface needs a new, classified CHANGELOG entry.
- * A tree is { schemas: {name: text}, overlay, asyncapi, served, planned, pin, changelog }.
+ * A change to the contract surface needs a classified entry that is new against the base: either a
+ * new `.changeset/*.md` for this package whose summary starts `additive:`, `deprecating:` or
+ * `breaking:`, or a new classified line in CHANGELOG.md (what `changeset version` writes).
+ * A tree is { schemas: {name: text}, overlay, asyncapi, served, planned, pin, changelog, changesets }.
  * `prev` is null for the first release of the package.
  */
 export function checkChangelog(prev, next) {
@@ -413,11 +493,16 @@ export function checkChangelog(prev, next) {
     .split('\n')
     .filter((line) => !seen.has(line) && ENTRY.test(line));
   if (added.length > 0) return [];
+  const known = prev?.changesets ?? {};
+  const fresh = Object.entries(next.changesets ?? {}).filter(
+    ([name, text]) => known[name] !== text && classifiedChangeset(text),
+  );
+  if (fresh.length > 0) return [];
   return [
     v(
       'changelog',
-      'CHANGELOG.md',
-      `contract surface changed (${changed.join(', ')}) without a new entry classified additive, deprecating or breaking`,
+      '.changeset',
+      `contract surface changed (${changed.join(', ')}) without a new changeset for ${PACKAGE_NAME} whose summary starts with additive:, deprecating: or breaking:`,
     ),
   ];
 }

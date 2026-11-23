@@ -19,6 +19,9 @@
   "exports": {
     "./openapi.yaml": "./openapi/openapi.yaml",
     "./asyncapi.yaml": "./asyncapi/asyncapi.yaml",
+    "./openai.pinned.yaml": "./openapi/openai.pinned.yaml",
+    "./x-alore.overlay.yaml": "./openapi/x-alore.overlay.yaml",
+    "./routes/*": "./routes/*",
     "./schemas/*": "./schemas/*",
     "./fixtures/*": "./fixtures/*",
     "./package.json": "./package.json"
