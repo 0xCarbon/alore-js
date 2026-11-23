@@ -1,0 +1,16 @@
+{
+  "schema": "problem.schema.json",
+  "valid": false,
+  "description": "Alore-owned outputs are closed: an unknown member is rejected.",
+  "instance": {
+    "type": "not_found",
+    "title": "Not found",
+    "status": 404,
+    "error": {
+      "type": "x",
+      "message": "x",
+      "code": null
+    },
+    "trace": "abc"
+  }
+}

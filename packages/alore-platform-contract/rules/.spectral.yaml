@@ -1,0 +1,29 @@
+# Spectral rules for openapi/openapi.yaml. The rules that compare the overlay with upstream (only
+# add, upstream first, vendor names, ids, changelog) live in scripts/lib/checks.mjs and run from
+# scripts/lint.mjs.
+functionsDir: ./functions
+functions:
+  - aloreProblemJson
+rules:
+  alore-operation-x-status:
+    description: Every operation declares x-status as live, stub, planned or legacy-replaced.
+    severity: error
+    given: $.paths[*][get,put,post,delete,patch]
+    then:
+      field: x-status
+      function: enumeration
+      functionOptions:
+        values: [live, stub, planned, legacy-replaced]
+  alore-operation-id:
+    description: Every x-alore operation has an operationId.
+    severity: error
+    given: $.paths[*][get,put,post,delete,patch][?(@.tags && @.tags.indexOf('x-alore') >= 0)]
+    then:
+      field: operationId
+      function: truthy
+  alore-problem-json:
+    description: Errors on x-alore operations are application/problem+json.
+    severity: error
+    given: $.paths[*][get,put,post,delete,patch][?(@.tags && @.tags.indexOf('x-alore') >= 0)]
+    then:
+      function: aloreProblemJson

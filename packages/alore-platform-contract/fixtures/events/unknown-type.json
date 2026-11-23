@@ -1,0 +1,18 @@
+{
+  "schema": "webhook-envelope.schema.json",
+  "valid": false,
+  "description": "Event types are a closed list.",
+  "instance": {
+    "id": "evt-9999",
+    "type": "file.exploded",
+    "time": "2026-01-01T12:00:00Z",
+    "client": "example-client",
+    "org_ref": null,
+    "subject": {
+      "kind": "file",
+      "id": "f"
+    },
+    "seq": 0,
+    "data": {}
+  }
+}

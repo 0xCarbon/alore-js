@@ -1,0 +1,15 @@
+{
+  "schema": "problem.schema.json",
+  "valid": true,
+  "instance": {
+    "type": "payload_too_large",
+    "title": "Payload too large",
+    "status": 413,
+    "detail": "Example detail.",
+    "error": {
+      "type": "payload_too_large",
+      "message": "Example message.",
+      "code": "payload_too_large"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "schema": "problem.schema.json",
+  "valid": true,
+  "instance": {
+    "type": "unsupported_media_type",
+    "title": "Unsupported media type",
+    "status": 415,
+    "detail": "Example detail.",
+    "error": {
+      "type": "unsupported_media_type",
+      "message": "Example message.",
+      "code": "unsupported_media_type"
+    }
+  }
+}

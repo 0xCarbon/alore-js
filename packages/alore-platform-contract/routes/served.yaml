@@ -1,0 +1,636 @@
+# Route source for the contract: every route the Alore AI router serves under /ai/v1.
+# Fields: method, path, class, family, upstream_openai, and stub_returns (stubs only).
+# class: openai | x-alore-live | legacy-replaced | legacy-kept | stub
+# Expected totals: 91 = 37 openai + 9 x-alore-live + 3 legacy-replaced + 25 legacy-kept + 17 stub.
+# Path parameters follow the router, not the upstream spec; matching ignores parameter names.
+routes:
+  - {
+      method: POST,
+      path: '/ai/v1/audio/speech',
+      class: openai,
+      family: audio,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/audio/transcriptions',
+      class: stub,
+      family: audio,
+      upstream_openai: true,
+      stub_returns: 200,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/audio/translations',
+      class: stub,
+      family: audio,
+      upstream_openai: true,
+      stub_returns: 200,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/chat/completions',
+      class: openai,
+      family: chat,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/embeddings',
+      class: stub,
+      family: embeddings,
+      upstream_openai: true,
+      stub_returns: 200,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/fine-tuning/jobs',
+      class: stub,
+      family: fine-tuning,
+      upstream_openai: true,
+      stub_returns: 200,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/fine-tuning/jobs',
+      class: stub,
+      family: fine-tuning,
+      upstream_openai: true,
+      stub_returns: 200,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/fine-tuning/jobs/{fine_tuning_job_id}',
+      class: stub,
+      family: fine-tuning,
+      upstream_openai: true,
+      stub_returns: 200,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/fine-tuning/jobs/{fine_tuning_job_id}/cancel',
+      class: stub,
+      family: fine-tuning,
+      upstream_openai: true,
+      stub_returns: 200,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/fine-tuning/jobs/{fine_tuning_job_id}/events',
+      class: stub,
+      family: fine-tuning,
+      upstream_openai: true,
+      stub_returns: 200,
+    }
+  - { method: POST, path: '/ai/v1/files', class: openai, family: files, upstream_openai: true }
+  - { method: GET, path: '/ai/v1/files', class: openai, family: files, upstream_openai: true }
+  - {
+      method: POST,
+      path: '/ai/v1/files/presign',
+      class: x-alore-live,
+      family: files,
+      upstream_openai: false,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/files/from_url',
+      class: x-alore-live,
+      family: files,
+      upstream_openai: false,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/files/multipart/create',
+      class: x-alore-live,
+      family: files,
+      upstream_openai: false,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/files/multipart/sign-part',
+      class: x-alore-live,
+      family: files,
+      upstream_openai: false,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/files/multipart/complete',
+      class: x-alore-live,
+      family: files,
+      upstream_openai: false,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/files/multipart/abort',
+      class: x-alore-live,
+      family: files,
+      upstream_openai: false,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/files/{file_id}',
+      class: openai,
+      family: files,
+      upstream_openai: true,
+    }
+  - {
+      method: DELETE,
+      path: '/ai/v1/files/{file_id}',
+      class: openai,
+      family: files,
+      upstream_openai: true,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/files/{file_id}/content',
+      class: openai,
+      family: files,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/files/{file_id}/confirm',
+      class: x-alore-live,
+      family: files,
+      upstream_openai: false,
+    }
+  - { method: POST, path: '/ai/v1/uploads', class: openai, family: files, upstream_openai: true }
+  - {
+      method: POST,
+      path: '/ai/v1/uploads/{upload_id}/parts',
+      class: openai,
+      family: files,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/uploads/{upload_id}/complete',
+      class: openai,
+      family: files,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/uploads/{upload_id}/cancel',
+      class: openai,
+      family: files,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/images/generations',
+      class: stub,
+      family: images,
+      upstream_openai: true,
+      stub_returns: 200,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/images/edits',
+      class: stub,
+      family: images,
+      upstream_openai: true,
+      stub_returns: 200,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/images/variations',
+      class: stub,
+      family: images,
+      upstream_openai: true,
+      stub_returns: 200,
+    }
+  - { method: GET, path: '/ai/v1/models', class: openai, family: models, upstream_openai: true }
+  - {
+      method: GET,
+      path: '/ai/v1/models/{model}',
+      class: openai,
+      family: models,
+      upstream_openai: true,
+    }
+  - {
+      method: DELETE,
+      path: '/ai/v1/models/{model}',
+      class: stub,
+      family: models,
+      upstream_openai: true,
+      stub_returns: 200,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/responses',
+      class: openai,
+      family: responses,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/responses/compact',
+      class: x-alore-live,
+      family: responses,
+      upstream_openai: false,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/responses/input_tokens',
+      class: openai,
+      family: responses,
+      upstream_openai: true,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/responses/{id}',
+      class: openai,
+      family: responses,
+      upstream_openai: true,
+    }
+  - {
+      method: DELETE,
+      path: '/ai/v1/responses/{id}',
+      class: openai,
+      family: responses,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/responses/{id}/cancel',
+      class: stub,
+      family: responses,
+      upstream_openai: true,
+      stub_returns: 501,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/responses/{id}/input_items',
+      class: openai,
+      family: responses,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/conversations',
+      class: openai,
+      family: conversations,
+      upstream_openai: true,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/conversations/{conversation_id}',
+      class: openai,
+      family: conversations,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/conversations/{conversation_id}',
+      class: openai,
+      family: conversations,
+      upstream_openai: true,
+    }
+  - {
+      method: DELETE,
+      path: '/ai/v1/conversations/{conversation_id}',
+      class: openai,
+      family: conversations,
+      upstream_openai: true,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/conversations/{conversation_id}/items',
+      class: openai,
+      family: conversations,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/conversations/{conversation_id}/items',
+      class: openai,
+      family: conversations,
+      upstream_openai: true,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/conversations/{conversation_id}/items/{item_id}',
+      class: openai,
+      family: conversations,
+      upstream_openai: true,
+    }
+  - {
+      method: DELETE,
+      path: '/ai/v1/conversations/{conversation_id}/items/{item_id}',
+      class: openai,
+      family: conversations,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/assistants',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/assistants',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/assistants/{assistant_id}',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/assistants/{assistant_id}',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: DELETE,
+      path: '/ai/v1/assistants/{assistant_id}',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/assistants/{assistant_id}/files',
+      class: stub,
+      family: assistants-emulation,
+      upstream_openai: true,
+      stub_returns: 200,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/assistants/{assistant_id}/files',
+      class: stub,
+      family: assistants-emulation,
+      upstream_openai: true,
+      stub_returns: 200,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/assistants/{assistant_id}/files/{file_id}',
+      class: stub,
+      family: assistants-emulation,
+      upstream_openai: true,
+      stub_returns: 200,
+    }
+  - {
+      method: DELETE,
+      path: '/ai/v1/assistants/{assistant_id}/files/{file_id}',
+      class: stub,
+      family: assistants-emulation,
+      upstream_openai: true,
+      stub_returns: 200,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/threads',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/threads/runs',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/threads/{thread_id}',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/threads/{thread_id}',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: DELETE,
+      path: '/ai/v1/threads/{thread_id}',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/threads/{thread_id}/messages',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/threads/{thread_id}/messages',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/threads/{thread_id}/messages/{message_id}/rewrite',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: false,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/threads/{thread_id}/messages/{message_id}',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: DELETE,
+      path: '/ai/v1/threads/{thread_id}/messages/{message_id}',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/threads/{thread_id}/messages/{message_id}',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/threads/{thread_id}/runs',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/threads/{thread_id}/runs',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/threads/{thread_id}/runs/{run_id}',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/threads/{thread_id}/runs/{run_id}',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/threads/{thread_id}/runs/{run_id}/submit_tool_outputs',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/threads/{thread_id}/runs/{run_id}/cancel',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/threads/{thread_id}/runs/{run_id}/context',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: false,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/threads/{thread_id}/runs/{run_id}/steps',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/threads/{thread_id}/runs/{run_id}/steps/{step_id}',
+      class: legacy-kept,
+      family: assistants-emulation,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/vector_stores',
+      class: openai,
+      family: vector-stores,
+      upstream_openai: true,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/vector_stores',
+      class: openai,
+      family: vector-stores,
+      upstream_openai: true,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/vector_stores/{vector_store_id}',
+      class: openai,
+      family: vector-stores,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/vector_stores/{vector_store_id}',
+      class: openai,
+      family: vector-stores,
+      upstream_openai: true,
+    }
+  - {
+      method: DELETE,
+      path: '/ai/v1/vector_stores/{vector_store_id}',
+      class: openai,
+      family: vector-stores,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/vector_stores/{vector_store_id}/search',
+      class: openai,
+      family: vector-stores,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/vector_stores/{vector_store_id}/documents/upsert',
+      class: legacy-replaced,
+      family: vector-stores,
+      upstream_openai: false,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/vector_stores/{vector_store_id}/documents/{object_id}/attributes',
+      class: legacy-replaced,
+      family: vector-stores,
+      upstream_openai: false,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/vector_stores/{vector_store_id}/files',
+      class: openai,
+      family: vector-stores,
+      upstream_openai: true,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/vector_stores/{vector_store_id}/files',
+      class: openai,
+      family: vector-stores,
+      upstream_openai: true,
+    }
+  - {
+      method: GET,
+      path: '/ai/v1/vector_stores/{vector_store_id}/files/{file_id}',
+      class: openai,
+      family: vector-stores,
+      upstream_openai: true,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/vector_stores/{vector_store_id}/files/{file_id}',
+      class: openai,
+      family: vector-stores,
+      upstream_openai: true,
+    }
+  - {
+      method: DELETE,
+      path: '/ai/v1/vector_stores/{vector_store_id}/files/{file_id}',
+      class: openai,
+      family: vector-stores,
+      upstream_openai: true,
+    }
+  - {
+      method: PATCH,
+      path: '/ai/v1/vector_stores/{vector_store_id}/files/{file_id}/attributes',
+      class: x-alore-live,
+      family: vector-stores,
+      upstream_openai: false,
+    }
+  - {
+      method: PUT,
+      path: '/ai/v1/vector_stores/{vector_store_id}/files/{file_id}/pages',
+      class: legacy-replaced,
+      family: vector-stores,
+      upstream_openai: false,
+    }

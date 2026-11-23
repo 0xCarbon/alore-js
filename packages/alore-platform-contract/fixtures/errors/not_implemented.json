@@ -1,0 +1,15 @@
+{
+  "schema": "problem.schema.json",
+  "valid": true,
+  "instance": {
+    "type": "not_implemented",
+    "title": "Not implemented",
+    "status": 501,
+    "detail": "Example detail.",
+    "error": {
+      "type": "not_implemented",
+      "message": "Example message.",
+      "code": "not_implemented"
+    }
+  }
+}

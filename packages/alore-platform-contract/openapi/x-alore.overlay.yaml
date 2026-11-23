@@ -1,0 +1,949 @@
+# OpenAPI Overlay 1.0. The overlay only adds: optional fields, enum values on Alore-owned enums,
+# x-status marks and new /ai/v1 paths tagged x-alore. See README.md for the rules.
+overlay: 1.0.0
+info:
+  title: x-alore overlay
+  version: '1'
+actions:
+  - target: $.info
+    description: Name the document after the API it describes. Document metadata is not an OpenAI-defined field.
+    update:
+      title: Alore AI API
+      description: >-
+        The OpenAI-compatible Alore AI API under /ai/v1: the pinned upstream OpenAI spec cut to the routes Alore
+        serves, plus x-alore extensions. Every operation carries x-status.
+  - target: $.tags
+    description: Tag for every path Alore adds to the upstream spec.
+    update:
+      name: x-alore
+      description: Alore extension routes. Added only where the pinned upstream spec has no equivalent.
+  - target: $.components
+    description: Alore-owned schemas live in schemas/ and are referenced, not copied.
+    update:
+      schemas:
+        AloreProblem:
+          $ref: ../schemas/problem.schema.json
+        AloreMeta:
+          $ref: ../schemas/meta.schema.json
+        AloreFileExtension:
+          $ref: ../schemas/file-extension.schema.json
+      responses:
+        AloreProblem:
+          description: RFC 9457 problem with the OpenAI-style error object.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/AloreProblem'
+  - target: $.components.schemas.OpenAIFile.properties
+    description: Optional response field, emitted only to clients that negotiate files.status.
+    update:
+      x_alore:
+        $ref: '#/components/schemas/AloreFileExtension'
+        x-alore-feature: files.status
+        x-status: planned
+  - target: $.paths
+    description: Routes Alore serves or plans that the pinned upstream spec does not define.
+    update:
+      /fine-tuning/jobs:
+        post:
+          operationId: alore_post_fine_tuning_jobs
+          summary: Unimplemented fine-tuning route
+          tags:
+            - x-alore
+          x-status: stub
+          description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+          responses:
+            '501':
+              $ref: '#/components/responses/AloreProblem'
+        get:
+          operationId: alore_get_fine_tuning_jobs
+          summary: Unimplemented fine-tuning route
+          tags:
+            - x-alore
+          x-status: stub
+          description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+          responses:
+            '501':
+              $ref: '#/components/responses/AloreProblem'
+      /fine-tuning/jobs/{fine_tuning_job_id}:
+        get:
+          operationId: alore_get_fine_tuning_jobs_fine_tuning_job_id
+          summary: Unimplemented fine-tuning route
+          tags:
+            - x-alore
+          x-status: stub
+          parameters:
+            - name: fine_tuning_job_id
+              in: path
+              required: true
+              schema:
+                type: string
+          description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+          responses:
+            '501':
+              $ref: '#/components/responses/AloreProblem'
+      /fine-tuning/jobs/{fine_tuning_job_id}/cancel:
+        post:
+          operationId: alore_post_fine_tuning_jobs_fine_tuning_job_id_cancel
+          summary: Unimplemented fine-tuning route
+          tags:
+            - x-alore
+          x-status: stub
+          parameters:
+            - name: fine_tuning_job_id
+              in: path
+              required: true
+              schema:
+                type: string
+          description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+          responses:
+            '501':
+              $ref: '#/components/responses/AloreProblem'
+      /fine-tuning/jobs/{fine_tuning_job_id}/events:
+        get:
+          operationId: alore_get_fine_tuning_jobs_fine_tuning_job_id_events
+          summary: Unimplemented fine-tuning route
+          tags:
+            - x-alore
+          x-status: stub
+          parameters:
+            - name: fine_tuning_job_id
+              in: path
+              required: true
+              schema:
+                type: string
+          description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+          responses:
+            '501':
+              $ref: '#/components/responses/AloreProblem'
+      /files/presign:
+        post:
+          operationId: alore_post_files_presign
+          summary: Presigned single-part upload
+          tags:
+            - x-alore
+          x-status: live
+          responses:
+            '200':
+              description: Success. The body schema is added by a later contract release.
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /files/from_url:
+        post:
+          operationId: alore_post_files_from_url
+          summary: Import a file from an allowlisted URL
+          tags:
+            - x-alore
+          x-status: live
+          responses:
+            '200':
+              description: Success. The body schema is added by a later contract release.
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /files/multipart/create:
+        post:
+          operationId: alore_post_files_multipart_create
+          summary: Start a multipart upload
+          tags:
+            - x-alore
+          x-status: live
+          responses:
+            '200':
+              description: Success. The body schema is added by a later contract release.
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /files/multipart/sign-part:
+        post:
+          operationId: alore_post_files_multipart_sign_part
+          summary: Sign one multipart part
+          tags:
+            - x-alore
+          x-status: live
+          responses:
+            '200':
+              description: Success. The body schema is added by a later contract release.
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /files/multipart/complete:
+        post:
+          operationId: alore_post_files_multipart_complete
+          summary: Complete a multipart upload
+          tags:
+            - x-alore
+          x-status: live
+          responses:
+            '200':
+              description: Success. The body schema is added by a later contract release.
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /files/multipart/abort:
+        post:
+          operationId: alore_post_files_multipart_abort
+          summary: Abort a multipart upload
+          tags:
+            - x-alore
+          x-status: live
+          responses:
+            '200':
+              description: Success. The body schema is added by a later contract release.
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /files/{file_id}/confirm:
+        post:
+          operationId: alore_post_files_file_id_confirm
+          summary: Confirm a presigned upload
+          tags:
+            - x-alore
+          x-status: live
+          parameters:
+            - name: file_id
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            '200':
+              description: Success. The body schema is added by a later contract release.
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /assistants/{assistant_id}/files:
+        post:
+          operationId: alore_post_assistants_assistant_id_files
+          summary: Unimplemented assistants-emulation route
+          tags:
+            - x-alore
+          x-status: stub
+          parameters:
+            - name: assistant_id
+              in: path
+              required: true
+              schema:
+                type: string
+          description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+          responses:
+            '501':
+              $ref: '#/components/responses/AloreProblem'
+        get:
+          operationId: alore_get_assistants_assistant_id_files
+          summary: Unimplemented assistants-emulation route
+          tags:
+            - x-alore
+          x-status: stub
+          parameters:
+            - name: assistant_id
+              in: path
+              required: true
+              schema:
+                type: string
+          description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+          responses:
+            '501':
+              $ref: '#/components/responses/AloreProblem'
+      /assistants/{assistant_id}/files/{file_id}:
+        get:
+          operationId: alore_get_assistants_assistant_id_files_file_id
+          summary: Unimplemented assistants-emulation route
+          tags:
+            - x-alore
+          x-status: stub
+          parameters:
+            - name: assistant_id
+              in: path
+              required: true
+              schema:
+                type: string
+            - name: file_id
+              in: path
+              required: true
+              schema:
+                type: string
+          description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+          responses:
+            '501':
+              $ref: '#/components/responses/AloreProblem'
+        delete:
+          operationId: alore_delete_assistants_assistant_id_files_file_id
+          summary: Unimplemented assistants-emulation route
+          tags:
+            - x-alore
+          x-status: stub
+          parameters:
+            - name: assistant_id
+              in: path
+              required: true
+              schema:
+                type: string
+            - name: file_id
+              in: path
+              required: true
+              schema:
+                type: string
+          description: Not implemented. A stub answers 501 not_implemented as problem+json and never returns 200.
+          responses:
+            '501':
+              $ref: '#/components/responses/AloreProblem'
+      /threads/{thread_id}/messages/{message_id}/rewrite:
+        post:
+          operationId: alore_post_threads_thread_id_messages_message_id_rewrite
+          summary: Rewrite a thread message
+          tags:
+            - x-alore
+          x-status: live
+          x-deprecated-since: 0.1.0-alpha.0
+          parameters:
+            - name: thread_id
+              in: path
+              required: true
+              schema:
+                type: string
+            - name: message_id
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            '200':
+              description: Success. The body schema is added by a later contract release.
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /threads/{thread_id}/runs/{run_id}/context:
+        get:
+          operationId: alore_get_threads_thread_id_runs_run_id_context
+          summary: Read the context of a run
+          tags:
+            - x-alore
+          x-status: live
+          x-deprecated-since: 0.1.0-alpha.0
+          parameters:
+            - name: thread_id
+              in: path
+              required: true
+              schema:
+                type: string
+            - name: run_id
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            '200':
+              description: Success. The body schema is added by a later contract release.
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /vector_stores/{vector_store_id}/documents/upsert:
+        post:
+          operationId: alore_post_vector_stores_vector_store_id_documents_upsert
+          summary: Upsert a document into a store (replaced by Alore-owned ingestion)
+          tags:
+            - x-alore
+          x-status: legacy-replaced
+          x-deprecated-since: 0.1.0-alpha.0
+          parameters:
+            - name: vector_store_id
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            '200':
+              description: Success. The body schema is added by a later contract release.
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /vector_stores/{vector_store_id}/documents/{object_id}/attributes:
+        post:
+          operationId: alore_post_vector_stores_vector_store_id_documents_object_id_attributes
+          summary: Update document attributes (replaced by Alore-owned ingestion)
+          tags:
+            - x-alore
+          x-status: legacy-replaced
+          x-deprecated-since: 0.1.0-alpha.0
+          parameters:
+            - name: vector_store_id
+              in: path
+              required: true
+              schema:
+                type: string
+            - name: object_id
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            '200':
+              description: Success. The body schema is added by a later contract release.
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /vector_stores/{vector_store_id}/files/{file_id}/attributes:
+        patch:
+          operationId: alore_patch_vector_stores_vector_store_id_files_file_id_attributes
+          summary: Update the attributes of a store file
+          tags:
+            - x-alore
+          x-status: live
+          parameters:
+            - name: vector_store_id
+              in: path
+              required: true
+              schema:
+                type: string
+            - name: file_id
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            '200':
+              description: Success. The body schema is added by a later contract release.
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /vector_stores/{vector_store_id}/files/{file_id}/pages:
+        put:
+          operationId: alore_put_vector_stores_vector_store_id_files_file_id_pages
+          summary: Replace the page text of a store file (replaced by Alore-owned ingestion)
+          tags:
+            - x-alore
+          x-status: legacy-replaced
+          x-deprecated-since: 0.1.0-alpha.0
+          parameters:
+            - name: vector_store_id
+              in: path
+              required: true
+              schema:
+                type: string
+            - name: file_id
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            '200':
+              description: Success. The body schema is added by a later contract release.
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /meta:
+        get:
+          operationId: alore_get_meta
+          summary: Read the contract version and features
+          tags:
+            - x-alore
+          x-status: planned
+          responses:
+            '200':
+              description: Contract version and negotiated features.
+              content:
+                application/json:
+                  schema:
+                    $ref: '#/components/schemas/AloreMeta'
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /files/{file_id}/text:
+        get:
+          operationId: alore_get_files_file_id_text
+          summary: Planned files route
+          tags:
+            - x-alore
+          x-status: planned
+          parameters:
+            - name: file_id
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /files/{file_id}/pages/{page}:
+        get:
+          operationId: alore_get_files_file_id_pages_page
+          summary: Planned files route
+          tags:
+            - x-alore
+          x-status: planned
+          parameters:
+            - name: file_id
+              in: path
+              required: true
+              schema:
+                type: string
+            - name: page
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /files/register:
+        post:
+          operationId: alore_post_files_register
+          summary: Planned files route
+          tags:
+            - x-alore
+          x-status: planned
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /files/{file_id}/reprocess:
+        post:
+          operationId: alore_post_files_file_id_reprocess
+          summary: Planned files route
+          tags:
+            - x-alore
+          x-status: planned
+          parameters:
+            - name: file_id
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /search:
+        post:
+          operationId: alore_post_search
+          summary: Planned vector-stores route
+          tags:
+            - x-alore
+          x-status: planned
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /conversations/{conversation_id}/vector_stores:
+        get:
+          operationId: alore_get_conversations_conversation_id_vector_stores
+          summary: Planned conversations route
+          tags:
+            - x-alore
+          x-status: planned
+          parameters:
+            - name: conversation_id
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+        post:
+          operationId: alore_post_conversations_conversation_id_vector_stores
+          summary: Planned conversations route
+          tags:
+            - x-alore
+          x-status: planned
+          parameters:
+            - name: conversation_id
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /conversations/{conversation_id}/vector_stores/{vector_store_id}:
+        delete:
+          operationId: alore_delete_conversations_conversation_id_vector_stores_vector_store_id
+          summary: Planned conversations route
+          tags:
+            - x-alore
+          x-status: planned
+          parameters:
+            - name: conversation_id
+              in: path
+              required: true
+              schema:
+                type: string
+            - name: vector_store_id
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /conversations/{conversation_id}/fork:
+        post:
+          operationId: alore_post_conversations_conversation_id_fork
+          summary: Planned conversations route
+          tags:
+            - x-alore
+          x-status: planned
+          parameters:
+            - name: conversation_id
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /rerank:
+        post:
+          operationId: alore_post_rerank
+          summary: Planned embeddings route
+          tags:
+            - x-alore
+          x-status: planned
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /audio/speech/with_timestamps:
+        post:
+          operationId: alore_post_audio_speech_with_timestamps
+          summary: Planned audio route
+          tags:
+            - x-alore
+          x-status: planned
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /ocr:
+        post:
+          operationId: alore_post_ocr
+          summary: Planned jobs route
+          tags:
+            - x-alore
+          x-status: planned
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /jobs:
+        post:
+          operationId: alore_post_jobs
+          summary: Planned jobs route
+          tags:
+            - x-alore
+          x-status: planned
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /jobs/{job_id}:
+        get:
+          operationId: alore_get_jobs_job_id
+          summary: Planned jobs route
+          tags:
+            - x-alore
+          x-status: planned
+          parameters:
+            - name: job_id
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+        delete:
+          operationId: alore_delete_jobs_job_id
+          summary: Planned jobs route
+          tags:
+            - x-alore
+          x-status: planned
+          parameters:
+            - name: job_id
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /decisions/{decision_id}/feedback:
+        post:
+          operationId: alore_post_decisions_decision_id_feedback
+          summary: Planned decisions route
+          tags:
+            - x-alore
+          x-status: planned
+          parameters:
+            - name: decision_id
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /decisions/tasks:
+        get:
+          operationId: alore_get_decisions_tasks
+          summary: Planned decisions route
+          tags:
+            - x-alore
+          x-status: planned
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /orgs:
+        post:
+          operationId: alore_post_orgs
+          summary: Planned usage route
+          tags:
+            - x-alore
+          x-status: planned
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /usage:
+        get:
+          operationId: alore_get_usage
+          summary: Planned usage route
+          tags:
+            - x-alore
+          x-status: planned
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+      /orgs/{org_ref}:
+        delete:
+          operationId: alore_delete_orgs_org_ref
+          summary: Planned usage route
+          tags:
+            - x-alore
+          x-status: planned
+          parameters:
+            - name: org_ref
+              in: path
+              required: true
+              schema:
+                type: string
+          responses:
+            default:
+              $ref: '#/components/responses/AloreProblem'
+  - target: $.paths['/audio/speech'].post
+    update:
+      x-status: live
+  - target: $.paths['/audio/transcriptions'].post
+    update:
+      x-status: stub
+  - target: $.paths['/audio/translations'].post
+    update:
+      x-status: stub
+  - target: $.paths['/chat/completions'].post
+    update:
+      x-status: live
+  - target: $.paths['/embeddings'].post
+    update:
+      x-status: stub
+  - target: $.paths['/files'].post
+    update:
+      x-status: live
+  - target: $.paths['/files'].get
+    update:
+      x-status: live
+  - target: $.paths['/files/{file_id}'].get
+    update:
+      x-status: live
+  - target: $.paths['/files/{file_id}'].delete
+    update:
+      x-status: live
+  - target: $.paths['/files/{file_id}/content'].get
+    update:
+      x-status: live
+  - target: $.paths['/uploads'].post
+    update:
+      x-status: live
+  - target: $.paths['/uploads/{upload_id}/parts'].post
+    update:
+      x-status: live
+  - target: $.paths['/uploads/{upload_id}/complete'].post
+    update:
+      x-status: live
+  - target: $.paths['/uploads/{upload_id}/cancel'].post
+    update:
+      x-status: live
+  - target: $.paths['/images/generations'].post
+    update:
+      x-status: stub
+  - target: $.paths['/images/edits'].post
+    update:
+      x-status: stub
+  - target: $.paths['/images/variations'].post
+    update:
+      x-status: stub
+  - target: $.paths['/models'].get
+    update:
+      x-status: live
+  - target: $.paths['/models/{model}'].get
+    update:
+      x-status: live
+  - target: $.paths['/models/{model}'].delete
+    update:
+      x-status: stub
+  - target: $.paths['/responses'].post
+    update:
+      x-status: live
+  - target: $.paths['/responses/input_tokens'].post
+    update:
+      x-status: live
+  - target: $.paths['/responses/{response_id}'].get
+    update:
+      x-status: live
+  - target: $.paths['/responses/{response_id}'].delete
+    update:
+      x-status: live
+  - target: $.paths['/responses/{response_id}/cancel'].post
+    update:
+      x-status: stub
+  - target: $.paths['/responses/{response_id}/input_items'].get
+    update:
+      x-status: live
+  - target: $.paths['/conversations'].post
+    update:
+      x-status: live
+  - target: $.paths['/conversations/{conversation_id}'].get
+    update:
+      x-status: live
+  - target: $.paths['/conversations/{conversation_id}'].post
+    update:
+      x-status: live
+  - target: $.paths['/conversations/{conversation_id}'].delete
+    update:
+      x-status: live
+  - target: $.paths['/conversations/{conversation_id}/items'].get
+    update:
+      x-status: live
+  - target: $.paths['/conversations/{conversation_id}/items'].post
+    update:
+      x-status: live
+  - target: $.paths['/conversations/{conversation_id}/items/{item_id}'].get
+    update:
+      x-status: live
+  - target: $.paths['/conversations/{conversation_id}/items/{item_id}'].delete
+    update:
+      x-status: live
+  - target: $.paths['/assistants'].post
+    update:
+      x-status: live
+  - target: $.paths['/assistants'].get
+    update:
+      x-status: live
+  - target: $.paths['/assistants/{assistant_id}'].get
+    update:
+      x-status: live
+  - target: $.paths['/assistants/{assistant_id}'].post
+    update:
+      x-status: live
+  - target: $.paths['/assistants/{assistant_id}'].delete
+    update:
+      x-status: live
+  - target: $.paths['/threads'].post
+    update:
+      x-status: live
+      x-deprecated-since: 0.1.0-alpha.0
+  - target: $.paths['/threads/runs'].post
+    update:
+      x-status: live
+      x-deprecated-since: 0.1.0-alpha.0
+  - target: $.paths['/threads/{thread_id}'].get
+    update:
+      x-status: live
+      x-deprecated-since: 0.1.0-alpha.0
+  - target: $.paths['/threads/{thread_id}'].post
+    update:
+      x-status: live
+      x-deprecated-since: 0.1.0-alpha.0
+  - target: $.paths['/threads/{thread_id}'].delete
+    update:
+      x-status: live
+      x-deprecated-since: 0.1.0-alpha.0
+  - target: $.paths['/threads/{thread_id}/messages'].post
+    update:
+      x-status: live
+      x-deprecated-since: 0.1.0-alpha.0
+  - target: $.paths['/threads/{thread_id}/messages'].get
+    update:
+      x-status: live
+      x-deprecated-since: 0.1.0-alpha.0
+  - target: $.paths['/threads/{thread_id}/messages/{message_id}'].post
+    update:
+      x-status: live
+      x-deprecated-since: 0.1.0-alpha.0
+  - target: $.paths['/threads/{thread_id}/messages/{message_id}'].delete
+    update:
+      x-status: live
+      x-deprecated-since: 0.1.0-alpha.0
+  - target: $.paths['/threads/{thread_id}/messages/{message_id}'].get
+    update:
+      x-status: live
+      x-deprecated-since: 0.1.0-alpha.0
+  - target: $.paths['/threads/{thread_id}/runs'].post
+    update:
+      x-status: live
+      x-deprecated-since: 0.1.0-alpha.0
+  - target: $.paths['/threads/{thread_id}/runs'].get
+    update:
+      x-status: live
+      x-deprecated-since: 0.1.0-alpha.0
+  - target: $.paths['/threads/{thread_id}/runs/{run_id}'].get
+    update:
+      x-status: live
+      x-deprecated-since: 0.1.0-alpha.0
+  - target: $.paths['/threads/{thread_id}/runs/{run_id}'].post
+    update:
+      x-status: live
+      x-deprecated-since: 0.1.0-alpha.0
+  - target: $.paths['/threads/{thread_id}/runs/{run_id}/submit_tool_outputs'].post
+    update:
+      x-status: live
+      x-deprecated-since: 0.1.0-alpha.0
+  - target: $.paths['/threads/{thread_id}/runs/{run_id}/cancel'].post
+    update:
+      x-status: live
+      x-deprecated-since: 0.1.0-alpha.0
+  - target: $.paths['/threads/{thread_id}/runs/{run_id}/steps'].get
+    update:
+      x-status: live
+      x-deprecated-since: 0.1.0-alpha.0
+  - target: $.paths['/threads/{thread_id}/runs/{run_id}/steps/{step_id}'].get
+    update:
+      x-status: live
+      x-deprecated-since: 0.1.0-alpha.0
+  - target: $.paths['/vector_stores'].post
+    update:
+      x-status: live
+  - target: $.paths['/vector_stores'].get
+    update:
+      x-status: live
+  - target: $.paths['/vector_stores/{vector_store_id}'].get
+    update:
+      x-status: live
+  - target: $.paths['/vector_stores/{vector_store_id}'].post
+    update:
+      x-status: live
+  - target: $.paths['/vector_stores/{vector_store_id}'].delete
+    update:
+      x-status: live
+  - target: $.paths['/vector_stores/{vector_store_id}/search'].post
+    update:
+      x-status: live
+  - target: $.paths['/vector_stores/{vector_store_id}/files'].post
+    update:
+      x-status: live
+  - target: $.paths['/vector_stores/{vector_store_id}/files'].get
+    update:
+      x-status: live
+  - target: $.paths['/vector_stores/{vector_store_id}/files/{file_id}'].get
+    update:
+      x-status: live
+  - target: $.paths['/vector_stores/{vector_store_id}/files/{file_id}'].post
+    update:
+      x-status: live
+  - target: $.paths['/vector_stores/{vector_store_id}/files/{file_id}'].delete
+    update:
+      x-status: live
+  - target: $.paths['/batches'].post
+    update:
+      x-status: planned
+  - target: $.paths['/batches/{batch_id}'].get
+    update:
+      x-status: planned
+  - target: $.paths['/batches/{batch_id}/cancel'].post
+    update:
+      x-status: planned
+  - target: $.paths['/responses/compact'].post
+    update:
+      x-status: live
+  - target: $.paths['/decisions'].post
+    update:
+      x-status: planned

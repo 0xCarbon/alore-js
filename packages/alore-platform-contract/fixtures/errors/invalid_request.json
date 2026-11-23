@@ -1,0 +1,15 @@
+{
+  "schema": "problem.schema.json",
+  "valid": true,
+  "instance": {
+    "type": "invalid_request",
+    "title": "Invalid request",
+    "status": 400,
+    "detail": "Example detail.",
+    "error": {
+      "type": "invalid_request",
+      "message": "Example message.",
+      "code": "invalid_request"
+    }
+  }
+}

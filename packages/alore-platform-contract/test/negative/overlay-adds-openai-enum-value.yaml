@@ -1,0 +1,11 @@
+# Negative control: the overlay adds a value to an OpenAI-defined enum without marking an
+# Alore-owned extension. Lint must reject it.
+overlay: 1.0.0
+info:
+  title: negative control
+  version: '1'
+actions:
+  - target: $.components.schemas.OpenAIFile.properties.status
+    update:
+      enum:
+        - queued

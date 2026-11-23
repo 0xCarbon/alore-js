@@ -1,0 +1,15 @@
+{
+  "schema": "problem.schema.json",
+  "valid": true,
+  "instance": {
+    "type": "unavailable",
+    "title": "Unavailable",
+    "status": 503,
+    "detail": "Example detail.",
+    "error": {
+      "type": "unavailable",
+      "message": "Example message.",
+      "code": "unavailable"
+    }
+  }
+}

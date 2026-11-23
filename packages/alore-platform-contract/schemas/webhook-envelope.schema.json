@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AloreEvent",
+  "description": "Webhook event envelope alore.evt/1. Delivery is at least once, so a receiver dedupes on id.",
+  "type": "object",
+  "required": ["id", "type", "time", "client", "org_ref", "subject", "seq", "data"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "description": "Event id, a plain string.", "type": "string", "minLength": 1 },
+    "type": {
+      "type": "string",
+      "enum": [
+        "file.received",
+        "file.text_ready",
+        "file.ready",
+        "file.failed",
+        "file.deleted",
+        "vector_store.file_ready",
+        "job.progress",
+        "job.completed",
+        "job.failed",
+        "job.cancelled",
+        "job.expired",
+        "response.completed",
+        "response.verified",
+        "usage.recorded",
+        "org.erased"
+      ]
+    },
+    "time": { "type": "string", "format": "date-time" },
+    "client": { "description": "Client the event belongs to.", "type": "string", "minLength": 1 },
+    "org_ref": {
+      "description": "Registered organization reference, or null.",
+      "type": ["string", "null"]
+    },
+    "subject": {
+      "type": "object",
+      "required": ["kind", "id"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": { "type": "string", "minLength": 1 },
+        "id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "seq": {
+      "description": "Per-subject sequence number; an older generation never overwrites a newer one.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "data": {
+      "description": "Event payload; typed per event type by later contract releases.",
+      "type": "object"
+    }
+  }
+}

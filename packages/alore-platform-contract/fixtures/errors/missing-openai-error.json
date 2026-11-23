@@ -1,0 +1,10 @@
+{
+  "schema": "problem.schema.json",
+  "valid": false,
+  "description": "The OpenAI-style error object is required so the OpenAI SDKs can parse the body.",
+  "instance": {
+    "type": "not_found",
+    "title": "Not found",
+    "status": 404
+  }
+}

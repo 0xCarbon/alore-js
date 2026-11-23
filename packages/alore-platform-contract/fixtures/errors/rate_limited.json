@@ -1,0 +1,15 @@
+{
+  "schema": "problem.schema.json",
+  "valid": true,
+  "instance": {
+    "type": "rate_limited",
+    "title": "Rate limited",
+    "status": 429,
+    "detail": "Example detail.",
+    "error": {
+      "type": "rate_limited",
+      "message": "Example message.",
+      "code": "rate_limited"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "schema": "meta.schema.json",
+  "valid": true,
+  "instance": {
+    "contract": "0.1.0",
+    "features": ["files.status", "conversations.fork"]
+  }
+}

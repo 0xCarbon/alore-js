@@ -1,0 +1,44 @@
+{
+  "name": "@alore/platform-contract",
+  "version": "0.1.0-alpha.0",
+  "description": "Pinned OpenAI OpenAPI spec cut to the routes Alore serves, plus the x-alore overlay, schemas and fixtures",
+  "repository": "https://github.com/0xCarbon/alore-js",
+  "type": "module",
+  "files": [
+    "openapi/openapi.yaml",
+    "openapi/openai.pinned.yaml",
+    "openapi/x-alore.overlay.yaml",
+    "openapi/upstream/PIN.json",
+    "openapi/upstream/LICENSE",
+    "asyncapi",
+    "schemas",
+    "fixtures",
+    "routes",
+    "CHANGELOG.md"
+  ],
+  "exports": {
+    "./openapi.yaml": "./openapi/openapi.yaml",
+    "./asyncapi.yaml": "./asyncapi/asyncapi.yaml",
+    "./schemas/*": "./schemas/*",
+    "./fixtures/*": "./fixtures/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "lint": "node scripts/lint.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "author": "0xCarbon",
+  "license": "LGPL-2.1-only",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "pnpm@8.15.9",
+  "devDependencies": {
+    "@asyncapi/parser": "3.6.6",
+    "@stoplight/spectral-cli": "6.16.0",
+    "ajv": "8.17.1",
+    "ajv-formats": "3.0.1",
+    "yaml": "2.8.1"
+  }
+}

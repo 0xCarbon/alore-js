@@ -1,0 +1,17 @@
+{
+  "schema": "webhook-envelope.schema.json",
+  "valid": true,
+  "instance": {
+    "id": "evt-0007",
+    "type": "job.progress",
+    "time": "2026-01-01T12:00:00Z",
+    "client": "example-client",
+    "org_ref": "org-1",
+    "subject": {
+      "kind": "job",
+      "id": "subject-7"
+    },
+    "seq": 6,
+    "data": {}
+  }
+}

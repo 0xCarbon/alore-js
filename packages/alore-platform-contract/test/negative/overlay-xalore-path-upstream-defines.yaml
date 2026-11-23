@@ -1,0 +1,21 @@
+# Negative control: an x-alore path for an operation the pinned upstream spec already defines
+# (GET /batches, listBatches). Lint must reject it.
+overlay: 1.0.0
+info:
+  title: negative control
+  version: '1'
+actions:
+  - target: $.paths
+    update:
+      /batches:
+        get:
+          operationId: alore_list_batches
+          summary: List batches
+          tags:
+            - x-alore
+          x-status: live
+          responses:
+            '200':
+              description: ok
+            default:
+              $ref: '#/components/responses/AloreProblem'

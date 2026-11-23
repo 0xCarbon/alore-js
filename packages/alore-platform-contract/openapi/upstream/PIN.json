@@ -1,0 +1,11 @@
+{
+  "repository": "https://github.com/openai/openai-openapi",
+  "commit": "2a24deae6f89f84d0e88ce3c9d96c00304dca0b8",
+  "committed_at": "2026-11-21T00:57:35Z",
+  "file": "openapi.yaml",
+  "url": "https://raw.githubusercontent.com/openai/openai-openapi/2a24deae6f89f84d0e88ce3c9d96c00304dca0b8/openapi.yaml",
+  "sha256": "fb196a60eef4125b6e4c6874488eed9022a6be8014aff5e874f74930daf5b559",
+  "spec_version": "2.3.0",
+  "license": "MIT",
+  "note": "Bumping this pin is its own reviewed pull request with a diff report. It never rides along with a feature change."
+}

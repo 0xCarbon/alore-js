@@ -1,0 +1,15 @@
+{
+  "schema": "problem.schema.json",
+  "valid": true,
+  "instance": {
+    "type": "not_found",
+    "title": "Not found",
+    "status": 404,
+    "detail": "Example detail.",
+    "error": {
+      "type": "not_found",
+      "message": "Example message.",
+      "code": "not_found"
+    }
+  }
+}

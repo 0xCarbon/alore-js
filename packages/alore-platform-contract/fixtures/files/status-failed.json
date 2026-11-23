@@ -1,0 +1,7 @@
+{
+  "schema": "file-extension.schema.json",
+  "valid": true,
+  "instance": {
+    "status": "failed"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AloreProblem",
+  "description": "RFC 9457 problem details (application/problem+json) that also carries the OpenAI-style error object, so the OpenAI SDKs can parse it. The type is one of a closed list.",
+  "type": "object",
+  "required": ["type", "title", "status", "error"],
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "description": "Closed list of problem types.",
+      "type": "string",
+      "enum": [
+        "not_found",
+        "invalid_request",
+        "rate_limited",
+        "unavailable",
+        "conflict",
+        "payload_too_large",
+        "unsupported_media_type",
+        "contract_version",
+        "not_implemented"
+      ]
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "status": { "type": "integer", "minimum": 400, "maximum": 599 },
+    "detail": { "type": "string" },
+    "instance": { "type": "string" },
+    "error": {
+      "description": "OpenAI-style error object.",
+      "type": "object",
+      "required": ["type", "message", "code"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "type": "string", "minLength": 1 },
+        "message": { "type": "string" },
+        "code": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

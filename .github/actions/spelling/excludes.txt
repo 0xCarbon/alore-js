@@ -40,3 +40,4 @@
 \.wav$
 ^\.github/
 ignore$
+(?:^|/)packages/alore-platform-contract/(?:openapi/(?:upstream/|openai\.pinned\.yaml|openapi\.yaml)|rules/vendor-names\.json|test/negative/)

@@ -1,0 +1,15 @@
+{
+  "schema": "problem.schema.json",
+  "valid": true,
+  "instance": {
+    "type": "contract_version",
+    "title": "Contract version",
+    "status": 426,
+    "detail": "Example detail.",
+    "error": {
+      "type": "contract_version",
+      "message": "Example message.",
+      "code": "contract_version"
+    }
+  }
+}
