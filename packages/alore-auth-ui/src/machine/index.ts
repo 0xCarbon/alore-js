@@ -1535,10 +1535,12 @@ export const authService = (services: {}, context: AuthMachineContext) => {
   // different env-derived values (URLs, flags), and that must not cost an
   // authenticated user their session (JOO-1964). Exception: passkeys are
   // cryptographically bound to rpDomain, so if it changed a kept session could no
-  // longer complete any WebAuthn flow and the machine starts fresh.
+  // longer complete any WebAuthn flow and the machine starts fresh. The comparison
+  // is strict, as before: a stored session with no rpDomain does not match an
+  // incoming config that has one.
   const persistedRpDomain = resolvedState?.context?.authProviderConfigs?.rpDomain;
   const incomingRpDomain = mergedContext.authProviderConfigs?.rpDomain;
-  const rpDomainChanged = !!persistedRpDomain && persistedRpDomain !== incomingRpDomain;
+  const rpDomainChanged = persistedRpDomain !== incomingRpDomain;
   const startArg =
     resolvedState && !rpDomainChanged
       ? sessionState(resolvedState.context.sessionUser, mergedContext.authProviderConfigs)

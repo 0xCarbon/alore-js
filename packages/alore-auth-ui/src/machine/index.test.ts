@@ -568,6 +568,23 @@ describe('persisted session record (alore-js-01)', () => {
     service.stop();
   });
 
+  it('drops a stored session when the login screen mounts (CLEAR_ERROR, RESET, INITIALIZE)', async () => {
+    const store = stubBrowser();
+    const { authService } = await loadAuthModule();
+    const service = authService(services, { authProviderConfigs: configs } as never);
+    await signInWithPassword(service as never);
+    expect(service.state.matches('active.login.successfulLogin')).toBe(true);
+    expect(store.has('authState')).toBe(true);
+
+    // What <Auth> sends on mount and when authProviderConfigs changes.
+    service.send(['CLEAR_ERROR', 'RESET', 'INITIALIZE'] as never);
+    expect(service.state.matches('active.login.idle')).toBe(true);
+    // RESET does not clear the context, but the stored session is gone.
+    expect(service.state.context.sessionUser).toBeTruthy();
+    expect(store.has('authState')).toBe(false);
+    service.stop();
+  });
+
   it('never stores the snapshot of a login that has not finished', async () => {
     const store = stubBrowser();
     const { authService } = await loadAuthModule();
@@ -663,5 +680,23 @@ describe('persisted session record (alore-js-01)', () => {
     } as never);
     expect(fresh.state.matches('inactive')).toBe(true);
     fresh.stop();
+  });
+
+  it('starts fresh when the stored session has no rpDomain and the config has one', async () => {
+    // The old rule was strict inequality of rpDomain, undefined included.
+    stubBrowser(JSON.stringify({ v: 2, context: { sessionUser } }));
+    let mod = await loadAuthModule();
+    const fresh = mod.authService(services, { authProviderConfigs: configs } as never);
+    expect(fresh.state.matches('inactive')).toBe(true);
+    fresh.stop();
+
+    // Neither side has an rpDomain: kept.
+    stubBrowser(JSON.stringify({ v: 2, context: { sessionUser } }));
+    mod = await loadAuthModule();
+    const kept = mod.authService(services, {
+      authProviderConfigs: { enablePasswords: true, enablePasskeys: false },
+    } as never);
+    expect(kept.state.matches('active.login.successfulLogin')).toBe(true);
+    kept.stop();
   });
 });
