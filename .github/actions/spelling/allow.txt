@@ -17,6 +17,7 @@ allowlisted
 alore
 alr
 Alu
+amr
 anga
 api
 apikey
@@ -166,6 +167,7 @@ hoverable
 hpke
 HRTB
 httpauth
+hwk
 identificator
 idx
 ILIKE
@@ -191,6 +193,7 @@ joo
 jpy
 jsonpath
 jsonwebtoken
+jti
 jwt
 kdf
 kduzera
@@ -303,6 +306,7 @@ readdir
 readme
 realip
 realtime
+reauth
 redeliveries
 renovada
 requiredness

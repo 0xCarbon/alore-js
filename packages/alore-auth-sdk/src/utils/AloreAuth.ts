@@ -1,11 +1,20 @@
 import { startAuthentication } from '@simplewebauthn/browser';
 
+import { generateSecureHash } from '../helpers/crypto';
 import type {
   AuthMachineContext,
   AuthProviderConfig,
+  CustomerStepUpEmailChallengeResponse,
+  CustomerStepUpInput,
+  CustomerStepUpResult,
   FetchWithProgressiveBackoffConfig,
+  StaffStepUpInput,
+  StaffStepUpResult,
+  StepUpChallengeRequest,
+  StepUpChallengeResponse,
+  StepUpFactorsResponse,
 } from '../types';
-import { AloreAuthError, ErrorTypes } from './AuthError';
+import { AloreAuthError, ErrorCodes, ErrorTypes } from './AuthError';
 
 const DEFAULT_URL = 'https://alpha-api.bealore.com/v1';
 
@@ -769,6 +778,372 @@ export class AloreAuth {
       return { sessionUser, isNewUser: response.status === 201 };
     },
   };
+
+  /**
+   * Lists the authenticated user's available staff MFA and customer re-auth factors.
+   */
+  public async getStepUpFactors(accessToken: string): Promise<StepUpFactorsResponse> {
+    const token = this.requireAccessToken(accessToken);
+    const response = await this.fetchWithProgressiveBackoff('/auth/v1/step-up/factors', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      await this.throwStepUpError(response);
+    }
+
+    return (await response.json()) as StepUpFactorsResponse;
+  }
+
+  /**
+   * Starts a WebAuthn (`passkey` / `hw_key`) or `email_code` step-up challenge.
+   * Uses a single attempt (`maxAttempts: 1`) so email codes are never double-sent.
+   */
+  public async startStepUpChallenge(
+    accessToken: string,
+    request: StepUpChallengeRequest,
+  ): Promise<StepUpChallengeResponse> {
+    const token = this.requireAccessToken(accessToken);
+    const body: Record<string, unknown> = {
+      method: request.method,
+    };
+    if (request.purpose !== undefined) {
+      body.purpose = request.purpose;
+    }
+    if (request.rpOrigin !== undefined) {
+      body.rpOrigin = request.rpOrigin;
+    }
+    if (request.locale !== undefined) {
+      body.locale = request.locale;
+    }
+
+    const response = await this.fetchWithProgressiveBackoff(
+      '/auth/v1/step-up/challenge',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      },
+      { maxAttempts: 1 },
+    );
+
+    if (!response.ok) {
+      await this.throwStepUpError(response);
+    }
+
+    return (await response.json()) as StepUpChallengeResponse;
+  }
+
+  /**
+   * Requests a single-use customer re-authentication verification code by email.
+   */
+  public async requestCustomerReauthEmailCode(
+    accessToken: string,
+    options?: { locale?: string },
+  ): Promise<CustomerStepUpEmailChallengeResponse> {
+    const challenge = await this.startStepUpChallenge(accessToken, {
+      method: 'email_code',
+      purpose: 'customer_reauth',
+      locale: options?.locale,
+    });
+
+    return {
+      method: 'email_code',
+      sessionId: challenge.sessionId,
+      expiresAt: challenge.expiresAt ?? 0,
+    };
+  }
+
+  /**
+   * Performs customer re-authentication ("Confirme que é você") using passkey,
+   * hardware key, password (+ TOTP when enrolled), or an emailed single-use code.
+   * Returns a short-lived, scoped `reauthToken` (`purpose: 'customer_reauth'`).
+   */
+  public async stepUp(
+    accessToken: string,
+    input: CustomerStepUpInput,
+  ): Promise<CustomerStepUpResult> {
+    const token = this.requireAccessToken(accessToken);
+    const payload = await this.buildCustomerStepUpPayload(token, input);
+
+    const response = await this.fetchWithProgressiveBackoff(
+      '/auth/v1/step-up/customer',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      },
+      { maxAttempts: 1 },
+    );
+
+    if (!response.ok) {
+      await this.throwStepUpError(response);
+    }
+
+    return (await response.json()) as CustomerStepUpResult;
+  }
+
+  /**
+   * Performs staff MFA step-up (`POST /auth/v1/step-up`) using an enrolled TOTP,
+   * passkey, or hardware key and returns freshly minted session tokens.
+   */
+  public async staffStepUp(
+    accessToken: string,
+    input: StaffStepUpInput,
+  ): Promise<StaffStepUpResult> {
+    const token = this.requireAccessToken(accessToken);
+    let payload: Record<string, unknown>;
+
+    if (input.method === 'totp') {
+      payload = { method: 'totp', otp: input.otp };
+    } else if (input.credential && input.sessionId) {
+      payload = {
+        method: input.method,
+        credential: input.credential,
+        sessionId: input.sessionId,
+        ...(input.rpOrigin ? { rpOrigin: input.rpOrigin } : {}),
+      };
+    } else {
+      const challenge = await this.startStepUpChallenge(token, {
+        method: input.method,
+        purpose: 'staff_mfa',
+        rpOrigin: input.rpOrigin,
+      });
+      const publicKey = challenge.requestChallengeResponse?.publicKey;
+      if (!publicKey) {
+        throw new AloreAuthError(
+          ErrorTypes.BAD_RESPONSE,
+          'Missing WebAuthn challenge options from server',
+        );
+      }
+      const authenticate =
+        ('authenticatePasskey' in input && input.authenticatePasskey) ||
+        ((optionsJSON: Record<string, unknown>) =>
+          startAuthentication({ optionsJSON: optionsJSON as any }) as unknown as Promise<
+            Record<string, unknown>
+          >);
+      const credential = await authenticate(publicKey);
+      payload = {
+        method: input.method,
+        credential,
+        sessionId: challenge.sessionId,
+        ...(input.rpOrigin ? { rpOrigin: input.rpOrigin } : {}),
+      };
+    }
+
+    const response = await this.fetchWithProgressiveBackoff(
+      '/auth/v1/step-up',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      },
+      { maxAttempts: 1 },
+    );
+
+    if (!response.ok) {
+      await this.throwStepUpError(response);
+    }
+
+    return (await response.json()) as StaffStepUpResult;
+  }
+
+  private async buildCustomerStepUpPayload(
+    accessToken: string,
+    input: CustomerStepUpInput,
+  ): Promise<Record<string, unknown>> {
+    if (input.method === 'email_code') {
+      return {
+        method: 'email_code',
+        emailCode: input.emailCode,
+        sessionId: input.sessionId,
+        ...(input.scope ? { scope: input.scope } : {}),
+      };
+    }
+
+    if (input.method === 'password') {
+      let passwordHash: string;
+      if ('passwordHash' in input) {
+        passwordHash = input.passwordHash;
+      } else {
+        let { salt } = input;
+        if (!salt) {
+          if (!input.email) {
+            throw new AloreAuthError(
+              ErrorTypes.STEP_UP_INVALID_REQUEST,
+              'Email or salt is required to hash password for re-authentication',
+              ErrorCodes.BAD_REQUEST,
+            );
+          }
+          const saltResp = await this.fetchWithProgressiveBackoff(
+            `/auth/v1/salt/${encodeURIComponent(input.email)}`,
+            {
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            },
+          );
+          if (!saltResp.ok) {
+            await this.throwStepUpError(saltResp);
+          }
+          salt = (await saltResp.json()) as string;
+        }
+        const hashFn =
+          input.hashPassword ??
+          ((password: string, resolvedSalt: string) =>
+            generateSecureHash(password, resolvedSalt, 'argon2d'));
+        passwordHash = await hashFn(input.password, salt);
+      }
+
+      return {
+        method: 'password',
+        passwordHash,
+        ...(input.otp !== undefined && input.otp !== '' ? { otp: input.otp } : {}),
+        ...(input.scope ? { scope: input.scope } : {}),
+      };
+    }
+
+    // Passkey or hardware key
+    if (input.credential && input.sessionId) {
+      return {
+        method: input.method,
+        credential: input.credential,
+        sessionId: input.sessionId,
+        ...(input.rpOrigin ? { rpOrigin: input.rpOrigin } : {}),
+        ...(input.scope ? { scope: input.scope } : {}),
+      };
+    }
+
+    const challenge = await this.startStepUpChallenge(accessToken, {
+      method: input.method,
+      purpose: 'customer_reauth',
+      rpOrigin: input.rpOrigin,
+    });
+    const publicKey = challenge.requestChallengeResponse?.publicKey;
+    if (!publicKey) {
+      throw new AloreAuthError(
+        ErrorTypes.BAD_RESPONSE,
+        'Missing WebAuthn challenge options from server',
+      );
+    }
+
+    const authenticate =
+      ('authenticatePasskey' in input && input.authenticatePasskey) ||
+      ((optionsJSON: Record<string, unknown>) =>
+        startAuthentication({ optionsJSON: optionsJSON as any }) as unknown as Promise<
+          Record<string, unknown>
+        >);
+    const credential = await authenticate(publicKey);
+
+    return {
+      method: input.method,
+      credential,
+      sessionId: challenge.sessionId,
+      ...(input.rpOrigin ? { rpOrigin: input.rpOrigin } : {}),
+      ...(input.scope ? { scope: input.scope } : {}),
+    };
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private requireAccessToken(accessToken: string): string {
+    const trimmed = typeof accessToken === 'string' ? accessToken.trim() : '';
+    if (!trimmed) {
+      throw new AloreAuthError(
+        ErrorTypes.STEP_UP_INVALID_FACTOR,
+        'Access token is required for re-authentication',
+        ErrorCodes.UNAUTHORIZED,
+      );
+    }
+    return trimmed;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private async throwStepUpError(response: Response): Promise<never> {
+    const { status } = response;
+    let rawServerMessage = '';
+    try {
+      const parsed = await response.json();
+      if (typeof parsed === 'string') {
+        rawServerMessage = parsed;
+      } else if (parsed && typeof parsed === 'object') {
+        rawServerMessage = String(parsed.message ?? parsed.error ?? '');
+      }
+    } catch {
+      rawServerMessage = '';
+    }
+
+    if (status === ErrorCodes.TOO_MANY_REQUESTS) {
+      const retryAfterHeader = response.headers.get('retry-after');
+      const retryAfterSeconds =
+        retryAfterHeader && /^\d+$/.test(retryAfterHeader.trim())
+          ? Number.parseInt(retryAfterHeader.trim(), 10)
+          : undefined;
+      throw new AloreAuthError(
+        ErrorTypes.TOO_MANY_REQUESTS,
+        'Too many re-authentication attempts. Please try again later.',
+        ErrorCodes.TOO_MANY_REQUESTS,
+        {
+          status,
+          ...(retryAfterSeconds !== undefined ? { retryAfterSeconds } : {}),
+        },
+      );
+    }
+
+    if (status === ErrorCodes.UNAUTHORIZED) {
+      throw new AloreAuthError(
+        ErrorTypes.STEP_UP_INVALID_FACTOR,
+        'Re-authentication failed. Please verify your factor and try again.',
+        ErrorCodes.UNAUTHORIZED,
+        { status },
+      );
+    }
+
+    if (status === ErrorCodes.FORBIDDEN) {
+      if (rawServerMessage.includes('TOTP_REQUIRED')) {
+        throw new AloreAuthError(
+          ErrorTypes.STEP_UP_TOTP_REQUIRED,
+          'An enrolled TOTP code is required alongside your password.',
+          ErrorCodes.FORBIDDEN,
+          { status, code: 'TOTP_REQUIRED' },
+        );
+      }
+      throw new AloreAuthError(
+        ErrorTypes.STEP_UP_FORBIDDEN,
+        'Selected re-authentication method is not available for this account.',
+        ErrorCodes.FORBIDDEN,
+        { status },
+      );
+    }
+
+    if (status === ErrorCodes.BAD_REQUEST) {
+      throw new AloreAuthError(
+        ErrorTypes.STEP_UP_INVALID_REQUEST,
+        'Invalid re-authentication request.',
+        ErrorCodes.BAD_REQUEST,
+        { status },
+      );
+    }
+
+    throw new AloreAuthError(
+      ErrorTypes.FAILED_TO_FETCH,
+      'Re-authentication request failed.',
+      status,
+      { status },
+    );
+  }
 
   // eslint-disable-next-line class-methods-use-this
   private async delay(ms: number) {

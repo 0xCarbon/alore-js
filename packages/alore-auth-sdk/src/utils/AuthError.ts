@@ -2,6 +2,7 @@
 
 export enum ErrorCodes {
   BAD_REQUEST = 400,
+  UNAUTHORIZED = 401,
   FORBIDDEN = 403,
   TOO_MANY_REQUESTS = 429,
 }
@@ -26,6 +27,10 @@ export enum ErrorTypes {
   PRF_EXTENSION_NOT_SUPPORTED = 'PRF_EXTENSION_NOT_SUPPORTED',
   LARGE_BLOB_EXTENSION_NOT_SUPPORTED = 'LARGE_BLOB_EXTENSION_NOT_SUPPORTED',
   TOO_MANY_REQUESTS = 'TOO_MANY_REQUESTS',
+  STEP_UP_INVALID_FACTOR = 'STEP_UP_INVALID_FACTOR',
+  STEP_UP_TOTP_REQUIRED = 'STEP_UP_TOTP_REQUIRED',
+  STEP_UP_FORBIDDEN = 'STEP_UP_FORBIDDEN',
+  STEP_UP_INVALID_REQUEST = 'STEP_UP_INVALID_REQUEST',
 }
 
 export class AloreAuthError extends Error {
@@ -33,12 +38,15 @@ export class AloreAuthError extends Error {
 
   public code?: number;
 
-  constructor(type: ErrorTypes, message: string, code?: number) {
+  public data?: Record<string, unknown>;
+
+  constructor(type: ErrorTypes, message: string, code?: number, data?: Record<string, unknown>) {
     super(message);
     this.name = 'AloreAuthError';
 
     this.type = type;
     this.code = code;
+    this.data = data;
 
     Object.setPrototypeOf(this, AloreAuthError.prototype);
   }

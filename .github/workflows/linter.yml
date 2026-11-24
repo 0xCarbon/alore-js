@@ -47,5 +47,5 @@ jobs:
         run: pnpm -w run format-check
 
       - name: Run unit tests
-        if: matrix.package == 'alore-auth-ui'
+        if: matrix.package == 'alore-auth-ui' || matrix.package == 'alore-auth-sdk'
         run: pnpm run test
