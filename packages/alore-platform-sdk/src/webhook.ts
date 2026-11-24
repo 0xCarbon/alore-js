@@ -181,7 +181,13 @@ export function verifyWebhook(
   }
 
   const tolerance = options.toleranceSeconds ?? DEFAULT_TOLERANCE_SECONDS;
+  if (typeof tolerance !== 'number' || !Number.isFinite(tolerance) || tolerance < 0) {
+    throw new RangeError('toleranceSeconds must be a non-negative finite number.');
+  }
   const nowSeconds = options.nowSeconds ?? Math.floor(Date.now() / 1000);
+  if (typeof nowSeconds !== 'number' || !Number.isFinite(nowSeconds)) {
+    throw new RangeError('nowSeconds must be a finite number.');
+  }
   if (Math.abs(nowSeconds - timestamp) > tolerance) {
     throw new AloreWebhookVerificationError(
       'timestamp_outside_tolerance',

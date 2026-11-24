@@ -35,6 +35,46 @@ import {
 
 const IDEMPOTENT_METHODS = new Set(['get', 'head', 'options', 'put', 'delete']);
 const FILE_STATUS_SET = new Set<string>(ALORE_FILE_STATUSES);
+const RESERVED_TENANCY_HEADERS = new Set([
+  'x-alore-org',
+  'x-org-id',
+  'x-user-id',
+  'x-alore-subject',
+  'x-alore-data-class',
+  'x-alore-grant',
+]);
+
+function stripReservedTenancyHeaders(
+  headers: Headers | Record<string, string | null | undefined> | undefined,
+): Record<string, string | null | undefined> | undefined {
+  if (!headers) return undefined;
+  const out: Record<string, string | null | undefined> = {};
+  if (typeof (headers as Headers).forEach === 'function') {
+    (headers as Headers).forEach((value, key) => {
+      if (!RESERVED_TENANCY_HEADERS.has(key.toLowerCase())) {
+        out[key] = value;
+      }
+    });
+    return out;
+  }
+  if (Array.isArray(headers)) {
+    for (const entry of headers) {
+      if (Array.isArray(entry) && typeof entry[0] === 'string') {
+        const [key, value] = entry as [string, string | null | undefined];
+        if (!RESERVED_TENANCY_HEADERS.has(key.toLowerCase())) {
+          out[key] = value;
+        }
+      }
+    }
+    return out;
+  }
+  for (const [key, value] of Object.entries(headers)) {
+    if (!RESERVED_TENANCY_HEADERS.has(key.toLowerCase())) {
+      out[key] = value;
+    }
+  }
+  return out;
+}
 
 /** Per-process cache for `meta()` compatibility checks, keyed by normalized baseURL + minContract. */
 const metaCache = new Map<string, AloreMeta>();
@@ -175,6 +215,9 @@ class AloreOpenAI extends OpenAI {
       const hasKey = Boolean(explicitKey || hasHeader(opts?.headers, 'idempotency-key'));
 
       const next: OpenAIRequestOptions = { ...opts };
+      if (next.headers) {
+        next.headers = stripReservedTenancyHeaders(next.headers);
+      }
       if (explicitKey && !hasHeader(next.headers, 'idempotency-key')) {
         next.headers = mergeHeaders(next.headers, { 'Idempotency-Key': explicitKey });
       }
@@ -210,7 +253,7 @@ export function aloreClient(cfg: AloreClientConfig, tenancy: TenancyContext): Al
   const frozenTenancy: Readonly<TenancyContext> = Object.freeze({ ...tenancy });
 
   const defaultHeaders: Record<string, string | null | undefined> = {
-    ...cfg.defaultHeaders,
+    ...stripReservedTenancyHeaders(cfg.defaultHeaders),
     ...(validated.authMode === 'api-key'
       ? { Authorization: null, 'X-API-KEY': validated.apiKey }
       : {}),

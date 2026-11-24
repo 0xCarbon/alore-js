@@ -467,6 +467,121 @@ test('verifyWebhook supports multiple signatures and rotated secrets, and reject
   );
 });
 
+test('verifyWebhook rejects NaN, negative, or non-finite toleranceSeconds and nowSeconds', () => {
+  const signedAt = 1_700_000_000;
+  const expiredNow = signedAt + 10_000;
+  const event = (contract.fixtures['events/file-ready.json'] as { instance: { id: string } })
+    .instance;
+  const rawBody = JSON.stringify(event);
+  const signed = signWebhook({
+    id: event.id,
+    timestamp: signedAt,
+    body: rawBody,
+    secret: DEFAULT_WEBHOOK_SECRET,
+  });
+
+  for (const badTolerance of [Number.NaN, -1, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+    assert.throws(
+      () =>
+        verifyWebhook(rawBody, signed, DEFAULT_WEBHOOK_SECRET, {
+          nowSeconds: expiredNow,
+          toleranceSeconds: badTolerance,
+        }),
+      RangeError,
+      `expected RangeError for toleranceSeconds=${String(badTolerance)}`,
+    );
+  }
+
+  for (const badNow of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+    assert.throws(
+      () =>
+        verifyWebhook(rawBody, signed, DEFAULT_WEBHOOK_SECRET, {
+          nowSeconds: badNow,
+        }),
+      RangeError,
+      `expected RangeError for nowSeconds=${String(badNow)}`,
+    );
+  }
+});
+
+test('defaultHeaders and per-request headers cannot spoof or override tenancy headers', async () => {
+  const stub = await startStubServer(() => ({
+    status: 200,
+    body: { contract: '0.1.0-alpha.0', features: [] },
+  }));
+
+  resetMetaCache();
+  // Omitted orgRef / subjectRef (crawler mode) must not be spoofed via defaultHeaders or opts.headers
+  const crawler = aloreClient(
+    {
+      baseURL: stub.baseURL,
+      apiKey: 'crawler-key',
+      minContract: '0.1.0-alpha.0',
+      defaultHeaders: {
+        'x-org-id': 'spoofed-org',
+        'X-Alore-Org': 'spoofed-org',
+        'x-user-id': 'spoofed-user',
+        'X-Alore-Subject': 'spoofed-subject',
+        'X-Alore-Data-Class': 'synthetic',
+        'x-alore-grant': 'spoofed-grant',
+        'X-Custom-Default': 'kept-default',
+      },
+    },
+    { orgRef: null, subjectRef: null, dataClass: 'public' },
+  );
+
+  await crawler.meta({
+    refresh: true,
+    headers: {
+      'X-ORG-ID': 'req-spoofed-org',
+      'x-alore-org': 'req-spoofed-org',
+      'X-USER-ID': 'req-spoofed-user',
+      'x-alore-subject': 'req-spoofed-subject',
+      'x-alore-data-class': 'customer',
+      'X-Alore-Grant': 'req-spoofed-grant',
+      'X-Custom-Request': 'kept-request',
+    },
+  });
+
+  // Also test direct client.openai.* calls with per-request spoof/null-out attempts
+  const delegated = aloreClient(
+    {
+      baseURL: stub.baseURL,
+      apiKey: 'delegated-key',
+      minContract: '0.1.0-alpha.0',
+    },
+    { orgRef: 'org-real', subjectRef: 'user-real', dataClass: 'customer' },
+  );
+  await delegated.openai.get('/meta', {
+    headers: {
+      'x-alore-org': null,
+      'X-ORG-ID': 'evil-org',
+      'x-user-id': 'evil-user',
+      'x-alore-data-class': 'public',
+      'X-Trace-Id': 'trace-1',
+    },
+  });
+
+  assert.equal(stub.requests.length, 2);
+
+  const crawlerReq = stub.requests[0]!;
+  assert.equal(crawlerReq.headers['x-org-id'], undefined);
+  assert.equal(crawlerReq.headers['x-alore-org'], undefined);
+  assert.equal(crawlerReq.headers['x-user-id'], undefined);
+  assert.equal(crawlerReq.headers['x-alore-subject'], undefined);
+  assert.equal(crawlerReq.headers['x-alore-grant'], undefined);
+  assert.equal(crawlerReq.headers['x-alore-data-class'], 'public');
+  assert.equal(crawlerReq.headers['x-custom-default'], 'kept-default');
+  assert.equal(crawlerReq.headers['x-custom-request'], 'kept-request');
+
+  const delegatedReq = stub.requests[1]!;
+  assert.equal(delegatedReq.headers['x-alore-org'], 'org-real');
+  assert.equal(delegatedReq.headers['x-org-id'], undefined);
+  assert.equal(delegatedReq.headers['x-user-id'], 'user-real');
+  assert.equal(delegatedReq.headers['x-alore-data-class'], 'customer');
+  assert.equal(delegatedReq.headers['x-trace-id'], 'trace-1');
+});
+
 // ---------------------------------------------------------------- alore-js-09 boundary check
 
 test('alore-js-09: @alore/platform-sdk stays auth-free and delegates OpenAI surfaces to the official SDK', () => {
