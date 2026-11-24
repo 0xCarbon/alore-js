@@ -1,0 +1,17 @@
+{
+  "operation": "createUpload",
+  "status": 200,
+  "valid": true,
+  "description": "Pending multipart upload. The fake sets every field from the request.",
+  "instance": {
+    "id": "upload-fixture",
+    "object": "upload",
+    "bytes": 2048,
+    "created_at": 1767268800,
+    "expires_at": 1767272400,
+    "filename": "large.pdf",
+    "purpose": "assistants",
+    "status": "pending",
+    "file": null
+  }
+}

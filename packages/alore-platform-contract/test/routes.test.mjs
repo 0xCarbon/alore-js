@@ -4,6 +4,7 @@ import { test } from 'node:test';
 
 import { CLASS_STATUS, PROBLEM_RESPONSE_REF } from '../scripts/lib/checks.mjs';
 import { canonPath } from '../scripts/lib/cut.mjs';
+import { isStandardError, resolveResponse } from '../scripts/lib/problem-responses.mjs';
 import { contract, operations } from './helpers.mjs';
 
 const { routes, merged, pinned, overlay, upstream } = contract();
@@ -81,8 +82,19 @@ test('every stub answers 501 in the contract, whatever upstream says', () => {
     assert.deepEqual(op.responses?.['501'], { $ref: PROBLEM_RESPONSE_REF }, where);
     const key = `${r.method} ${canonPath(r.path.replace(/^\/ai\/v1/, ''))}`;
     const upstreamResponses = pinnedByKey.get(key)?.responses;
-    for (const [code, response] of Object.entries(upstreamResponses ?? {}))
-      assert.deepEqual(op.responses[code], response, `${where} response ${code}`);
+    for (const [code, response] of Object.entries(upstreamResponses ?? {})) {
+      const upstreamResponse = resolveResponse(pinned, response);
+      const expected = isStandardError(code)
+        ? {
+            ...upstreamResponse,
+            content: {
+              ...upstreamResponse.content,
+              'application/problem+json': { schema: { $ref: '#/components/schemas/AloreProblem' } },
+            },
+          }
+        : response;
+      assert.deepEqual(op.responses[code], expected, `${where} response ${code}`);
+    }
   }
 });
 

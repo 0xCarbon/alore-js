@@ -149,3 +149,6 @@ https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0
 # ignore blockchain account address
 ^0x[a-fA-F0-9]{40}$\b
 
+
+# escape sequences glued to a word: "\nactions" in a string, "\bname" in a regular expression
+\\[bnrt](?=[A-Za-z])

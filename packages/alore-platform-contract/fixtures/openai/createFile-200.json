@@ -1,0 +1,15 @@
+{
+  "operation": "createFile",
+  "status": 200,
+  "valid": true,
+  "description": "File created by a multipart upload. The fake sets every field from the upload.",
+  "instance": {
+    "id": "file-fixture",
+    "object": "file",
+    "bytes": 1024,
+    "created_at": 1767268800,
+    "filename": "document.pdf",
+    "purpose": "assistants",
+    "status": "processed"
+  }
+}

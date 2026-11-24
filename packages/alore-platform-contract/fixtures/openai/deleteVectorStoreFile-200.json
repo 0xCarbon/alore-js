@@ -1,0 +1,11 @@
+{
+  "operation": "deleteVectorStoreFile",
+  "status": 200,
+  "valid": true,
+  "description": "File detached from a vector store.",
+  "instance": {
+    "id": "file-fixture",
+    "object": "vector_store.file.deleted",
+    "deleted": true
+  }
+}

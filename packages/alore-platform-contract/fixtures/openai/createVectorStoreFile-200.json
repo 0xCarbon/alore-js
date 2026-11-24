@@ -1,0 +1,16 @@
+{
+  "operation": "createVectorStoreFile",
+  "status": 200,
+  "valid": true,
+  "description": "File attached to a vector store.",
+  "instance": {
+    "id": "file-fixture",
+    "object": "vector_store.file",
+    "usage_bytes": 1024,
+    "created_at": 1767268800,
+    "vector_store_id": "vs-fixture",
+    "status": "completed",
+    "last_error": null,
+    "attributes": {}
+  }
+}

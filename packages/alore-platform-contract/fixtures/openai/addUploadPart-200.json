@@ -1,0 +1,12 @@
+{
+  "operation": "addUploadPart",
+  "status": 200,
+  "valid": true,
+  "description": "One uploaded part.",
+  "instance": {
+    "id": "part-fixture",
+    "object": "upload.part",
+    "created_at": 1767268800,
+    "upload_id": "upload-fixture"
+  }
+}

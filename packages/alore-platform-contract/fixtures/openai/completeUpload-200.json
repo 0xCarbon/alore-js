@@ -1,0 +1,25 @@
+{
+  "operation": "completeUpload",
+  "status": 200,
+  "valid": true,
+  "description": "Completed upload carrying the ready file.",
+  "instance": {
+    "id": "upload-fixture",
+    "object": "upload",
+    "bytes": 2048,
+    "created_at": 1767268800,
+    "expires_at": 1767272400,
+    "filename": "large.pdf",
+    "purpose": "assistants",
+    "status": "completed",
+    "file": {
+      "id": "file-fixture",
+      "object": "file",
+      "bytes": 1024,
+      "created_at": 1767268800,
+      "filename": "document.pdf",
+      "purpose": "assistants",
+      "status": "processed"
+    }
+  }
+}

@@ -3,7 +3,15 @@
 import { parse } from 'yaml';
 
 import { canonPath, METHODS } from './cut.mjs';
+import { clone } from './io.mjs';
 import { parseTarget } from './overlay.mjs';
+import {
+  addStandardProblemResponses,
+  isStandardError,
+  PROBLEM_MEDIA,
+  PROBLEM_SCHEMA_REF,
+  resolveResponse,
+} from './problem-responses.mjs';
 
 export const X_STATUSES = ['live', 'stub', 'planned', 'legacy-replaced'];
 export const PROBLEM_TYPES = [
@@ -149,7 +157,10 @@ export function checkOnlyAdds(pinned, merged) {
     }
     if (p !== m) out.push(v('overlay-only-adds', ptr, 'changes an upstream-defined value'));
   };
-  walk(pinned, merged, '#', 'root');
+  // Treat the generator's exact media augmentation as part of the preserved upstream surface.
+  const expected = clone(pinned);
+  addStandardProblemResponses(expected);
+  walk(expected, merged, '#', 'root');
   return out;
 }
 
@@ -398,18 +409,17 @@ export function checkProblemSchema(schemas) {
 export function checkProblemResponses(pinned, merged) {
   const out = [];
   for (const { path, method, op } of operations(merged)) {
-    if (pinned.paths[path]?.[method]) continue;
+    const upstream = pinned.paths[path]?.[method];
     for (const [code, response] of Object.entries(op.responses ?? {})) {
-      if (/^[23]/.test(code)) continue;
-      const ok =
-        response?.$ref === PROBLEM_RESPONSE_REF ||
-        response?.content?.['application/problem+json'] !== undefined;
+      if (/^[23]/.test(code) || (upstream && !isStandardError(code))) continue;
+      const media = resolveResponse(merged, response)?.content?.[PROBLEM_MEDIA];
+      const ok = media?.schema?.$ref === PROBLEM_SCHEMA_REF;
       if (!ok)
         out.push(
           v(
             'problem-json',
             `${method.toUpperCase()} ${path} ${code}`,
-            'errors must be application/problem+json',
+            'errors must declare application/problem+json with the AloreProblem schema',
           ),
         );
     }

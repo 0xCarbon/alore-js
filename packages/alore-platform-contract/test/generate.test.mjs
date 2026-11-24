@@ -82,3 +82,23 @@ test('x-deprecated-since never names a version the package has not reached or pu
   );
   assert.deepEqual([...marks], ['0.1.0-alpha.1'], 'one published alpha, used consistently');
 });
+
+test('published standard errors add problem JSON alongside the OpenAI response variants', () => {
+  const { pinned, merged } = contract();
+  const problem = { schema: { $ref: '#/components/schemas/AloreProblem' } };
+  const inline = pinned.paths['/files/{file_id}'].get.responses['404'];
+  const referenced = pinned.components.responses.InferenceRateLimited;
+  const audio = merged.paths['/audio/speech'].post.responses;
+
+  assert.deepEqual(merged.paths['/files/{file_id}'].get.responses['404'], {
+    ...inline,
+    content: { ...inline.content, 'application/problem+json': problem },
+  });
+  assert.deepEqual(audio['429'], {
+    ...referenced,
+    content: { ...referenced.content, 'application/problem+json': problem },
+  });
+  assert.deepEqual(merged.components.responses.InferenceRateLimited, referenced);
+  assert.deepEqual(audio['200'], pinned.paths['/audio/speech'].post.responses['200']);
+  assert.equal(merged.paths['/files/{file_id}'].get.responses['401'], undefined);
+});

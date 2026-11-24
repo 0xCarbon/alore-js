@@ -1,0 +1,11 @@
+{
+  "operation": "deleteVectorStore",
+  "status": 200,
+  "valid": true,
+  "description": "Deleted vector store.",
+  "instance": {
+    "id": "vs-fixture",
+    "object": "vector_store.deleted",
+    "deleted": true
+  }
+}
