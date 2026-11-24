@@ -33,3 +33,11 @@ export function parseMultipart(buffer, contentType) {
     at = next + 2; // past the CRLF, onto the delimiter
   }
 }
+
+// OpenAPI represents binary parts as strings. Only a file part can supply the required binary field.
+export const multipartRequestObject = (form, binaryField) => ({
+  ...Object.fromEntries(
+    Object.entries(form.fields).filter(([name]) => name !== binaryField && !name.includes('[')),
+  ),
+  ...Object.fromEntries(form.files.map((f) => [f.name, f.filename])),
+});

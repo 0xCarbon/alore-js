@@ -5,12 +5,13 @@ import { createHash } from 'node:crypto';
 import { createServer } from 'node:http';
 
 import { ContractViolationError, loadFakeContract } from './model.mjs';
-import { parseMultipart } from './multipart.mjs';
+import { multipartRequestObject, parseMultipart } from './multipart.mjs';
 import { DEFAULT_WEBHOOK_SECRET, postWebhook } from './webhooks.mjs';
 
 export const API_PREFIX = '/ai/v1';
 export const CONTROL_PREFIX = '/__fake';
 export const SCENARIO_HEADER = 'x-fake-scenario';
+const PROBLEM_MEDIA = 'application/problem+json';
 const DEFAULT_NOW = '2026-01-01T12:00:00.000Z';
 const DEFAULT_MAX_BODY = 16 * 1024 * 1024;
 const UPLOAD_TTL_SECONDS = 3600;
@@ -194,7 +195,7 @@ export function createFake(options = {}) {
     model.assertSchema('problem.schema.json', body);
     return {
       status: body.status,
-      headers: { 'content-type': 'application/problem+json', ...headers },
+      headers: { 'content-type': PROBLEM_MEDIA, ...headers },
       body,
     };
   }
@@ -219,11 +220,6 @@ export function createFake(options = {}) {
       : problem('invalid_request', { detail: 'Send a JSON object body.' });
   const needForm = (form) =>
     form ? null : problem('unsupported_media_type', { detail: 'Send multipart/form-data.' });
-  // A multipart body as the request schema sees it: text fields, and the file name for file parts.
-  const formObject = (form) => ({
-    ...Object.fromEntries(Object.entries(form.fields).filter(([name]) => !name.includes('['))),
-    ...Object.fromEntries(form.files.map((f) => [f.name, f.filename])),
-  });
 
   // ---- files
   // OpenAI's deprecated `status` is required by the pinned schema; Alore's richer status maps onto it.
@@ -496,7 +492,8 @@ export function createFake(options = {}) {
     return ok({ id: rec.id, object: 'file', deleted: true });
   });
   behaviours.set('createFile', ({ form }) => {
-    const refused = needForm(form) ?? invalidRequest('createFile', formObject(form));
+    const refused =
+      needForm(form) ?? invalidRequest('createFile', multipartRequestObject(form, 'file'));
     if (refused) return refused;
     const upload = form.files.find((f) => f.name === 'file');
     const rec = addFile({
@@ -558,7 +555,8 @@ export function createFake(options = {}) {
   behaviours.set('addUploadPart', ({ params, form }) => {
     const { rec, error } = pendingUpload(params[0]);
     if (error) return error;
-    const refused = needForm(form) ?? invalidRequest('addUploadPart', formObject(form));
+    const refused =
+      needForm(form) ?? invalidRequest('addUploadPart', multipartRequestObject(form, 'data'));
     if (refused) return refused;
     const data = form.files.find((f) => f.name === 'data').data;
     const part = { id: nextId('part', 'part'), upload_id: rec.id, created_at: unixNow(), data };
@@ -737,8 +735,16 @@ export function createFake(options = {}) {
       return;
     }
     model.assertSchema('problem.schema.json', result.body);
-    if (entry && model.declaresResponse(entry.operationId, result.status))
-      model.assertResponse(entry.operationId, result.status, result.body);
+    const mediaType = result.headers?.['content-type'];
+    if (mediaType !== PROBLEM_MEDIA)
+      throw new ContractViolationError('problem response', [
+        { message: `expected ${PROBLEM_MEDIA}, received ${mediaType ?? 'no content type'}` },
+      ]);
+    if (!entry || !model.hasResponse(entry.operationId, result.status)) return;
+    model.assertResponse(entry.operationId, result.status, result.body, mediaType);
+    // Preserve validation against the OpenAI JSON envelope when one is documented.
+    if (model.declaresResponse(entry.operationId, result.status, 'application/json'))
+      model.assertResponse(entry.operationId, result.status, result.body, 'application/json');
   }
 
   async function handleApi({ method, path, url, headers, body, form, fault }) {

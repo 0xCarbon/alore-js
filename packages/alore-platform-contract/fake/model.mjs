@@ -122,19 +122,25 @@ export function loadFakeContract(root = PKG_ROOT) {
     return { node: current, pointer };
   };
 
-  /** JSON pointer, inside the document, of the JSON body schema of an operation's response. */
-  function responseSchemaPointer(operationId, status) {
+  function responseEntry(operationId, status) {
     const entry = byId.get(operationId);
     if (!entry) throw new Error(`unknown operation ${operationId}`);
     const base = `/paths/${escapePointer(entry.path)}/${entry.method.toLowerCase()}/responses`;
-    const declared = entry.op.responses?.[String(status)] ? String(status) : 'default';
-    const response = entry.op.responses?.[declared];
+    const responses = entry.op.responses ?? {};
+    const code = String(status);
+    const declared = [code, `${code[0]}XX`, 'default'].find((key) => responses[key]);
+    if (!declared) return null;
+    const { node, pointer } = deref(responses[declared]);
+    return { content: node?.content ?? {}, pointer: pointer ?? `${base}/${declared}` };
+  }
+
+  /** JSON pointer, inside the document, of the selected response body schema. */
+  function responseSchemaPointer(operationId, status, mediaType) {
+    const response = responseEntry(operationId, status);
     if (!response) return null;
-    const { node, pointer } = deref(response);
-    const at = pointer ?? `${base}/${declared}`;
-    const media = Object.keys(node?.content ?? {}).find((m) => /json/.test(m));
-    return media && node.content[media].schema
-      ? `${at}/content/${escapePointer(media)}/schema`
+    const media = mediaType ?? Object.keys(response.content).find((m) => /json/.test(m));
+    return response.content[media]?.schema
+      ? `${response.pointer}/content/${escapePointer(media)}/schema`
       : null;
   }
 
@@ -181,8 +187,12 @@ export function loadFakeContract(root = PKG_ROOT) {
       if (errors) throw new ContractViolationError(name, errors);
     },
 
-    /** True when the operation declares a JSON body schema for this status (or `default`). */
-    declaresResponse: (operationId, status) => responseSchemaPointer(operationId, status) !== null,
+    /** True when a status, response range or default is declared. */
+    hasResponse: (operationId, status) => responseEntry(operationId, status) !== null,
+
+    /** True when the response declares a schema for the selected or first JSON media type. */
+    declaresResponse: (operationId, status, mediaType) =>
+      responseSchemaPointer(operationId, status, mediaType) !== null,
 
     /** Ajv errors, or null when the value conforms to the operation's JSON/multipart request schema. */
     validateRequest(operationId, value) {
@@ -191,13 +201,16 @@ export function loadFakeContract(root = PKG_ROOT) {
     },
 
     /** Ajv errors, or null when the body conforms to the operation's response schema. */
-    validateResponse(operationId, status, value) {
-      const pointer = responseSchemaPointer(operationId, status);
-      if (!pointer) return [{ message: `${operationId} declares no JSON schema for ${status}` }];
+    validateResponse(operationId, status, value, mediaType) {
+      const pointer = responseSchemaPointer(operationId, status, mediaType);
+      if (!pointer)
+        return [
+          { message: `${operationId} declares no ${mediaType ?? 'JSON'} schema for ${status}` },
+        ];
       return check(ajv.getSchema(`${ROOT_ID}#${pointer}`), value);
     },
-    assertResponse(operationId, status, value) {
-      const errors = api.validateResponse(operationId, status, value);
+    assertResponse(operationId, status, value, mediaType) {
+      const errors = api.validateResponse(operationId, status, value, mediaType);
       if (errors) throw new ContractViolationError(`${operationId} ${status}`, errors);
     },
   };

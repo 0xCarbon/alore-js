@@ -25,6 +25,20 @@ test('the validator accepts every accepted contract fixture and rejects every re
   }
 });
 
+test('response validation selects the declared media type', () => {
+  const fixture = fixtures.find((f) => f.file === 'errors/with-param.json');
+  const problem = fixture.instance;
+  const envelope = { error: problem.error };
+
+  assert.equal(
+    model.validateResponse('retrieveFile', 404, problem, 'application/problem+json'),
+    null,
+  );
+  assert.equal(model.validateResponse('retrieveFile', 404, envelope, 'application/json'), null);
+  assert.ok(model.validateResponse('retrieveFile', 404, envelope, 'application/problem+json'));
+  assert.ok(model.validateResponse('retrieveFile', 404, problem, 'text/plain'));
+});
+
 test('a deliberately wrong fixture fails validation', () => {
   const wrong = {
     type: 'rate_limited',

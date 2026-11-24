@@ -17,7 +17,7 @@ layer are separate packages or later releases. The fake server ships here as `@a
 | `openapi/upstream/PIN.json`          | repository, commit, URL, sha256 and spec version of that file                                                    |
 | `openapi/openai.pinned.yaml`         | generated: the upstream spec cut to the routes Alore serves                                                      |
 | `openapi/x-alore.overlay.yaml`       | OpenAPI Overlay 1.0: the only hand-written part of the OpenAPI document                                          |
-| `openapi/openapi.yaml`               | generated: pinned plus overlay. Never edited by hand                                                             |
+| `openapi/openapi.yaml`               | generated from the pinned cut, overlay and standard problem responses. Never edited by hand                      |
 | `asyncapi/asyncapi.yaml`             | AsyncAPI 3.0, webhook envelope only                                                                              |
 | `schemas/*.schema.json`              | JSON Schema 2020-12 for Alore-owned objects. Outputs are closed (`additionalProperties: false`)                  |
 | `fixtures/<area>/<case>.json`        | `{ schema, valid, instance }` examples. Every enum value appears in an accepted fixture                          |
@@ -93,6 +93,8 @@ upstream operation ignores path-parameter names (`/responses/{id}` is `/response
 - Errors are `application/problem+json` with a `type` from the closed list (`not_found`, `invalid_request`,
   `rate_limited`, `unavailable`, `conflict`, `payload_too_large`, `unsupported_media_type`, `contract_version`,
   `not_implemented`) and the OpenAI-style `error{type, message, code}` object.
+  The merged OpenAPI document adds this media type to existing 4xx and 5xx responses alongside their upstream
+  variants. Fake scenarios may return additional statuses as test fixtures.
 - Ids are plain strings: no `uuid` format, no pattern.
 - Every change to a schema, the overlay, the event spec, the route tables or the pin needs a new classified
   changeset (next section). `lint` compares with `CONTRACT_BASE_REF` and fails on a ref git does not know.
@@ -156,8 +158,8 @@ Nothing is copied from the contract into the fake:
   type answers `415 unsupported_media_type`.
 - Every body the fake sends is validated before it leaves. A success body is checked against the response schema of its
   operation (pinned OpenAI schemas and the `schemas/` objects). A problem is checked against `problem.schema.json` and,
-  when the operation declares a JSON response for that status (or `default`), against that response too, so an
-  OpenAI-style client parses it. The fake refuses to start when a fixture it builds on (`fixtures/meta/basic.json`,
+  when the operation declares the status (or `default`), against its problem response and any OpenAI JSON response
+  schema. The fake refuses to start when a fixture it builds on (`fixtures/meta/basic.json`,
   `fixtures/errors/<type>.json`, `fixtures/openai/<operationId>-200.json`) does not validate. A body that fails answers
   500 `fake-alore: ...` so a spec cannot pass on it.
 - Problems are the `fixtures/errors/*.json` instances with a specific `detail`, as `application/problem+json`. They carry
