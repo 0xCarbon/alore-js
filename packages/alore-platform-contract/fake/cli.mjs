@@ -3,6 +3,10 @@
 //   alore-fake --port 4010 --feature files.status --webhook-url http://127.0.0.1:3000/webhooks/alore/v1
 // The webhook secret is read from the environment variable named by --webhook-secret-env, never
 // from argv. It defaults to a published fake secret. The first stdout line is `listening <baseURL>`.
+//
+// Webhook timestamps come from the fake's fixed clock by default, so deliveries are byte-identical
+// between runs. A real Standard Webhooks verifier rejects a timestamp more than a few minutes off,
+// so a spec that verifies deliveries passes --webhook-wall-clock; those headers then differ per run.
 import { parseArgs } from 'node:util';
 
 import { createFake } from './fake.mjs';
@@ -16,6 +20,9 @@ const { values } = parseArgs({
     'org-ref': { type: 'string' },
     'webhook-url': { type: 'string' },
     'webhook-secret-env': { type: 'string' },
+    'webhook-wall-clock': { type: 'boolean', default: false },
+    now: { type: 'string' },
+    'max-body-bytes': { type: 'string' },
   },
 });
 
@@ -31,6 +38,9 @@ const fake = createFake({
   orgRef: values['org-ref'],
   webhookUrl: values['webhook-url'],
   webhookSecret: secret,
+  webhookClock: values['webhook-wall-clock'] ? 'wall' : 'fixed',
+  ...(values.now ? { now: values.now } : {}),
+  ...(values['max-body-bytes'] ? { maxBodyBytes: Number(values['max-body-bytes']) } : {}),
 });
 const { baseURL } = await fake.listen({ port: Number(values.port), host: values.host });
 console.log(`listening ${baseURL}`);

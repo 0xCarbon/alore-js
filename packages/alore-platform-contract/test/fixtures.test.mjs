@@ -8,7 +8,9 @@ import { test } from 'node:test';
 import { loadFixtures, loadSchemas } from './helpers.mjs';
 
 const schemas = loadSchemas();
-const fixtures = loadFixtures();
+// `fixtures/openai/` holds response bodies of pinned OpenAI operations, checked by fake.test.mjs
+// against the operation; these tests cover the fixtures of the Alore-owned schemas in schemas/.
+const fixtures = loadFixtures().filter((f) => !f.file.startsWith('openai/'));
 
 function validator() {
   const ajv = new Ajv2020({ strict: true, allErrors: true });

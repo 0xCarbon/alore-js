@@ -6,57 +6,20 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createHmac } from 'node:crypto';
-import { createServer } from 'node:http';
-import { after, test } from 'node:test';
+import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { ContractViolationError, createFake, loadFakeContract, SCENARIOS } from '../fake/index.mjs';
+import { call, receiver, started } from './fake-helpers.mjs';
 import { contract, loadFixtures, loadSchemas, operations } from './helpers.mjs';
 
 const model = loadFakeContract();
 const fixtures = loadFixtures();
-const closers = [];
-after(async () => {
-  for (const close of closers) await close();
-});
-
-async function started(options) {
-  const fake = createFake(options);
-  const server = await fake.listen();
-  closers.push(() => fake.close());
-  return { fake, ...server };
-}
-
-const call = async (base, method, path, { headers, body } = {}) => {
-  const res = await fetch(`${base}${path}`, {
-    method,
-    headers: { ...(body ? { 'content-type': 'application/json' } : {}), ...headers },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const text = await res.text();
-  return { status: res.status, headers: res.headers, text, json: text ? JSON.parse(text) : null };
-};
-
-/** A receiver on loopback that records each webhook it gets. */
-async function receiver(answer = 200) {
-  const got = [];
-  const server = createServer((req, res) => {
-    const chunks = [];
-    req.on('data', (c) => chunks.push(c));
-    req.on('end', () => {
-      got.push({ headers: req.headers, body: Buffer.concat(chunks).toString('utf8') });
-      res.writeHead(answer).end();
-    });
-  });
-  await new Promise((ok) => server.listen(0, '127.0.0.1', ok));
-  closers.push(() => new Promise((ok) => server.close(ok)));
-  return { got, url: `http://127.0.0.1:${server.address().port}/hooks` };
-}
 
 // ---------------------------------------------------------------- the validator
 
 test('the validator accepts every accepted contract fixture and rejects every rejected one', () => {
-  for (const f of fixtures) {
+  for (const f of fixtures.filter((x) => x.schema)) {
     const errors = model.validateSchema(f.schema, f.instance);
     assert.equal(errors === null, f.valid, `${f.file}: ${JSON.stringify(errors)}`);
   }
@@ -373,6 +336,7 @@ test('deleting a file through the API emits file.deleted', async () => {
   const { fake, baseURL } = await started({ webhookUrl: hook.url, webhookSecret: SECRET });
   const file = fake.seedFile({});
   await call(baseURL, 'DELETE', `/files/${file.id}`);
+  await fake.flush(); // a handler does not wait for the receiver
   assert.equal(JSON.parse(hook.got[0].body).type, 'file.deleted');
 });
 
@@ -438,6 +402,7 @@ async function transcript() {
   fake.advance(5000);
   await fake.emit('org.erased', { subject: { kind: 'org', id: 'org-1' } });
   await record('DELETE', `/files/${file.id}`);
+  await fake.flush();
   const hooks = hook.got.map(({ headers, body }) => ({
     id: headers['webhook-id'],
     ts: headers['webhook-timestamp'],

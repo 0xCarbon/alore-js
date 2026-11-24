@@ -32,6 +32,26 @@ function walkJson(dir, base = dir) {
     });
 }
 
+/**
+ * OpenAPI 3.0's `nullable: true` without a `type` (the pinned upstream spec uses it beside a $ref or
+ * as the second member of an allOf) is not valid JSON Schema, and Ajv rejects it. Rewrite it into
+ * the equivalent `anyOf [.., {type: null}]`, in place, before the schemas are compiled.
+ */
+function nullableToJsonSchema(node) {
+  if (Array.isArray(node)) {
+    node.forEach(nullableToJsonSchema);
+    return;
+  }
+  if (!node || typeof node !== 'object') return;
+  Object.values(node).forEach(nullableToJsonSchema);
+  if (node.nullable !== true || node.type !== undefined) return;
+  const { nullable, allOf, ...rest } = node;
+  const required = allOf?.filter((m) => !(Object.keys(m).length === 1 && m.nullable === true));
+  const inner = { ...rest, ...(required?.length ? { allOf: required } : {}) };
+  for (const key of Object.keys(node)) delete node[key];
+  node.anyOf = [inner, { type: 'null' }];
+}
+
 const escapePointer = (segment) => segment.replaceAll('~', '~0').replaceAll('/', '~1');
 
 function pathRegex(template) {
@@ -50,6 +70,7 @@ export function loadFakeContract(root = PKG_ROOT) {
   const doc = parse(readFileSync(join(root, 'openapi', 'openapi.yaml'), 'utf8'), {
     maxAliasCount: -1,
   });
+  nullableToJsonSchema(doc);
   const schemas = Object.fromEntries(walkJson(join(root, 'schemas')));
   const fixtures = Object.fromEntries(walkJson(join(root, 'fixtures')));
 
@@ -117,6 +138,19 @@ export function loadFakeContract(root = PKG_ROOT) {
       : null;
   }
 
+  /** JSON pointer of the JSON (or multipart) request body schema of an operation; null when none. */
+  function requestSchemaPointer(operationId) {
+    const entry = byId.get(operationId);
+    if (!entry) throw new Error(`unknown operation ${operationId}`);
+    if (!entry.op.requestBody) return null;
+    const base = `/paths/${escapePointer(entry.path)}/${entry.method.toLowerCase()}/requestBody`;
+    const { node, pointer } = deref(entry.op.requestBody);
+    const media = Object.keys(node?.content ?? {}).find((m) => /json|multipart/.test(m));
+    return media && node.content[media].schema
+      ? `${pointer ?? base}/content/${escapePointer(media)}/schema`
+      : null;
+  }
+
   function check(validate, value) {
     return validate(value) ? null : validate.errors;
   }
@@ -145,6 +179,15 @@ export function loadFakeContract(root = PKG_ROOT) {
     assertSchema(name, value) {
       const errors = api.validateSchema(name, value);
       if (errors) throw new ContractViolationError(name, errors);
+    },
+
+    /** True when the operation declares a JSON body schema for this status (or `default`). */
+    declaresResponse: (operationId, status) => responseSchemaPointer(operationId, status) !== null,
+
+    /** Ajv errors, or null when the value conforms to the operation's JSON/multipart request schema. */
+    validateRequest(operationId, value) {
+      const pointer = requestSchemaPointer(operationId);
+      return pointer ? check(ajv.getSchema(`${ROOT_ID}#${pointer}`), value) : null;
     },
 
     /** Ajv errors, or null when the body conforms to the operation's response schema. */

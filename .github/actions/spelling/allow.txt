@@ -59,6 +59,7 @@ camelcase
 ccr
 celo
 chainid
+chatcmpl
 checkbox
 chown
 chrono

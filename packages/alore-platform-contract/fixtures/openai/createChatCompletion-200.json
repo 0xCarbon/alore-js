@@ -1,0 +1,29 @@
+{
+  "operation": "createChatCompletion",
+  "status": 200,
+  "valid": true,
+  "description": "Non-streaming chat completion. The fake sets id, created and model, and the message content.",
+  "instance": {
+    "id": "chatcmpl-fixture",
+    "object": "chat.completion",
+    "created": 1767268800,
+    "model": "anga-1-mirim",
+    "choices": [
+      {
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": "This is a fake completion.",
+          "refusal": null
+        },
+        "finish_reason": "stop",
+        "logprobs": null
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 8,
+      "completion_tokens": 5,
+      "total_tokens": 13
+    }
+  }
+}
