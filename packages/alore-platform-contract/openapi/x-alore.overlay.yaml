@@ -725,10 +725,16 @@ actions:
     update:
       x-status: stub
       x-stub-response: 501
+      responses:
+        '501':
+          $ref: '#/components/responses/AloreProblem'
   - target: $.paths['/audio/translations'].post
     update:
       x-status: stub
       x-stub-response: 501
+      responses:
+        '501':
+          $ref: '#/components/responses/AloreProblem'
   - target: $.paths['/chat/completions'].post
     update:
       x-status: live
@@ -736,6 +742,9 @@ actions:
     update:
       x-status: stub
       x-stub-response: 501
+      responses:
+        '501':
+          $ref: '#/components/responses/AloreProblem'
   - target: $.paths['/files'].post
     update:
       x-status: live
@@ -767,14 +776,23 @@ actions:
     update:
       x-status: stub
       x-stub-response: 501
+      responses:
+        '501':
+          $ref: '#/components/responses/AloreProblem'
   - target: $.paths['/images/edits'].post
     update:
       x-status: stub
       x-stub-response: 501
+      responses:
+        '501':
+          $ref: '#/components/responses/AloreProblem'
   - target: $.paths['/images/variations'].post
     update:
       x-status: stub
       x-stub-response: 501
+      responses:
+        '501':
+          $ref: '#/components/responses/AloreProblem'
   - target: $.paths['/models'].get
     update:
       x-status: live
@@ -785,6 +803,9 @@ actions:
     update:
       x-status: stub
       x-stub-response: 501
+      responses:
+        '501':
+          $ref: '#/components/responses/AloreProblem'
   - target: $.paths['/responses'].post
     update:
       x-status: live
@@ -801,6 +822,9 @@ actions:
     update:
       x-status: stub
       x-stub-response: 501
+      responses:
+        '501':
+          $ref: '#/components/responses/AloreProblem'
   - target: $.paths['/responses/{response_id}/input_items'].get
     update:
       x-status: live

@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
 
-import { readText } from './io.mjs';
+import { readJson, readText } from './io.mjs';
 import { FILES, PKG_ROOT } from './paths.mjs';
 
 const REL = 'packages/alore-platform-contract';
@@ -23,6 +23,8 @@ function readChangesets() {
 
 /** The contract surface, CHANGELOG and pending changesets of the working tree, as text. */
 export function readTree() {
+  const prePath = `${FILES.changesetDir}/pre.json`;
+  const pre = existsSync(prePath) ? readJson(prePath) : null;
   const schemas = {};
   for (const name of readdirSync(FILES.schemasDir).sort()) {
     if (name.endsWith('.schema.json')) schemas[name] = readText(`${FILES.schemasDir}/${name}`);
@@ -36,6 +38,7 @@ export function readTree() {
     pin: readText(FILES.pin),
     changelog: readText(FILES.changelog),
     changesets: readChangesets(),
+    consumedChangesetIds: pre?.changesets ?? [],
   };
 }
 

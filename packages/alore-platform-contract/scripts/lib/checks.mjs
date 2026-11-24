@@ -1,5 +1,7 @@
 // Contract checks. Pure functions over in-memory trees, so the negative controls can
 // feed them broken input. Every violation is { rule, where, message }.
+import { parse } from 'yaml';
+
 import { canonPath, METHODS } from './cut.mjs';
 import { parseTarget } from './overlay.mjs';
 
@@ -37,16 +39,20 @@ const ANNOTATIONS = new Set(['description', 'title', 'example', 'examples']);
 export const FEATURE_GATE = 'x-alore-feature';
 
 /** Where the overlay is adding: a node, the property map of a schema, `paths`, and so on. */
-const childKind = (kind, key) => {
+const childKind = (kind, key, node) => {
   if (kind === 'root') return { paths: 'paths', components: 'components' }[key] ?? 'node';
   if (kind === 'paths') return 'pathItem';
+  if (kind === 'pathItem' && METHODS.includes(key)) return 'operation';
+  if (kind === 'operation' && key === 'responses' && node['x-status'] === 'stub')
+    return 'stubResponses';
   if (kind === 'components') return 'componentMap';
   if (kind === 'props' || kind === 'componentMap') return 'node';
   return key === 'properties' ? 'props' : 'node';
 };
 
 /** A key present in the merged node and missing from the pinned one. */
-function addedKeyAllowed(kind, key) {
+function addedKeyAllowed(kind, key, value) {
+  if (kind === 'stubResponses' && key === '501') return same(value, { $ref: PROBLEM_RESPONSE_REF });
   if (ANNOTATIONS.has(key) || key.startsWith('x-')) return true;
   if (kind === 'props' || kind === 'paths' || kind === 'components' || kind === 'componentMap') {
     return true; // a new optional property, path or component
@@ -106,7 +112,7 @@ export function checkOnlyAdds(pinned, merged) {
           out.push(v('overlay-only-adds', `${ptr}/${key}`, 'removes an upstream-defined key'));
           continue;
         }
-        walk(p[key], m[key], `${ptr}/${key}`, childKind(kind, key));
+        walk(p[key], m[key], `${ptr}/${key}`, childKind(kind, key, m));
       }
       for (const key of Object.keys(m)) {
         if (key in p) continue;
@@ -121,12 +127,12 @@ export function checkOnlyAdds(pinned, merged) {
                 'makes an optional upstream field required',
               ),
             );
-        } else if (!addedKeyAllowed(kind, key)) {
+        } else if (!addedKeyAllowed(kind, key, m[key])) {
           out.push(
             v(
               'overlay-only-adds',
               `${ptr}/${key}`,
-              `adds ${key} to an upstream-defined node; the overlay may add only descriptions, titles, examples, x- marks and new properties`,
+              `adds ${key} to an upstream-defined node; the overlay may add only descriptions, titles, examples, x- marks, new properties and the AloreProblem 501 response on stubs`,
             ),
           );
         } else if (kind === 'props' && !(isObject(m[key]) && FEATURE_GATE in m[key])) {
@@ -257,6 +263,9 @@ export function checkStatuses(merged) {
       out.push(v('x-status', where, 'a stub must carry x-stub-response: 501'));
     } else if (op['x-status'] !== 'stub' && op['x-stub-response'] !== undefined) {
       out.push(v('x-status', where, 'x-stub-response belongs to stubs only'));
+    }
+    if (op['x-status'] === 'stub' && !same(op.responses?.['501'], { $ref: PROBLEM_RESPONSE_REF })) {
+      out.push(v('x-status', where, 'a stub must declare a 501 response referencing AloreProblem'));
     }
     const since = op['x-deprecated-since'];
     if (since !== undefined && !/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(since)) {
@@ -450,17 +459,20 @@ const ENTRY = /^\s*[-*]\s+(?:[0-9a-f]{7,40}:\s+)?(additive|deprecating|breaking)
 const CHANGESET_ENTRY = /^(additive|deprecating|breaking):/i;
 export const PACKAGE_NAME = '@alore/platform-contract';
 
-/** A changeset for this package whose summary starts with `additive:`, `deprecating:` or `breaking:`. */
+/** A changeset with a classified summary and the corresponding package bump. */
 export function classifiedChangeset(text) {
   const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/.exec(text);
   if (!match) return false;
-  const names = match[1].split('\n').map((line) =>
-    line
-      .split(':')[0]
-      .trim()
-      .replace(/^['"]|['"]$/g, ''),
-  );
-  return names.includes(PACKAGE_NAME) && CHANGESET_ENTRY.test(match[2].trim());
+  const kind = CHANGESET_ENTRY.exec(match[2].trim())?.[1].toLowerCase();
+  if (!kind) return false;
+  try {
+    const releases = parse(match[1]);
+    return (
+      isObject(releases) && releases[PACKAGE_NAME] === (kind === 'breaking' ? 'major' : 'minor')
+    );
+  } catch {
+    return false;
+  }
 }
 
 const SURFACE = (tree) => ({
@@ -478,7 +490,7 @@ const SURFACE = (tree) => ({
  * A change to the contract surface needs a classified entry that is new against the base: either a
  * new `.changeset/*.md` for this package whose summary starts `additive:`, `deprecating:` or
  * `breaking:`, or a new classified line in CHANGELOG.md (what `changeset version` writes).
- * A tree is { schemas: {name: text}, overlay, asyncapi, served, planned, pin, changelog, changesets }.
+ * Pending changesets must match the classified bump and be unused in the current prerelease.
  * `prev` is null for the first release of the package.
  */
 export function checkChangelog(prev, next) {
@@ -494,15 +506,19 @@ export function checkChangelog(prev, next) {
     .filter((line) => !seen.has(line) && ENTRY.test(line));
   if (added.length > 0) return [];
   const known = prev?.changesets ?? {};
-  const fresh = Object.entries(next.changesets ?? {}).filter(
-    ([name, text]) => known[name] !== text && classifiedChangeset(text),
+  const consumed = new Set(next.consumedChangesetIds);
+  const fresh = Object.entries(next.changesets ?? {}).some(
+    ([name, text]) =>
+      known[name] !== text &&
+      !consumed.has(name.slice(0, -'.md'.length)) &&
+      classifiedChangeset(text),
   );
-  if (fresh.length > 0) return [];
+  if (fresh) return [];
   return [
     v(
       'changelog',
       '.changeset',
-      `contract surface changed (${changed.join(', ')}) without a new changeset for ${PACKAGE_NAME} whose summary starts with additive:, deprecating: or breaking:`,
+      `contract surface changed (${changed.join(', ')}) without a new, unconsumed changeset for ${PACKAGE_NAME} classified as additive: or deprecating: (minor), or breaking: (major)`,
     ),
   ];
 }

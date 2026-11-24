@@ -2,12 +2,15 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { CLASS_STATUS } from '../scripts/lib/checks.mjs';
+import { CLASS_STATUS, PROBLEM_RESPONSE_REF } from '../scripts/lib/checks.mjs';
 import { canonPath } from '../scripts/lib/cut.mjs';
 import { contract, operations } from './helpers.mjs';
 
 const { routes, merged, pinned, overlay, upstream } = contract();
 const byKey = new Map();
+const pinnedByKey = new Map();
+for (const { path, method, op } of operations(pinned))
+  pinnedByKey.set(`${method.toUpperCase()} ${canonPath(path)}`, op);
 for (const { path, method, op } of operations(merged))
   byKey.set(`${method.toUpperCase()} ${canonPath(path)}`, op);
 const find = (route) =>
@@ -72,7 +75,14 @@ test('every operation in openapi.yaml has an x-status', () => {
 
 test('every stub answers 501 in the contract, whatever upstream says', () => {
   for (const r of routes.served.filter((x) => x.class === 'stub')) {
-    assert.equal(find(r)['x-stub-response'], 501, `${r.method} ${r.path}`);
+    const op = find(r);
+    const where = `${r.method} ${r.path}`;
+    assert.equal(op['x-stub-response'], 501, where);
+    assert.deepEqual(op.responses?.['501'], { $ref: PROBLEM_RESPONSE_REF }, where);
+    const key = `${r.method} ${canonPath(r.path.replace(/^\/ai\/v1/, ''))}`;
+    const upstreamResponses = pinnedByKey.get(key)?.responses;
+    for (const [code, response] of Object.entries(upstreamResponses ?? {}))
+      assert.deepEqual(op.responses[code], response, `${where} response ${code}`);
   }
 });
 

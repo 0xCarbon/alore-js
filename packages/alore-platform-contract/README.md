@@ -67,7 +67,7 @@ upstream operation ignores path-parameter names (`/responses/{id}` is `/response
 
 - The overlay only adds, and what it may add to a node the pinned spec defines is an allowlist: `description`,
   `title`, `example`/`examples`, `x-` marks and new entries under `properties`, plus whole new paths,
-  operations and components. Any other key on an upstream node (`enum`, `minProperties`, `propertyNames`,
+  operations and components. An upstream stub can also add an `AloreProblem` response for HTTP 501. Any other key on an upstream node (`enum`, `minProperties`, `propertyNames`,
   `multipleOf`, `discriminator`, `requestBody`, a `type`, ...) fails, as does a changed or removed value, a
   required field that was optional, a required parameter, or a value added to an OpenAI-defined enum. Alore-owned
   enums live in `schemas/`, not in the overlay.
@@ -80,8 +80,8 @@ upstream operation ignores path-parameter names (`/responses/{id}` is `/response
   `x-upstream-equivalent`, not the `x-alore` tag, and a new near-duplicate path fails.
 - Every operation has `x-status`: `live`, `stub`, `planned` or `legacy-replaced`. A deprecation adds
   `x-deprecated-since`; the Assistants and Threads emulation carries it on every route. Every stub carries
-  `x-stub-response: 501`: the contract answer of a stub is 501 `not_implemented`. Stubs backed by an upstream
-  operation keep upstream's `200` response in the document as the OpenAI shape only. `routes/served.yaml`
+  `x-stub-response: 501` and `responses['501']` referencing `AloreProblem`. The contract answer of a stub is
+  501 `not_implemented`. Stubs backed by an upstream operation keep the upstream responses in the document. `routes/served.yaml`
   (`stub_returns`) records what the router answers today, a constant `200` for most stubs, until INC-202 turns them
   into 501. A conformance run expects 501 and lists the stubs that still answer 200 as expected failures.
 - Alore-owned outputs are closed. Inputs ignore unknown fields, except a field that narrows a grant, a search
@@ -106,12 +106,13 @@ Add a changeset for `@alore/platform-contract` (`pnpm changeset`). `changeset ve
 
 - `additive:` a new optional field, a new enum value on an Alore-owned enum, a new path or a new status mark.
   A new optional field on a closed output is additive only when it is gated by the contract version or a
-  negotiated feature; without the gate it is breaking.
-- `deprecating:` adds `x-deprecated-since`. The route or field keeps working for at least one minor version.
+  negotiated feature; without the gate it is breaking. Additive changes need a minor version bump.
+- `deprecating:` adds `x-deprecated-since` and needs a minor version bump. The route or field keeps working
+  for at least one minor version.
 - `breaking:` anything else. It needs a new major version.
 
 `pnpm run lint` fails when the contract surface differs from the base and the pull request adds no changeset
-for this package starting with one of those words.
+for this package with the corresponding bump. Changesets already consumed by a prerelease do not count.
 
 ## Bumping the upstream pin
 

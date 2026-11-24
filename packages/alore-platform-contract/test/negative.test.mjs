@@ -13,6 +13,7 @@ import {
   checkStatuses,
   checkVendorNames,
   classifiedChangeset,
+  PROBLEM_RESPONSE_REF,
 } from '../scripts/lib/checks.mjs';
 import { readJson } from '../scripts/lib/io.mjs';
 import { readTree, treeFromGit } from '../scripts/lib/tree.mjs';
@@ -169,18 +170,23 @@ test('the committed tree carries a classified entry for the initial contract', (
   assert.equal(checkChangelog(null, { ...readTree(), changelog: '', changesets: {} }).length, 1);
 });
 
-const changeset = (body, pkg = '@alore/platform-contract') =>
-  `---\n'${pkg}': minor\n---\n\n${body}\n`;
+const changeset = (body, pkg = '@alore/platform-contract', bump = 'minor') =>
+  `---\n'${pkg}': ${bump}\n---\n\n${body}\n`;
 
 test('a new changeset for the package, classified, satisfies the checker', () => {
   const prev = surface({ changesets: {} });
-  const next = (body, name = 'x.md', pkg) =>
+  const next = (body, name = 'x.md', pkg, bump) =>
     surface({
       overlay: 'overlay: 1.0.0\nactions: []\n',
-      changesets: { [name]: changeset(body, pkg) },
+      changesets: { [name]: changeset(body, pkg, bump) },
     });
   for (const kind of ['additive', 'deprecating', 'breaking']) {
-    assert.deepEqual(checkChangelog(prev, next(`${kind}: changed the overlay`)), [], kind);
+    const bump = kind === 'breaking' ? 'major' : 'minor';
+    assert.deepEqual(
+      checkChangelog(prev, next(`${kind}: changed the overlay`, 'x.md', undefined, bump)),
+      [],
+      kind,
+    );
   }
   assert.equal(checkChangelog(prev, next('tweaked the overlay')).length, 1, 'not classified');
   assert.equal(
@@ -198,9 +204,32 @@ test('a new changeset for the package, classified, satisfies the checker', () =>
 
 test('classifiedChangeset reads the frontmatter and the first words of the body', () => {
   assert.ok(classifiedChangeset(changeset('additive: a')));
-  assert.ok(classifiedChangeset(changeset('Breaking: a')));
+  assert.ok(classifiedChangeset(changeset('Breaking: a', undefined, 'major')));
   assert.ok(!classifiedChangeset(changeset('additive a')));
   assert.ok(!classifiedChangeset('additive: a'));
+});
+
+test('a classified changeset requires the corresponding package bump', () => {
+  for (const [kind, bump] of [
+    ['additive', 'patch'],
+    ['deprecating', 'patch'],
+    ['breaking', 'minor'],
+  ]) {
+    assert.equal(
+      classifiedChangeset(changeset(`${kind}: changed a schema`, undefined, bump)),
+      false,
+    );
+  }
+});
+
+test('a consumed prerelease changeset cannot cover a contract change', () => {
+  const prev = surface();
+  const next = surface({
+    overlay: 'overlay: 1.0.0\nactions: []\n',
+    changesets: { 'used.md': changeset('additive: already released') },
+    consumedChangesetIds: ['used'],
+  });
+  assert.equal(checkChangelog(prev, next).length, 1);
 });
 
 test('an unknown base ref fails lint instead of passing as a first release', () => {
@@ -297,6 +326,24 @@ test('the overlay may add only descriptions, titles, examples, x- marks and new 
   );
 });
 
+test('only the AloreProblem 501 response may be added to a pinned stub', () => {
+  const withResponse = (status, responses) => {
+    const merged = upstreamDoc();
+    const op = merged.paths['/things'].get;
+    op['x-status'] = status;
+    Object.assign(op.responses, responses);
+    return checkOnlyAdds(upstreamDoc(), merged);
+  };
+  const problem = { $ref: PROBLEM_RESPONSE_REF };
+  assert.deepEqual(withResponse('stub', { 501: problem }), []);
+  assert.equal(withResponse('live', { 501: problem }).length, 1);
+  assert.equal(withResponse('stub', { 502: problem }).length, 1);
+  assert.equal(withResponse('stub', { 501: { description: 'different' } }).length, 1);
+  assert.ok(
+    withResponse('stub', { 200: problem, 501: problem }).some((x) => x.where.includes('/200')),
+  );
+});
+
 test('a property literally named properties is not a property map', () => {
   const base = () => ({
     components: { schemas: { T: { properties: { properties: { type: 'object' } } } } },
@@ -313,6 +360,9 @@ test('every stub carries x-stub-response 501, and only stubs do', () => {
   bad.paths['/models/{model}'].delete['x-stub-response'] = 200;
   bad.paths['/models/{model}'].get['x-stub-response'] = 501;
   assert.equal(checkStatuses(bad).length, 2);
+  const missing = structuredClone(merged);
+  delete missing.paths['/models/{model}'].delete.responses['501'];
+  assert.equal(checkStatuses(missing).length, 1);
   const unknown = structuredClone(merged);
   unknown.paths['/models/{model}'].get['x-status'] = 'unknown';
   assert.equal(checkStatuses(unknown).length, 1);

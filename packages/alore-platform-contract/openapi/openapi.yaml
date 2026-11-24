@@ -208,6 +208,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "501":
+          $ref: "#/components/responses/AloreProblem"
         "502":
           description: The upstream audio service connection failed.
           content:
@@ -288,6 +290,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "501":
+          $ref: "#/components/responses/AloreProblem"
         "502":
           description: The upstream audio service connection failed.
           content:
@@ -455,6 +459,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "501":
+          $ref: "#/components/responses/AloreProblem"
         "503":
           $ref: "#/components/responses/InferenceServiceUnavailable"
       x-status: stub
@@ -989,6 +995,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "501":
+          $ref: "#/components/responses/AloreProblem"
         "503":
           $ref: "#/components/responses/InferenceServiceUnavailable"
       x-status: stub
@@ -1071,6 +1079,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "501":
+          $ref: "#/components/responses/AloreProblem"
         "503":
           $ref: "#/components/responses/InferenceServiceUnavailable"
       x-status: stub
@@ -1140,6 +1150,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "501":
+          $ref: "#/components/responses/AloreProblem"
       x-status: stub
       x-stub-response: 501
   /models:
@@ -1231,6 +1243,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "501":
+          $ref: "#/components/responses/AloreProblem"
       x-status: stub
       x-stub-response: 501
   /responses:
@@ -1499,6 +1513,8 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+        "501":
+          $ref: "#/components/responses/AloreProblem"
       x-status: stub
       x-stub-response: 501
   /responses/{response_id}/input_items:
