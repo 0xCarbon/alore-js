@@ -6,8 +6,8 @@ routes Alore serves, plus an `x-alore` overlay, JSON Schemas, fixtures and the w
 This repository is public. Keep the package to the contract: no handler paths, internal hostnames,
 customer data, credentials or call-site details.
 
-Status: alpha prerelease (changesets pre mode, tag `alpha`). Nothing consumes the package yet. The conformance runner, SDK layer and fake
-server are separate packages or later releases.
+Status: alpha prerelease (changesets pre mode, tag `alpha`). Nothing consumes the package yet. The conformance runner and the SDK
+layer are separate packages or later releases. The fake server ships here as `@alore/platform-contract/fake`.
 
 ## Layout
 
@@ -24,6 +24,7 @@ server are separate packages or later releases.
 | `routes/served.yaml`             | the 91 routes the router serves: method, path, class, family, upstream flag, stub status        |
 | `routes/planned.yaml`            | routes the contract promises and Alore does not serve yet                                       |
 | `rules/.spectral.yaml`, `rules/` | Spectral rules, custom functions, the vendor-name deny list                                     |
+| `fake/`                          | the fake Alore server, built from the files above (see Fake Alore)                              |
 | `scripts/`                       | `cut.mjs`, `generate.mjs`, `lint.mjs` and `lib/`                                                |
 | `test/`                          | node:test suites; `test/negative/` holds the negative controls                                  |
 
@@ -113,6 +114,76 @@ Add a changeset for `@alore/platform-contract` (`pnpm changeset`). `changeset ve
 
 `pnpm run lint` fails when the contract surface differs from the base and the pull request adds no changeset
 for this package with the corresponding bump. Changesets already consumed by a prerelease do not count.
+
+## Fake Alore
+
+`@alore/platform-contract/fake` is a deterministic stand-in for `/ai/v1`, for Joori and crawler integration specs, ui-lab and
+handoff units. It is never deployed. It has no dependency beyond the package's own (`ajv`, `ajv-formats`, `yaml`) and only
+listens on loopback.
+
+```js
+import { createFake } from '@alore/platform-contract/fake';
+
+const fake = createFake({
+  features: ['files.status'], // what GET /meta lists; x_alore is emitted when files.status is on
+  webhookUrl: 'http://127.0.0.1:3000/webhooks/alore/v1', // optional; events are always recorded
+  client: 'joori-dev',
+  orgRef: 'org-1',
+});
+const { baseURL } = await fake.listen(); // http://127.0.0.1:<port>/ai/v1
+const file = fake.seedFile({ filename: 'a.pdf', status: 'extracting' });
+await fake.setFileStatus(file.id, 'text_ready'); // emits file.text_ready, signed, to webhookUrl
+await fake.close();
+```
+
+As a process: `alore-fake --port 4010 --feature files.status --webhook-url <url>` (the secret is read from the variable
+named by `--webhook-secret-env`, else a published fake secret is used). The first output line is `listening <baseURL>`.
+
+Nothing is copied from the contract into the fake:
+
+- The route table is the operations of `openapi/openapi.yaml`. A request is matched on method and path template, static
+  paths before parameter paths. An unknown route answers `404 not_found`.
+- A route answers a fixture only where the contract already types the response: `GET /meta`, `GET /files`,
+  `GET /files/{id}` and `DELETE /files/{id}`. Every other operation answers `501 not_implemented` naming its `operationId`
+  and `x-status`; the live extension routes gain behaviour when a later contract release types their bodies.
+- Every body the fake sends is validated before it leaves, against the response schema of its operation (pinned OpenAI
+  schemas and the `schemas/` objects) or `problem.schema.json`. The fake refuses to start when a fixture it builds on
+  (`fixtures/meta/basic.json`, `fixtures/errors/<type>.json`) does not validate. A body that fails answers 500
+  `fake-alore: ...` so a spec cannot pass on it.
+- Problems are the `fixtures/errors/*.json` instances with a specific `detail`, as `application/problem+json`.
+- `GET /meta` serves `fixtures/meta/basic.json` with `contract` set to the package version and `features` set by the option.
+- OpenAI's deprecated `status` is required on the pinned file object, so the fake maps Alore's status onto it: `ready` and
+  `deleted` are `processed`, `failed` is `error`, anything else is `uploaded`.
+
+`X-Fake-Scenario` makes any request under `/ai/v1` fail on demand, before routing:
+
+| value             | answer                                                                                       |
+| ----------------- | -------------------------------------------------------------------------------------------- |
+| `rate_limited`    | 429 `rate_limited`, with `Retry-After: 1`                                                    |
+| `unavailable`     | 503 `unavailable`                                                                            |
+| `not_implemented` | 501 `not_implemented`                                                                        |
+| `expired`         | 404 `not_found` with `error.code` `expired` (the closed problem list has no type of its own) |
+
+An unknown value answers `400 invalid_request`. The header applies to one request only.
+
+Webhooks use the `alore.evt/1` envelope and Standard Webhooks headers (`webhook-id`, `webhook-timestamp`,
+`webhook-signature`, HMAC-SHA256 over `id.timestamp.body`). `emit(type, { subject, data })` validates the envelope against
+`webhook-envelope.schema.json` before sending, numbers `seq` per subject and records the event. `setFileStatus` emits for
+`received`, `text_ready`, `ready`, `failed` and `deleted`; `DELETE /files/{id}` emits `file.deleted`. A receiver that fails
+is recorded in `fake.deliveries`, not thrown; `redeliver(eventId)` repeats the same `webhook-id` and body, so receivers can
+test their dedupe.
+
+Determinism: the clock is fixed (`now`, default `2026-01-01T12:00:00.000Z`) and moves only with `advance(ms)`; ids are
+counters (`file-fake-0001`, `evt-0001`); no response has a `Date` header; no randomness. Two runs with the same inputs give
+byte-identical responses, events and request logs (`test/fake.test.mjs`). `fake.requests` logs method, path, query, body,
+scenario, status and the `x-*`, `idempotency-key`, `content-type` and `openai-*` headers, with `authorization`, `x-api-key` and
+`cookie` redacted, so a spec can assert that tenancy headers were sent.
+
+A control surface sits outside the contract at `/__fake` for specs that drive the fake over HTTP: `GET /__fake/requests`,
+`/__fake/events`, `/__fake/deliveries`, `POST /__fake/reset`, `POST /__fake/files`, `POST /__fake/files/{id}/status` and
+`POST /__fake/events`.
+
+The fake does not authenticate: it accepts `Authorization: Bearer` and `X-API-KEY` alike, or neither.
 
 ## Bumping the upstream pin
 
