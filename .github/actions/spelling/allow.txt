@@ -10,6 +10,7 @@ AESGCM
 afas
 AGG
 airbnb
+ajv
 alchemyapi
 allowlist
 allowlisted
@@ -87,6 +88,7 @@ counterparty
 criptomoedas
 ctx
 cvc
+cwd
 dai
 DApp
 datapoints
@@ -113,6 +115,7 @@ duis
 egestas
 eip
 elana
+embeddings
 Emc
 enim
 erc
@@ -154,6 +157,7 @@ hendrerit
 heroicons
 hms
 hookform
+hostnames
 hoverable
 hpke
 HRTB
@@ -229,6 +233,7 @@ msedge
 mul
 mumbai
 mxc
+nactions
 Netwok
 networkidle
 newuser
@@ -252,6 +257,7 @@ ocr
 OIDC
 OMSPk
 ooriginal
+openai
 openapi
 openstreetmap
 orgs
@@ -288,6 +294,7 @@ rarible
 rarr
 rcq
 rcr
+readdir
 readme
 realip
 realtime
@@ -304,6 +311,7 @@ ropsten
 rpc
 rtl
 RTZ
+ruleset
 rustls
 rutrum
 saci
@@ -320,6 +328,7 @@ seuemail
 SGpn
 shib
 shiba
+signin
 siteverify
 Skype
 solana
@@ -355,6 +364,7 @@ tgz
 Thiaguinho
 thiserror
 tobi
+tok
 tokio
 totp
 Transac
@@ -391,6 +401,7 @@ uvm
 varius
 vec
 vercel
+versioned
 viewports
 vitor
 vivamus
@@ -400,11 +411,14 @@ walletaddress
 walletconnect
 wbnb
 webauthn
+webhooks
 website
 websites
 wmatic
+workflows
 workspaces
 wtr
+xalore
 xcarbon
 xcircle
 XCoord
