@@ -262,6 +262,31 @@ test('idempotency helpers generate unique keys and deterministic receipt keys', 
   assert.match(d1, /^jobs\.submit:[0-9a-f]{64}$/);
 });
 
+test('receipt keys preserve tuple boundaries and primitive types', () => {
+  const receipts = [
+    ['a', 'b'],
+    ['a\0b'],
+    [1],
+    ['1'],
+    [true],
+    ['true'],
+    [null],
+    ['null'],
+    [undefined],
+    ['undefined'],
+    [],
+    [''],
+    [0],
+    [-0],
+    [NaN],
+    ['NaN'],
+    [Infinity],
+    ['Infinity'],
+  ];
+  const keys = receipts.map((parts) => deriveIdempotencyKey('jobs.submit', parts));
+  assert.equal(new Set(keys).size, receipts.length);
+});
+
 // ---------------------------------------------------------------- contract enum alignment & problems
 
 test('SDK enum lists match @alore/platform-contract schemas exactly', () => {

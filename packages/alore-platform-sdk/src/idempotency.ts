@@ -23,21 +23,15 @@ export function deriveIdempotencyKey(
   if (trimmed.length === 0 || /[\s\r\n]/.test(trimmed)) {
     throw new TypeError('Idempotency key namespace must not be empty or contain whitespace');
   }
-  const hash = createHash('sha256');
-  hash.update(trimmed);
-  for (const part of parts) {
-    hash.update('\0');
-    let serialized: string;
-    if (part === null) {
-      serialized = 'null';
-    } else if (part === undefined) {
-      serialized = 'undefined';
-    } else {
-      serialized = String(part);
-    }
-    hash.update(serialized);
-  }
-  return `${trimmed}:${hash.digest('hex')}`;
+  // Preserve both the primitive type and the boundary of every receipt part.
+  const tuple = parts.map((part) => {
+    const value = Object.is(part, -0) ? '-0' : String(part);
+    return [typeof part, value];
+  });
+  const digest = createHash('sha256')
+    .update(JSON.stringify([trimmed, tuple]))
+    .digest('hex');
+  return `${trimmed}:${digest}`;
 }
 
 export function assertIdempotencyKey(key: string): string {
