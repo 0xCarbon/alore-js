@@ -1,0 +1,21 @@
+# Spectral rules for openapi/openapi.yaml. The rules that compare the overlay with upstream (only
+# add, upstream first, vendor names, ids, changelog) and the x-status check (checkStatuses) live in
+# scripts/lib/checks.mjs and run from scripts/lint.mjs. x-status is not repeated here: one check, so
+# the two cannot drift apart. Spectral keeps the rules about the shape of x-alore operations.
+functionsDir: ./functions
+functions:
+  - aloreOperationId
+  - aloreProblemJson
+rules:
+  alore-operation-id:
+    description: Every Alore-defined operation (x-alore tag or x-upstream-equivalent) has an operationId.
+    severity: error
+    given: $.paths[*][get,put,post,delete,patch]
+    then:
+      function: aloreOperationId
+  alore-problem-json:
+    description: Errors on Alore-defined operations are application/problem+json.
+    severity: error
+    given: $.paths[*][get,put,post,delete,patch]
+    then:
+      function: aloreProblemJson

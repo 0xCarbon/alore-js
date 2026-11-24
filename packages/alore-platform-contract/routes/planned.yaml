@@ -1,0 +1,71 @@
+# Routes the contract promises but Alore does not serve yet (x-status: planned).
+# Fields: method, path, family, upstream_openai.
+# The cut keeps an operation whenever the pinned upstream spec has one (POST /decisions is
+# upstream-defined at the current pin); the overlay then only marks its status. Otherwise the
+# overlay defines the route under the x-alore tag, and only because upstream has no equivalent.
+routes:
+  - { method: GET, path: '/ai/v1/meta', family: meta, upstream_openai: false }
+  - { method: GET, path: '/ai/v1/files/{file_id}/text', family: files, upstream_openai: false }
+  - {
+      method: GET,
+      path: '/ai/v1/files/{file_id}/pages/{page}',
+      family: files,
+      upstream_openai: false,
+    }
+  - { method: POST, path: '/ai/v1/files/register', family: files, upstream_openai: false }
+  - {
+      method: POST,
+      path: '/ai/v1/files/{file_id}/reprocess',
+      family: files,
+      upstream_openai: false,
+    }
+  - { method: POST, path: '/ai/v1/search', family: vector-stores, upstream_openai: false }
+  - {
+      method: GET,
+      path: '/ai/v1/conversations/{conversation_id}/vector_stores',
+      family: conversations,
+      upstream_openai: false,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/conversations/{conversation_id}/vector_stores',
+      family: conversations,
+      upstream_openai: false,
+    }
+  - {
+      method: DELETE,
+      path: '/ai/v1/conversations/{conversation_id}/vector_stores/{vector_store_id}',
+      family: conversations,
+      upstream_openai: false,
+    }
+  - {
+      method: POST,
+      path: '/ai/v1/conversations/{conversation_id}/fork',
+      family: conversations,
+      upstream_openai: false,
+    }
+  - { method: POST, path: '/ai/v1/rerank', family: embeddings, upstream_openai: false }
+  - {
+      method: POST,
+      path: '/ai/v1/audio/speech/with_timestamps',
+      family: audio,
+      upstream_openai: false,
+    }
+  - { method: POST, path: '/ai/v1/batches', family: jobs, upstream_openai: true }
+  - { method: GET, path: '/ai/v1/batches/{batch_id}', family: jobs, upstream_openai: true }
+  - { method: POST, path: '/ai/v1/batches/{batch_id}/cancel', family: jobs, upstream_openai: true }
+  - { method: POST, path: '/ai/v1/ocr', family: jobs, upstream_openai: false }
+  - { method: POST, path: '/ai/v1/jobs', family: jobs, upstream_openai: false }
+  - { method: GET, path: '/ai/v1/jobs/{job_id}', family: jobs, upstream_openai: false }
+  - { method: DELETE, path: '/ai/v1/jobs/{job_id}', family: jobs, upstream_openai: false }
+  - { method: POST, path: '/ai/v1/decisions', family: decisions, upstream_openai: true }
+  - {
+      method: POST,
+      path: '/ai/v1/decisions/{decision_id}/feedback',
+      family: decisions,
+      upstream_openai: false,
+    }
+  - { method: GET, path: '/ai/v1/decisions/tasks', family: decisions, upstream_openai: false }
+  - { method: POST, path: '/ai/v1/orgs', family: usage, upstream_openai: false }
+  - { method: GET, path: '/ai/v1/usage', family: usage, upstream_openai: false }
+  - { method: DELETE, path: '/ai/v1/orgs/{org_ref}', family: usage, upstream_openai: false }

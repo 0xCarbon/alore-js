@@ -1,0 +1,17 @@
+{
+  "schema": "webhook-envelope.schema.json",
+  "valid": false,
+  "description": "seq is required.",
+  "instance": {
+    "id": "evt-9998",
+    "type": "file.ready",
+    "time": "2026-01-01T12:00:00Z",
+    "client": "example-client",
+    "org_ref": null,
+    "subject": {
+      "kind": "file",
+      "id": "f"
+    },
+    "data": {}
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AloreMeta",
+  "description": "Response of GET /meta. A client refuses to start below its minimum contract and sends a narrowing field only after the feature is listed.",
+  "type": "object",
+  "required": ["contract", "features"],
+  "additionalProperties": false,
+  "properties": {
+    "contract": {
+      "description": "Contract version served, as semver.",
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(-[0-9A-Za-z.-]+)?$"
+    },
+    "features": {
+      "description": "Negotiated feature names that are on for this client.",
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

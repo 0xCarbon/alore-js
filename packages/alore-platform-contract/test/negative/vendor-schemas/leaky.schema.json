@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Leaky",
+  "description": "Negative control: a schema that names a vendor model.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "engine": { "type": "string", "description": "Runs on Gemini hardware." },
+    "model": { "type": "string", "enum": ["anga-1-mirim", "gpt-4o"] }
+  }
+}

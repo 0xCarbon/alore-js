@@ -37,7 +37,8 @@ jobs:
       - name: Create Release Pull Request
         uses: changesets/action@v1
         with:
-          version: pnpm changeset version
+          # Regenerates the platform contract after the bump: openapi.yaml carries the package version.
+          version: pnpm run version-packages
           commit: 'chore(release): version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

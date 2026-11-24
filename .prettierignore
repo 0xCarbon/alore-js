@@ -5,3 +5,8 @@ pnpm-lock.yaml
 pnpm-workspace.yaml
 **/.next/**
 tests/playwright-report/**
+# platform contract: upstream copy and generated files
+packages/alore-platform-contract/openapi/upstream
+packages/alore-platform-contract/openapi/openai.pinned.yaml
+packages/alore-platform-contract/openapi/openapi.yaml
+packages/alore-platform-contract/.negative-*

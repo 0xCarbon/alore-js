@@ -1,0 +1,33 @@
+{
+  "description": "Model, worker and vendor names that must not appear in an Alore-owned schema, the overlay or the event spec. Matched case-insensitively on word boundaries.",
+  "deny": [
+    "anthropic",
+    "claude",
+    "gemini",
+    "gpt",
+    "mistral",
+    "llama",
+    "qwen",
+    "deepseek",
+    "glm",
+    "zhipu",
+    "moonshot",
+    "kimi",
+    "cohere",
+    "whisper",
+    "vllm",
+    "sglang",
+    "triton",
+    "tesseract",
+    "paddleocr",
+    "olmocr",
+    "nemotron",
+    "deepgram",
+    "elevenlabs",
+    "assemblyai",
+    "nvidia",
+    "cuda",
+    "runpod"
+  ],
+  "modelAliases": ["anga-1-mirim", "anga-1-saci"]
+}

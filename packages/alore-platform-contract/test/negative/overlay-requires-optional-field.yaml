@@ -1,0 +1,10 @@
+# Negative control: the overlay makes an optional upstream field (expires_at) required. Lint must reject it.
+overlay: 1.0.0
+info:
+  title: negative control
+  version: '1'
+actions:
+  - target: $.components.schemas.OpenAIFile
+    update:
+      required:
+        - expires_at

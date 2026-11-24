@@ -1,0 +1,9 @@
+# Negative control: the overlay changes the type of an OpenAI-defined field. Lint must reject it.
+overlay: 1.0.0
+info:
+  title: negative control
+  version: '1'
+actions:
+  - target: $.components.schemas.OpenAIFile.properties.bytes
+    update:
+      type: string

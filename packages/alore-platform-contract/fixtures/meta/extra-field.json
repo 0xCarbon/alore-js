@@ -1,0 +1,10 @@
+{
+  "schema": "meta.schema.json",
+  "valid": false,
+  "description": "Closed output.",
+  "instance": {
+    "contract": "0.1.0",
+    "features": [],
+    "build": "abc"
+  }
+}

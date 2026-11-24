@@ -1,0 +1,17 @@
+{
+  "schema": "webhook-envelope.schema.json",
+  "valid": true,
+  "instance": {
+    "id": "evt-0012",
+    "type": "response.completed",
+    "time": "2026-01-01T12:00:00Z",
+    "client": "example-client",
+    "org_ref": "org-1",
+    "subject": {
+      "kind": "response",
+      "id": "subject-12"
+    },
+    "seq": 11,
+    "data": {}
+  }
+}

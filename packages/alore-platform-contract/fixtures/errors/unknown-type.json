@@ -1,0 +1,15 @@
+{
+  "schema": "problem.schema.json",
+  "valid": false,
+  "description": "A type outside the closed list is rejected.",
+  "instance": {
+    "type": "teapot",
+    "title": "Teapot",
+    "status": 418,
+    "error": {
+      "type": "x",
+      "message": "x",
+      "code": null
+    }
+  }
+}

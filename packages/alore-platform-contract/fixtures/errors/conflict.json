@@ -1,0 +1,15 @@
+{
+  "schema": "problem.schema.json",
+  "valid": true,
+  "instance": {
+    "type": "conflict",
+    "title": "Conflict",
+    "status": 409,
+    "detail": "Example detail.",
+    "error": {
+      "type": "conflict",
+      "message": "Example message.",
+      "code": "conflict"
+    }
+  }
+}

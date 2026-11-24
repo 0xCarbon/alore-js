@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AloreFileExtension",
+  "description": "The x_alore object on a file. It is emitted only to clients that negotiate the files.status feature.",
+  "type": "object",
+  "required": ["status"],
+  "additionalProperties": false,
+  "properties": {
+    "status": {
+      "description": "Processing status of the file.",
+      "type": "string",
+      "enum": [
+        "uploading",
+        "received",
+        "extracting",
+        "text_ready",
+        "indexing",
+        "ready",
+        "failed",
+        "deleted"
+      ]
+    }
+  }
+}

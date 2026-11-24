@@ -1,0 +1,17 @@
+{
+  "schema": "webhook-envelope.schema.json",
+  "valid": true,
+  "instance": {
+    "id": "evt-0006",
+    "type": "vector_store.file_ready",
+    "time": "2026-01-01T12:00:00Z",
+    "client": "example-client",
+    "org_ref": "org-1",
+    "subject": {
+      "kind": "vector_store",
+      "id": "subject-6"
+    },
+    "seq": 5,
+    "data": {}
+  }
+}

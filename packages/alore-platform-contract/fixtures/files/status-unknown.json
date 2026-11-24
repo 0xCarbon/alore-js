@@ -1,0 +1,8 @@
+{
+  "schema": "file-extension.schema.json",
+  "valid": false,
+  "description": "A status outside the enum is rejected.",
+  "instance": {
+    "status": "queued"
+  }
+}

@@ -1,0 +1,50 @@
+asyncapi: 3.0.0
+info:
+  title: Alore platform events
+  version: 0.1.0-alpha.0
+  description: >-
+    Webhook envelope alore.evt/1. Delivery is at least once with Standard Webhooks
+    headers; a receiver dedupes on the event id. This document holds the envelope
+    only. Tool callback, realtime and any broker binding are added by later releases.
+defaultContentType: application/json
+channels:
+  clientWebhook:
+    title: Client webhook
+    description: Alore sends each event as an HTTP POST to the webhook URL registered for the client.
+    address: client-webhook
+    messages:
+      aloreEvent:
+        $ref: '#/components/messages/AloreEvent'
+operations:
+  receiveAloreEvent:
+    action: receive
+    title: Receive an Alore event
+    summary: The client receives each event once or more; it answers 2xx once the event is stored.
+    channel:
+      $ref: '#/channels/clientWebhook'
+    messages:
+      - $ref: '#/channels/clientWebhook/messages/aloreEvent'
+    bindings:
+      http:
+        method: POST
+components:
+  messages:
+    AloreEvent:
+      name: alore.evt/1
+      title: Alore event envelope
+      contentType: application/json
+      headers:
+        type: object
+        required: [webhook-id, webhook-timestamp, webhook-signature]
+        properties:
+          webhook-id:
+            type: string
+            description: Unique message id, stable across redeliveries.
+          webhook-timestamp:
+            type: string
+            description: Unix seconds at signing time.
+          webhook-signature:
+            type: string
+            description: Space-separated list of versioned signatures, for example v1,<base64 HMAC-SHA256>.
+      payload:
+        $ref: ../schemas/webhook-envelope.schema.json

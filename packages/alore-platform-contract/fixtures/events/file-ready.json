@@ -1,0 +1,17 @@
+{
+  "schema": "webhook-envelope.schema.json",
+  "valid": true,
+  "instance": {
+    "id": "evt-0003",
+    "type": "file.ready",
+    "time": "2026-01-01T12:00:00Z",
+    "client": "example-client",
+    "org_ref": "org-1",
+    "subject": {
+      "kind": "file",
+      "id": "subject-3"
+    },
+    "seq": 2,
+    "data": {}
+  }
+}
