@@ -98,6 +98,7 @@ datetime
 dayjs
 dedupe
 dedupes
+defg
 denylist
 deployer
 describedby
@@ -206,6 +207,7 @@ lifecyle
 linting
 Lng
 localematcher
+logprobs
 LTDA
 LTE
 luctus
@@ -331,7 +333,9 @@ seuemail
 SGpn
 shib
 shiba
+sigint
 signin
+sigterm
 siteverify
 Skype
 solana
@@ -347,6 +351,7 @@ ssr
 ssword
 Stablecoin
 stackos
+stdio
 sua
 swc
 tailwindcss
@@ -397,6 +402,7 @@ URLTo
 usb
 usd
 usdt
+usr
 utf
 utm
 utoipa
