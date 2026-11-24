@@ -25,6 +25,7 @@ approve
 apps
 arbitrumone
 Arrayto
+asr
 assinatura
 asyncapi
 Atqu
@@ -205,6 +206,7 @@ kvstore
 len
 lifecyle
 linting
+llm
 Lng
 localematcher
 logprobs
@@ -358,6 +360,7 @@ tailwindcss
 Tardezinha
 TContext
 Tcp
+TData
 Tdy
 testdevice
 testid
@@ -386,9 +389,11 @@ tsdb
 tsquery
 tsvector
 tsx
+tts
 TVCJH
 twofa
 txs
+typecheck
 typegen
 UFBA
 ullamcorper

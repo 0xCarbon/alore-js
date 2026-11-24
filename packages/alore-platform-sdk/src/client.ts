@@ -62,7 +62,11 @@ function normalizeBaseURL(raw: string): string {
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
     throw new TypeError(`AloreClientConfig.baseURL must use http or https: ${raw}`);
   }
-  return raw.replace(/\/+$/, '');
+  let end = raw.length;
+  while (end > 0 && raw.charCodeAt(end - 1) === 47) {
+    end -= 1;
+  }
+  return raw.slice(0, end);
 }
 
 function validateConfig(cfg: AloreClientConfig): {
@@ -161,7 +165,7 @@ class AloreOpenAI extends OpenAI {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  override request<Req, Rsp>(options: any, remainingRetries?: number | null): any {
+  override request<RequestBody, ResponseBody>(options: any, remainingRetries?: number | null): any {
     const gated = Promise.resolve(options).then((opts: OpenAIRequestOptions) => {
       const method = String(opts?.method ?? 'get').toLowerCase();
       const explicitKey =
@@ -179,7 +183,7 @@ class AloreOpenAI extends OpenAI {
       }
       return next;
     });
-    return super.request<Req, Rsp>(gated as never, remainingRetries);
+    return super.request<RequestBody, ResponseBody>(gated as never, remainingRetries);
   }
 }
 
