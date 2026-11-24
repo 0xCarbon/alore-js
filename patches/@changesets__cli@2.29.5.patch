@@ -1,0 +1,58 @@
+diff --git a/dist/changesets-cli.cjs.js b/dist/changesets-cli.cjs.js
+index 82ed39a6b2a38fe0aaabb71c2ec745c502dbe06a..9826ff72cc82c4a51fd80bfb28b3bcbb46c6bf46 100644
+--- a/dist/changesets-cli.cjs.js
++++ b/dist/changesets-cli.cjs.js
+@@ -812,5 +812,10 @@ function publish$1(packageJson, opts, twoFactorState) {
+ function getReleaseTag(pkgInfo, preState, tag) {
+   if (tag) return tag;
++  // Keep platform contract alpha versions off latest before the first stable release.
++  if (pkgInfo.name === "@alore/platform-contract") {
++    const targetVersion = semverParse__default["default"](pkgInfo.localVersion);
++    if (targetVersion && targetVersion.prerelease[0] === "alpha") return "alpha";
++  }
+   if (preState !== undefined && pkgInfo.publishedState !== "only-pre") {
+     return preState.tag;
+   }
+@@ -848,7 +853,7 @@ async function publishPackages({
+ }) {
+   const packagesByName = new Map(packages.map(x => [x.packageJson.name, x]));
+   const publicPackages = packages.filter(pkg => !pkg.packageJson.private);
+-  const unpublishedPackagesInfo = await getUnpublishedPackages(publicPackages, preState);
++  const unpublishedPackagesInfo = await getUnpublishedPackages(publicPackages, preState, tag);
+   if (unpublishedPackagesInfo.length === 0) {
+     return [];
+   }
+@@ -880,7 +885,7 @@ async function publishAPackage(pkg, access, twoFactorState, tag) {
+     published: publishConfirmation.published
+   };
+ }
+-async function getUnpublishedPackages(packages, preState) {
++async function getUnpublishedPackages(packages, preState, tag) {
+   const results = await Promise.all(packages.map(async ({
+     packageJson
+   }) => {
+@@ -913,7 +918,12 @@ async function getUnpublishedPackages(packages, preState) {
+       packagesToPublish.push(pkgInfo);
+       logger.info(`${name} is being published because our local version (${localVersion}) has not been published on npm`);
+       if (preState !== undefined && publishedState === "only-pre") {
+-        logger.info(`${name} is being published to ${pc__default["default"].cyan("latest")} rather than ${pc__default["default"].cyan(preState.tag)} because there has not been a regular release of it yet`);
++        const releaseTag = getReleaseTag(pkgInfo, preState, tag);
++        if (releaseTag === "latest" && !tag) {
++          logger.info(`${name} is being published to ${pc__default["default"].cyan("latest")} rather than ${pc__default["default"].cyan(preState.tag)} because there has not been a regular release of it yet`);
++        } else {
++          logger.info(`${name} is being published to ${pc__default["default"].cyan(releaseTag)}`);
++        }
+       }
+     } else {
+       // If the local version is behind npm, something is wrong, we warn here, and by not getting published later, it will fail
+@@ -954,8 +964,8 @@ let importantEnd$1 = pc__default["default"].red("-------------------------------
+ function showNonLatestTagWarning(tag, preState) {
+   logger.warn(importantSeparator$1);
+   if (preState) {
+-    logger.warn(`You are in prerelease mode so packages will be published to the ${pc__default["default"].cyan(preState.tag)}
+-        dist tag except for packages that have not had normal releases which will be published to ${pc__default["default"].cyan("latest")}`);
++    logger.warn(`You are in prerelease mode with the ${pc__default["default"].cyan(preState.tag)} dist tag.
++        Packages that have not had normal releases may be published to ${pc__default["default"].cyan("latest")}`);
+   } else if (tag !== "latest") {
+     logger.warn(`Packages will be released under the ${tag} tag`);
+   }

@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  '@changesets/cli@2.29.5':
+    hash: xhwsjm56fio6nte2vkb35csh4u
+    path: patches/@changesets__cli@2.29.5.patch
+
 importers:
 
   .:
@@ -15,8 +20,8 @@ importers:
         specifier: ^0.5.0
         version: 0.5.1
       '@changesets/cli':
-        specifier: ^2.29.5
-        version: 2.29.5
+        specifier: 2.29.5
+        version: 2.29.5(patch_hash=xhwsjm56fio6nte2vkb35csh4u)
       '@commitlint/cli':
         specifier: 19.7.1
         version: 19.7.1(@types/node@20.4.8)(typescript@5.4.5)
@@ -482,7 +487,7 @@ packages:
       - encoding
     dev: true
 
-  /@changesets/cli@2.29.5:
+  /@changesets/cli@2.29.5(patch_hash=xhwsjm56fio6nte2vkb35csh4u):
     resolution: {integrity: sha512-0j0cPq3fgxt2dPdFsg4XvO+6L66RC0pZybT9F4dG5TBrLA3jA/1pNkdTXH9IBBVHkgsKrNKenI3n1mPyPlIydg==}
     hasBin: true
     dependencies:
@@ -515,6 +520,7 @@ packages:
       spawndamnit: 3.0.1
       term-size: 2.2.1
     dev: true
+    patched: true
 
   /@changesets/config@3.1.1:
     resolution: {integrity: sha512-bd+3Ap2TKXxljCggI0mKPfzCQKeV/TU4yO2h2C6vAihIo8tzseAn2e7klSuiyYYXvgu53zMN1OeYMIQkaQoWnA==}
