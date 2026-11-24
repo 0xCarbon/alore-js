@@ -33,7 +33,11 @@
       "properties": {
         "type": { "type": "string", "minLength": 1 },
         "message": { "type": "string" },
-        "code": { "type": ["string", "null"] }
+        "code": { "type": ["string", "null"] },
+        "param": {
+          "description": "The request parameter the error is about, or null. Part of OpenAI's error object, which the pinned spec requires on every error response.",
+          "type": ["string", "null"]
+        }
       }
     }
   }
