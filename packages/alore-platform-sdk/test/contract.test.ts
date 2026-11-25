@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
 import { test } from 'node:test';
 import OpenAI, { toFile } from 'openai';
 
@@ -11,10 +12,16 @@ import {
   AloreProblemError,
   AloreRateLimitError,
   AloreUnavailableError,
+  parseSemver,
   resetMetaCache,
   verifyWebhook,
 } from '../src/index.js';
 import { startFake, startStubServer, startWebhookReceiver } from './helpers.js';
+
+const require = createRequire(import.meta.url);
+const { version: CONTRACT_VERSION } = require('@alore/platform-contract/package.json') as {
+  version: string;
+};
 
 // ---------------------------------------------------------------- meta() check & caching
 
@@ -22,12 +29,12 @@ test('meta() validates minContract and caches once per process unless refreshed'
   resetMetaCache();
   const { fake, baseURL } = await startFake({ features: ['files.status'] });
   const client = aloreClient(
-    { baseURL, apiKey: 'test-key', minContract: '0.1.0-alpha.0' },
+    { baseURL, apiKey: 'test-key', minContract: CONTRACT_VERSION },
     { orgRef: 'org-1', subjectRef: 'user-1', dataClass: 'synthetic' },
   );
 
   const first = await client.meta();
-  assert.equal(first.contract, '0.1.0-alpha.0');
+  assert.equal(first.contract, CONTRACT_VERSION);
   assert.deepEqual(first.features, ['files.status']);
   assert.equal(fake.requests.length, 1);
 
@@ -42,8 +49,9 @@ test('meta() validates minContract and caches once per process unless refreshed'
   assert.equal(fake.requests.length, 2);
 
   // Higher minContract fails with AloreContractVersionError
+  const higherContract = `${parseSemver(CONTRACT_VERSION).major + 1}.0.0`;
   const strictClient = aloreClient(
-    { baseURL, apiKey: 'test-key', minContract: '0.2.0' },
+    { baseURL, apiKey: 'test-key', minContract: higherContract },
     { orgRef: 'org-1', subjectRef: 'user-1', dataClass: 'synthetic' },
   );
   await assert.rejects(() => strictClient.meta(), AloreContractVersionError);
