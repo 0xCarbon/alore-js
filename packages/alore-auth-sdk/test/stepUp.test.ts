@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { Buffer } from 'node:buffer';
 import { afterEach, describe, it } from 'node:test';
 
 import {
@@ -9,9 +10,14 @@ import {
   type StepUpFactorsResponse,
 } from '../src/index';
 
+function buildTestJwt(header: Record<string, string>, payload: string, sig = 'sig'): string {
+  const encodedHeader = Buffer.from(JSON.stringify(header)).toString('base64url');
+  return `${encodedHeader}.${payload}.${sig}`;
+}
+
 const CLIENT_ID = 'pk-test-client';
 const BASE_URL = 'https://api.bealore.com';
-const ACCESS_TOKEN = 'eyJhbGciOiJSUzI1NiJ9.access-secret-token.sig';
+const ACCESS_TOKEN = buildTestJwt({ alg: 'RS256' }, 'access-secret-token');
 
 type FetchCall = {
   url: string;
@@ -122,7 +128,7 @@ describe('AloreAuth step-up and customer re-auth SDK helpers (INC-1124)', () => 
       () => ({
         status: 200,
         body: {
-          reauthToken: 'eyJhbGciOiJSUzI1NiIsInR5cCI6InJlYXV0aCtqd3QifQ.payload.sig',
+          reauthToken: buildTestJwt({ alg: 'RS256', typ: 'reauth+jwt' }, 'payload'),
           purpose: 'customer_reauth',
           scope: 'support_access_grant',
           amr: ['email_otp'],
@@ -312,7 +318,7 @@ describe('AloreAuth step-up and customer re-auth SDK helpers (INC-1124)', () => 
 
   it('maps 429, 401, and 403 errors to typed AloreAuthError without leaking secrets or OTP codes', async () => {
     const secretPassword = 'MyUltraSecretPassword#99';
-    const secretHash = '$argon2d$v=19$m=32768,t=3,p=2$secret$hashvalue';
+    const secretHash = '$argon2d$v=19$m=32768,t=3,p=2$secret$secret-hash-value';
     const secretOtp = '918273';
     const secretEmailCode = '746582';
 
