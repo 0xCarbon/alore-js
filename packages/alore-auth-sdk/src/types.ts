@@ -109,3 +109,152 @@ export interface SocialProvider {
   createdAt?: string;
   updatedAt?: string;
 }
+
+export type StepUpAmr = 'pwd' | 'otp' | 'hwk' | 'fed' | 'email_otp' | (string & {});
+
+export type StepUpPurpose = 'staff_mfa' | 'customer_reauth';
+
+export type StepUpMethod = 'totp' | 'passkey' | 'hw_key';
+
+export type CustomerReauthMethod =
+  | 'passkey'
+  | 'hw_key'
+  | 'password'
+  | 'password_totp'
+  | 'email_code';
+
+export type CustomerReauthScope =
+  | 'customer_reauth'
+  | 'support_access_grant'
+  | 'account_action'
+  | 'security_action';
+
+export type StepUpChallengeMethod = 'passkey' | 'hw_key' | 'email_code';
+
+export interface StepUpFactorsResponse {
+  enrolled: boolean;
+  totp: boolean;
+  passkey: boolean;
+  hardwareKey: boolean;
+  methods: StepUpMethod[];
+  password: boolean;
+  emailCode: boolean;
+  customerMethods: CustomerReauthMethod[];
+}
+
+export interface StepUpChallengeRequest {
+  method: StepUpChallengeMethod;
+  purpose?: StepUpPurpose;
+  rpOrigin?: string;
+  locale?: string;
+}
+
+export interface StepUpChallengeResponse {
+  method: StepUpChallengeMethod;
+  sessionId: string;
+  requestChallengeResponse?: {
+    publicKey: Record<string, unknown>;
+  };
+  expiresAt?: number;
+}
+
+export interface CustomerStepUpEmailChallengeResponse {
+  method: 'email_code';
+  sessionId: string;
+  expiresAt: number;
+}
+
+export type PasskeyAuthenticatorFn = (
+  // eslint-disable-next-line no-unused-vars
+  optionsJSON: Record<string, unknown>,
+) => Promise<Record<string, unknown>>;
+
+export type PasswordHashFn = (
+  // eslint-disable-next-line no-unused-vars
+  password: string,
+  // eslint-disable-next-line no-unused-vars
+  salt: string,
+) => Promise<string>;
+
+export type CustomerStepUpPasskeyInput =
+  | {
+      method: 'passkey' | 'hw_key';
+      credential: Record<string, unknown>;
+      sessionId: string;
+      rpOrigin?: string;
+      scope?: CustomerReauthScope;
+    }
+  | {
+      method: 'passkey' | 'hw_key';
+      credential?: undefined;
+      sessionId?: undefined;
+      rpOrigin?: string;
+      scope?: CustomerReauthScope;
+      authenticatePasskey?: PasskeyAuthenticatorFn;
+    };
+
+export type CustomerStepUpPasswordInput =
+  | {
+      method: 'password';
+      passwordHash: string;
+      otp?: string;
+      scope?: CustomerReauthScope;
+    }
+  | {
+      method: 'password';
+      password: string;
+      email?: string;
+      salt?: string;
+      otp?: string;
+      scope?: CustomerReauthScope;
+      hashPassword?: PasswordHashFn;
+    };
+
+export interface CustomerStepUpEmailCodeInput {
+  method: 'email_code';
+  emailCode: string;
+  sessionId: string;
+  scope?: CustomerReauthScope;
+}
+
+export type CustomerStepUpInput =
+  | CustomerStepUpPasskeyInput
+  | CustomerStepUpPasswordInput
+  | CustomerStepUpEmailCodeInput;
+
+export interface CustomerStepUpResult {
+  reauthToken: string;
+  purpose: 'customer_reauth';
+  scope: CustomerReauthScope;
+  amr: StepUpAmr[];
+  authTime: number;
+  expiresAt: number;
+  jti: string;
+}
+
+export type StaffStepUpInput =
+  | {
+      method: 'totp';
+      otp: string;
+    }
+  | {
+      method: 'passkey' | 'hw_key';
+      credential: Record<string, unknown>;
+      sessionId: string;
+      rpOrigin?: string;
+    }
+  | {
+      method: 'passkey' | 'hw_key';
+      credential?: undefined;
+      sessionId?: undefined;
+      rpOrigin?: string;
+      authenticatePasskey?: PasskeyAuthenticatorFn;
+    };
+
+export interface StaffStepUpResult {
+  accessToken: string;
+  refreshToken: string;
+  amr: StepUpAmr[];
+  authTime: number;
+  expiresAt: number;
+}

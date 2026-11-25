@@ -17,7 +17,9 @@
   "scripts": {
     "prepare": "pnpm build",
     "prepack": "pnpm build",
-    "build": "rm -rf dist/* && tsc"
+    "build": "rm -rf dist/* && tsc",
+    "typecheck": "tsc -p tsconfig.test.json --noEmit",
+    "test": "rm -rf build && tsc -p tsconfig.test.json && node -e \"require('fs').writeFileSync('build/package.json', JSON.stringify({ type: 'commonjs' }))\" && node --test build/test/*.test.js"
   },
   "author": "0xCarbon",
   "license": "LGPL-2.1-only",
