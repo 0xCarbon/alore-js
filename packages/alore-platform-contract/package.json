@@ -1,6 +1,6 @@
 {
   "name": "@alore/platform-contract",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "Pinned OpenAI OpenAPI spec cut to the routes Alore serves, plus the x-alore overlay, schemas, fixtures and a fake server built from them",
   "repository": "https://github.com/0xCarbon/alore-js",
   "type": "module",

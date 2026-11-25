@@ -4,7 +4,7 @@ openapi: 3.1.0
 info:
   title: Alore AI API
   description: "The OpenAI-compatible Alore AI API under /ai/v1: the pinned upstream OpenAI spec cut to the routes Alore serves, plus x-alore extensions. Every operation carries x-status."
-  version: 0.1.0-alpha.0
+  version: 0.1.0-alpha.1
   contact:
     name: Alore Support
     email: support@bealore.com
@@ -24717,4 +24717,4 @@ x-upstream:
   license: MIT
   sha256: fb196a60eef4125b6e4c6874488eed9022a6be8014aff5e874f74930daf5b559
 x-alore-contract:
-  version: 0.1.0-alpha.0
+  version: 0.1.0-alpha.1
