@@ -1,0 +1,41 @@
+name: Platform SDK CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  platform-sdk:
+    name: Build, typecheck and test the platform SDK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.9
+
+      - name: Use Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm -F @alore/platform-sdk run build
+
+      - name: Typecheck
+        run: pnpm -F @alore/platform-sdk run typecheck
+
+      - name: Test
+        run: pnpm -F @alore/platform-sdk run test

@@ -173,4 +173,28 @@ export default [
       'tailwindcss/classnames-order': 'off',
     },
   },
+  {
+    files: ['packages/alore-platform-sdk/**/*.ts'],
+    rules: {
+      // TypeScript NodeNext resolution enforces .js extensions and named exports at compile time.
+      'import/extensions': 'off',
+      'import/named': 'off',
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          vars: 'all',
+          args: 'after-used',
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
+      'no-shadow': 'off',
+      '@typescript-eslint/no-shadow': 'error',
+      'no-redeclare': 'off',
+      'max-classes-per-file': 'off',
+      'no-restricted-syntax': 'off',
+      'no-await-in-loop': 'off',
+    },
+  },
 ];
