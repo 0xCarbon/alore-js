@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { interpret, Interpreter } from 'xstate';
 
 import { authMachine, hydratePersistedAuthState } from './index';
@@ -345,7 +345,7 @@ describe('the forge-claim flow is gone', () => {
 });
 
 describe('persisted authState hydration', () => {
-  // What onTransition persists: the JSON of a real state (here active.login.idle).
+  // What the machine used to persist: the JSON of a real state (here active.login.idle).
   function persistedSnapshot() {
     const state = authMachine.transition(authMachine.initialState, { type: 'INITIALIZE' } as never);
     return JSON.parse(JSON.stringify(state));
@@ -357,6 +357,9 @@ describe('persisted authState hydration', () => {
     return {
       store,
       getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => {
+        store.set(k, v);
+      },
       removeItem: (k: string) => {
         store.delete(k);
       },
@@ -381,10 +384,319 @@ describe('persisted authState hydration', () => {
     expect(storage.store.has('authState')).toBe(false);
   });
 
-  it('keeps a snapshot of a state that still exists', () => {
+  it('drops a snapshot of a flow that was still in progress', () => {
     const storage = memoryStorage(JSON.stringify(persistedSnapshot()));
+    expect(hydratePersistedAuthState(storage)).toBeUndefined();
+    expect(storage.store.has('authState')).toBe(false);
+  });
+
+  it('restores a stored session as signed in', () => {
+    const record = {
+      v: 2,
+      rpDomain: 'joori.ai',
+      context: { sessionUser: { id: 'u1', email: 'a@b.c', accessToken: 'at', refreshToken: 'rt' } },
+    };
+    const storage = memoryStorage(JSON.stringify(record));
     const resolved = hydratePersistedAuthState(storage);
-    expect(resolved?.matches('active.login.idle')).toBe(true);
-    expect(storage.store.has('authState')).toBe(true);
+    expect(resolved?.matches('active.login.successfulLogin')).toBe(true);
+    expect(resolved?.context.sessionUser).toEqual(record.context.sessionUser);
+    // Already minimal: left as it is.
+    expect(storage.store.get('authState')).toBe(JSON.stringify(record));
+  });
+
+  it('removes a stored value that has no token', () => {
+    const storage = memoryStorage(
+      JSON.stringify({ v: 2, context: { sessionUser: { id: 'u1', email: 'a@b.c' } } }),
+    );
+    expect(hydratePersistedAuthState(storage)).toBeUndefined();
+    expect(storage.store.has('authState')).toBe(false);
+  });
+
+  it('removes the key when a legacy value cannot be rewritten', () => {
+    const storage = memoryStorage(
+      JSON.stringify({ context: { sessionUser: { accessToken: 'at', refreshToken: 'rt' } } }),
+    );
+    storage.setItem = () => {
+      throw new Error('QuotaExceededError');
+    };
+    expect(hydratePersistedAuthState(storage)?.matches('active.login.successfulLogin')).toBe(true);
+    expect(storage.store.has('authState')).toBe(false);
+  });
+});
+
+/**
+ * alore-js-01. The machine used to persist `JSON.stringify(state)`: the XState
+ * snapshot, whose `event`, `_event` and `history` keep the VERIFY_LOGIN event and
+ * its client-side Argon2 `passwordHash`, which the server accepts as the password.
+ */
+describe('persisted session record (alore-js-01)', () => {
+  const PASSWORD_HASH = 'argon2d-client-hash-DO-NOT-PERSIST';
+  const sessionUser = {
+    id: 'u1',
+    email: 'user@example.com',
+    nickname: null,
+    picture: null,
+    status: 'active',
+    createdAt: '2026-01-01T00:00:00Z',
+    lastLogin: null,
+    lastTransaction: null,
+    device: 'd1',
+    deviceCreatedAt: '2026-01-01T00:00:00Z',
+    accessToken: 'access-token',
+    refreshToken: 'refresh-token',
+  };
+  const configs = {
+    enablePasswords: true,
+    enablePasskeys: false,
+    rpDomain: 'joori.ai',
+  };
+  const services = {
+    retrieveSalt: () => Promise.resolve({ salt: 'salt' }),
+    verifyLogin: () => Promise.resolve(sessionUser),
+  };
+
+  function stubBrowser(initial?: string) {
+    const store = new Map<string, string>();
+    if (initial !== undefined) store.set('authState', initial);
+    vi.stubGlobal('window', {});
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => {
+        store.set(k, v);
+      },
+      removeItem: (k: string) => {
+        store.delete(k);
+      },
+    });
+    return store;
+  }
+
+  const flush = () =>
+    new Promise<void>((resolve) => {
+      setTimeout(resolve, 0);
+    });
+
+  async function loadAuthModule() {
+    vi.resetModules();
+    return import('./index');
+  }
+
+  /** Signs in with a password, the flow that puts the password hash in the history. */
+  async function signInWithPassword(service: Service) {
+    service.send({ type: 'INITIALIZE' } as never);
+    service.send({
+      type: 'SELECT_PASSWORD_METHOD',
+      payload: { email: sessionUser.email },
+    } as never);
+    await flush();
+    service.send({
+      type: 'VERIFY_LOGIN',
+      payload: { email: sessionUser.email, device: 'd1', passwordHash: PASSWORD_HASH },
+    } as never);
+    await flush();
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.resetModules();
+  });
+
+  it('stores a minimal record after a password login, never the snapshot or the hash', async () => {
+    const store = stubBrowser();
+    const { authService } = await loadAuthModule();
+    const service = authService(services, { authProviderConfigs: configs } as never);
+    await signInWithPassword(service as never);
+
+    expect(service.state.matches('active.login.successfulLogin')).toBe(true);
+    // The in-memory snapshot still holds the hash: this is what must not be stored.
+    expect(JSON.stringify(service.state)).toContain(PASSWORD_HASH);
+
+    const raw = store.get('authState') as string;
+    expect(raw).toBeTruthy();
+    expect(raw).not.toContain(PASSWORD_HASH);
+    ['passwordHash', '"event"', '"_event"', '"history"', '"actions"', '"value"'].forEach((key) => {
+      expect(raw).not.toContain(key);
+    });
+    expect(JSON.parse(raw)).toEqual({
+      v: 2,
+      rpDomain: 'joori.ai',
+      context: { sessionUser },
+    });
+    service.stop();
+  });
+
+  it('keeps the context.sessionUser path apps read', async () => {
+    const store = stubBrowser();
+    const { authService } = await loadAuthModule();
+    const service = authService(services, { authProviderConfigs: configs } as never);
+    await signInWithPassword(service as never);
+
+    const parsed = JSON.parse(store.get('authState') as string);
+    expect(parsed.context.sessionUser.accessToken).toBe('access-token');
+    expect(parsed.context.sessionUser.refreshToken).toBe('refresh-token');
+    service.stop();
+  });
+
+  it('stores a refreshed access token without the snapshot', async () => {
+    const store = stubBrowser();
+    const { authService } = await loadAuthModule();
+    const service = authService(services, { authProviderConfigs: configs } as never);
+    await signInWithPassword(service as never);
+
+    service.send({ type: 'REFRESH_ACCESS_TOKEN', newAccessToken: 'new-access' } as never);
+    const raw = store.get('authState') as string;
+    expect(JSON.parse(raw).context.sessionUser.accessToken).toBe('new-access');
+    expect(raw).not.toContain(PASSWORD_HASH);
+    service.stop();
+  });
+
+  it('removes the stored session on logout', async () => {
+    const store = stubBrowser();
+    const { authService } = await loadAuthModule();
+    const service = authService(services, { authProviderConfigs: configs } as never);
+    await signInWithPassword(service as never);
+    expect(store.has('authState')).toBe(true);
+
+    service.send({ type: 'RESET' } as never);
+    expect(service.state.matches('inactive')).toBe(true);
+    expect(store.has('authState')).toBe(false);
+
+    // Signing in again after logout stores a fresh record, then the login screen clears it.
+    service.send({ type: 'INITIALIZE' } as never);
+    expect(service.state.matches('active.login.idle')).toBe(true);
+    expect(store.has('authState')).toBe(false);
+    service.stop();
+  });
+
+  it('drops a stored session when the login screen mounts (CLEAR_ERROR, RESET, INITIALIZE)', async () => {
+    const store = stubBrowser();
+    const { authService } = await loadAuthModule();
+    const service = authService(services, { authProviderConfigs: configs } as never);
+    await signInWithPassword(service as never);
+    expect(service.state.matches('active.login.successfulLogin')).toBe(true);
+    expect(store.has('authState')).toBe(true);
+
+    // What <Auth> sends on mount and when authProviderConfigs changes.
+    service.send(['CLEAR_ERROR', 'RESET', 'INITIALIZE'] as never);
+    expect(service.state.matches('active.login.idle')).toBe(true);
+    // RESET does not clear the context, but the stored session is gone.
+    expect(service.state.context.sessionUser).toBeTruthy();
+    expect(store.has('authState')).toBe(false);
+    service.stop();
+  });
+
+  it('never stores the snapshot of a login that has not finished', async () => {
+    const store = stubBrowser();
+    const { authService } = await loadAuthModule();
+    const service = authService({ ...services, verifyLogin: () => new Promise(() => {}) }, {
+      authProviderConfigs: configs,
+    } as never);
+    await signInWithPassword(service as never);
+
+    expect(service.state.matches('active.login.verifyingLogin')).toBe(true);
+    expect(JSON.stringify(service.state)).toContain(PASSWORD_HASH);
+    expect(store.has('authState')).toBe(false);
+    service.stop();
+  });
+
+  it('migrates the old snapshot: keeps the session, deletes the hash', async () => {
+    // Capture what the old code wrote after a password login.
+    stubBrowser();
+    const first = await loadAuthModule();
+    const old = first.authService(services, { authProviderConfigs: configs } as never);
+    await signInWithPassword(old as never);
+    const legacy = JSON.stringify(old.state);
+    old.stop();
+    expect(legacy).toContain(PASSWORD_HASH);
+    expect(legacy).toContain('"history"');
+
+    // A browser holding it loads the new code.
+    const store = stubBrowser(legacy);
+    const { authService } = await loadAuthModule();
+
+    const raw = store.get('authState') as string;
+    expect(raw).not.toContain(PASSWORD_HASH);
+    expect(raw).not.toContain('"history"');
+    expect(JSON.parse(raw)).toEqual({ v: 2, rpDomain: 'joori.ai', context: { sessionUser } });
+
+    // The user is still signed in on the migrated record.
+    const service = authService(services, { authProviderConfigs: configs } as never);
+    expect(service.state.matches('active.login.successfulLogin')).toBe(true);
+    expect(service.state.context.sessionUser?.refreshToken).toBe('refresh-token');
+    service.stop();
+  });
+
+  it('deletes an old snapshot taken while a password login was verifying', async () => {
+    stubBrowser();
+    const first = await loadAuthModule();
+    const old = first.authService({ ...services, verifyLogin: () => new Promise(() => {}) }, {
+      authProviderConfigs: configs,
+    } as never);
+    await signInWithPassword(old as never);
+    const legacy = JSON.stringify(old.state);
+    old.stop();
+    expect(legacy).toContain(PASSWORD_HASH);
+
+    const store = stubBrowser(legacy);
+    await loadAuthModule();
+    expect(store.has('authState')).toBe(false);
+  });
+
+  it('migrates a bare { context: { sessionUser } } written by an app and strips extras', async () => {
+    const store = stubBrowser(
+      JSON.stringify({
+        context: {
+          sessionUser: { accessToken: 'at', refreshToken: 'rt', passwordHash: PASSWORD_HASH },
+          salt: 's',
+        },
+        history: { event: { payload: { passwordHash: PASSWORD_HASH } } },
+      }),
+    );
+    await loadAuthModule();
+    const raw = store.get('authState') as string;
+    expect(raw).not.toContain(PASSWORD_HASH);
+    expect(JSON.parse(raw)).toEqual({
+      v: 2,
+      context: { sessionUser: { accessToken: 'at', refreshToken: 'rt' } },
+    });
+  });
+
+  it('keeps the session across a config change, but not across an rpDomain change', async () => {
+    const record = { v: 2, rpDomain: 'joori.ai', context: { sessionUser } };
+
+    stubBrowser(JSON.stringify(record));
+    let mod = await loadAuthModule();
+    const kept = mod.authService(services, {
+      authProviderConfigs: { ...configs, enablePasskeys: true },
+    } as never);
+    expect(kept.state.matches('active.login.successfulLogin')).toBe(true);
+    expect(kept.state.context.authProviderConfigs?.enablePasskeys).toBe(true);
+    kept.stop();
+
+    stubBrowser(JSON.stringify(record));
+    mod = await loadAuthModule();
+    const fresh = mod.authService(services, {
+      authProviderConfigs: { ...configs, rpDomain: 'other.example' },
+    } as never);
+    expect(fresh.state.matches('inactive')).toBe(true);
+    fresh.stop();
+  });
+
+  it('starts fresh when the stored session has no rpDomain and the config has one', async () => {
+    // The old rule was strict inequality of rpDomain, undefined included.
+    stubBrowser(JSON.stringify({ v: 2, context: { sessionUser } }));
+    let mod = await loadAuthModule();
+    const fresh = mod.authService(services, { authProviderConfigs: configs } as never);
+    expect(fresh.state.matches('inactive')).toBe(true);
+    fresh.stop();
+
+    // Neither side has an rpDomain: kept.
+    stubBrowser(JSON.stringify({ v: 2, context: { sessionUser } }));
+    mod = await loadAuthModule();
+    const kept = mod.authService(services, {
+      authProviderConfigs: { enablePasswords: true, enablePasskeys: false },
+    } as never);
+    expect(kept.state.matches('active.login.successfulLogin')).toBe(true);
+    kept.stop();
   });
 });

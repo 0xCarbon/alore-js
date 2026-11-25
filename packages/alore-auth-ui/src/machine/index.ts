@@ -2,6 +2,16 @@
 /* eslint-disable no-unused-vars */
 import { assign, createMachine, interpret, send, State } from 'xstate';
 
+import {
+  AUTH_STATE_STORAGE_KEY,
+  buildSessionRecord,
+  parsePersistedSession,
+  PersistedSessionUser,
+  removeSessionRecord,
+  StorageReader,
+  StorageWriter,
+  writeSessionRecord,
+} from './session';
 import { AuthMachineContext, AuthMachineEvents, AuthMachineServices } from './types';
 
 const initialContext: AuthMachineContext = {
@@ -1448,30 +1458,44 @@ export const authMachine = createMachine(
 );
 
 /**
- * Resolves the snapshot persisted under localStorage 'authState'. A snapshot
- * this version cannot resolve (malformed JSON, or a state an older version
- * persisted and this one removed, such as `active.web3Connector`) is dropped
- * and the machine starts fresh: importing the package must never throw.
+ * The machine state a persisted session restores to: signed in, with the
+ * session user and nothing else. The record holds no flow state, so a stored
+ * session can never resume a half-finished login or registration.
  */
-export function hydratePersistedAuthState(storage: Pick<Storage, 'getItem' | 'removeItem'>): any {
-  const authState = storage.getItem('authState');
-  if (!authState) return undefined;
-  try {
-    const parsed = JSON.parse(authState);
-    // Drop persisted error on hydration
-    if (parsed?.context) {
-      parsed.context.error = undefined;
-    }
-    // @ts-ignore
-    return authMachine.resolveState(State.create(parsed));
-  } catch {
-    try {
-      storage.removeItem('authState');
-    } catch {
-      // storage unavailable: nothing to clean up
-    }
+function sessionState(sessionUser: PersistedSessionUser, authProviderConfigs?: unknown): any {
+  const context = {
+    ...initialContext,
+    ...(authProviderConfigs ? { authProviderConfigs } : {}),
+    sessionUser,
+  };
+  // @ts-ignore
+  return authMachine.resolveState(State.from({ active: { login: 'successfulLogin' } }, context));
+}
+
+/**
+ * Resolves the session persisted under localStorage 'authState'.
+ *
+ * Importing the package must never throw, and it must never leave the old
+ * serialized XState snapshot behind: that snapshot can hold the client-side
+ * password hash. So a value that is not a usable session (malformed JSON, no
+ * tokens, a flow that was still in progress, a state this version removed) is
+ * deleted, and a legacy snapshot that does hold a session is rewritten as the
+ * minimal record before it is used. The session survives the migration.
+ */
+export function hydratePersistedAuthState(storage: StorageReader & Partial<StorageWriter>): any {
+  const stored = storage.getItem(AUTH_STATE_STORAGE_KEY);
+  if (!stored) return undefined;
+  const parsed = parsePersistedSession(stored);
+  if (!parsed) {
+    removeSessionRecord(storage);
     return undefined;
   }
+  if (parsed.needsRewrite) {
+    if (storage.setItem) writeSessionRecord(storage as StorageWriter, parsed.record);
+    else removeSessionRecord(storage);
+  }
+  const { rpDomain, context } = parsed.record;
+  return sessionState(context.sessionUser, rpDomain && { rpDomain });
 }
 
 let resolvedState: any;
@@ -1485,6 +1509,21 @@ if (typeof window !== 'undefined') {
   }
 }
 
+/**
+ * Keeps localStorage in step with the machine: a signed-in state stores the
+ * minimal session record; every other state, which includes logout, the login
+ * screen and a reset, removes it.
+ */
+function persistSession(state: any, storage: StorageWriter) {
+  const signedIn =
+    state.matches('active.login.successfulLogin') || state.matches('active.register.userCreated');
+  const record = signedIn
+    ? buildSessionRecord(state.context.sessionUser, state.context.authProviderConfigs?.rpDomain)
+    : undefined;
+  if (record) writeSessionRecord(storage, record);
+  else removeSessionRecord(storage);
+}
+
 export const authService = (services: {}, context: AuthMachineContext) => {
   const mergedContext = {
     ...authMachine.context,
@@ -1492,45 +1531,20 @@ export const authService = (services: {}, context: AuthMachineContext) => {
     ...context,
   };
 
-  // If persisted authProviderConfigs differ from provided configs, start fresh (ignore persisted state)
-  const persistedConfig = resolvedState?.context?.authProviderConfigs;
-  const incomingConfig = mergedContext.authProviderConfigs;
-  const configsDiffer =
-    JSON.stringify(persistedConfig || {}) !== JSON.stringify(incomingConfig || {});
-
-  let startArg = configsDiffer ? undefined : resolvedState;
-
-  // A config change usually means a new frontend deploy baked different env-derived
-  // values (URLs, flags). That invalidates persisted login-flow UI state, but it must
-  // not cost an authenticated user their session: keep the logged-in snapshot and
-  // adopt the incoming configs instead of discarding the tokens (JOO-1964).
-  // Exception: passkeys are cryptographically bound to rpDomain — if it changed,
-  // a kept session could no longer complete any WebAuthn flow, so fall back to
-  // the old start-fresh behavior.
-  if (
-    configsDiffer &&
-    resolvedState?.context?.sessionUser &&
-    resolvedState.matches('active.login.successfulLogin') &&
-    persistedConfig?.rpDomain === incomingConfig?.rpDomain
-  ) {
-    const persistedSnapshot = JSON.parse(JSON.stringify(resolvedState));
-    const patchedState = State.create({
-      ...persistedSnapshot,
-      context: {
-        ...persistedSnapshot.context,
-        authProviderConfigs: incomingConfig,
-        // Login-flow leftovers; stale values must not survive into the kept session.
-        salt: undefined,
-        sessionId: undefined,
-      },
-    });
-    // @ts-ignore
-    startArg = authMachine.resolveState(patchedState);
-    // Persist right away: .start() does not fire a persisting transition
-    // (state.changed is undefined on boot), and without this every boot would
-    // re-run the patch until the next persisted transition.
-    localStorage.setItem('authState', JSON.stringify(startArg));
-  }
+  // A stored session survives a config change: a new frontend deploy usually bakes
+  // different env-derived values (URLs, flags), and that must not cost an
+  // authenticated user their session (JOO-1964). Exception: passkeys are
+  // cryptographically bound to rpDomain, so if it changed a kept session could no
+  // longer complete any WebAuthn flow and the machine starts fresh. The comparison
+  // is strict, as before: a stored session with no rpDomain does not match an
+  // incoming config that has one.
+  const persistedRpDomain = resolvedState?.context?.authProviderConfigs?.rpDomain;
+  const incomingRpDomain = mergedContext.authProviderConfigs?.rpDomain;
+  const rpDomainChanged = persistedRpDomain !== incomingRpDomain;
+  const startArg =
+    resolvedState && !rpDomainChanged
+      ? sessionState(resolvedState.context.sessionUser, mergedContext.authProviderConfigs)
+      : undefined;
 
   return interpret(
     authMachine.withConfig(
@@ -1621,7 +1635,7 @@ export const authService = (services: {}, context: AuthMachineContext) => {
           state.matches('active.forgotPassword.passwordSaved'));
 
       if (shouldUpdate && typeof window !== 'undefined') {
-        localStorage.setItem('authState', JSON.stringify(state));
+        persistSession(state, localStorage);
       }
     })
     .start(startArg);
