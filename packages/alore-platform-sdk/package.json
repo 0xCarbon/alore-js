@@ -1,6 +1,6 @@
 {
   "name": "@alore/platform-sdk",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "Thin typed TypeScript layer over the official openai SDK for the Alore /ai/v1 API",
   "repository": "https://github.com/0xCarbon/alore-js",
   "type": "module",
